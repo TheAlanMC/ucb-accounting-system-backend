@@ -1,0 +1,46 @@
+server:
+  port: ${PORT:8080}
+
+spring:
+  application:
+    name: uas-backend
+  config:
+    import: optional:file:.env[.properties]
+  datasource:
+    type: org.postgresql.jdbc2.optional.SimpleDataSource
+    username: ${POSTGRES_USERNAME:postgres}
+    password: ${POSTGRES_PASSWORD:mysecretpassword}
+    url: ${POSTGRES_URL:jdbc:postgresql://localhost:5432/db_uas}
+    jpa:
+      hibernate:
+        ddl-auto:
+
+
+minio:
+  url: ${MINIO_SERVER_URI:http://localhost:9000}
+  access:
+    key: ${MINIO_ACCESS_KEY}
+    secret: ${MINIO_SECRET_KEY}
+
+frontend-client-id: ${FRONTEND_KEYCLOAK_CLIENT_ID:uas-frontend}
+
+keycloak:
+  auth-server-url: ${KEYCLOAK_SERVER_URI:http://localhost:8090}
+  autodetect-bearer-only: true
+  credentials:
+    secret: ${KEYCLOAK_CLIENT_SECRET}
+  realm: ${KEYCLOAK_REALM:ucb-accounting-system}
+  resource: ${KEYCLOAK_CLIENT_ID:uas-backend}
+  ssl-required: none
+  use-resource-role-mappings: false
+  security-constraints:
+#    - auth-roles:
+#        - uj-users-access
+#      security-collections:
+#        - name: Find users related methods
+#          patterns:
+#            - /api/v1/users
+#            - /api/v1/users/group/*
+#          methods:
+#            - GET
+
