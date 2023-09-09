@@ -1,4 +1,3 @@
 package ucb.accounting.backend.exception
 
-class UasException {
-}
+class UasException (val code: String) : Exception()

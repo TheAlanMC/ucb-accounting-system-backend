@@ -1,4 +1,7 @@
 package ucb.accounting.backend.dto
 
-class ResponseDto {
-}
+data class ResponseDto<T>(
+    val code: String,
+    val message: String,
+    val data: T?
+);

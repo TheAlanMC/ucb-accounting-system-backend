@@ -13,7 +13,7 @@ spring:
     url: ${POSTGRES_URL:jdbc:postgresql://localhost:5432/db_uas}
     jpa:
       hibernate:
-        ddl-auto:
+        ddl-auto: none
 
 
 minio:
