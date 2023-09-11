@@ -42,4 +42,12 @@ keycloak:
             - /api/v1/files/attachments/companies/*
           methods:
             - POST
-
+    - auth-roles:
+        - common-user
+      security-collections:
+        - name: User Profile CRUD
+          patterns:
+            - /api/v1/users/*
+          methods:
+            - GET
+            - PUT
