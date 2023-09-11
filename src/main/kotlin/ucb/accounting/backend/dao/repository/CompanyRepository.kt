@@ -1,0 +1,11 @@
+package ucb.accounting.backend.dao.repository
+
+import org.springframework.data.jpa.repository.JpaRepository
+import org.springframework.stereotype.Repository
+import ucb.accounting.backend.dao.Company
+
+@Repository
+interface CompanyRepository: JpaRepository<Company, Long> {
+    fun findByCompanyIdAndStatusTrue (companyId: Long): Company?
+    fun findByCompanyIdAndAccountant_KcUuidAndStatusTrue (companyId: Long, kcUuid: String): Company?
+}

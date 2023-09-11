@@ -34,13 +34,20 @@ keycloak:
   ssl-required: none
   use-resource-role-mappings: false
   security-constraints:
-#    - auth-roles:
-#        - uj-users-access
-#      security-collections:
-#        - name: Find users related methods
-#          patterns:
-#            - /api/v1/users
-#            - /api/v1/users/group/*
-#          methods:
-#            - GET
-
+    - auth-roles:
+        - journal-entry-recorder
+      security-collections:
+        - name: Journal Entry POST
+          patterns:
+            - /api/v1/files/attachments/companies/*
+          methods:
+            - POST
+    - auth-roles:
+        - common-user
+      security-collections:
+        - name: User Profile CRUD
+          patterns:
+            - /api/v1/users/*
+          methods:
+            - GET
+            - PUT
