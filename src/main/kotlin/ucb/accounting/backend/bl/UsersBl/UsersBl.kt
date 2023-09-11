@@ -22,8 +22,9 @@ class UsersBl @Autowired constructor(
             .users()
             .get(kc_uuid)
             .toRepresentation()
-        val companyId = user.attributes?.get("company_id")?.get(0)
-        val profilePicture = user.attributes?.get("s3_profile_picture")?.get(0)
+        val companyIdString = user.attributes?.get("company_id")?.get(0)
+        val companyId = companyIdString?.toLongOrNull() ?: 1
+        val profilePicture = user.attributes?.get("s3_profile_picture")?.get(0)?: "1"
         return UserDto(
             companyId,
             user.firstName,

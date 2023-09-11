@@ -1,7 +1,7 @@
 package ucb.accounting.backend.dto
 
 data class UserDto (
-    val companyId: String?,
+    val companyId: Long?,
     val firstName: String?,
     val lastName: String?,
     val email: String?,
