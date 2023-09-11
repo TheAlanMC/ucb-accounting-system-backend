@@ -1,6 +1,5 @@
 package ucb.accounting.backend.bl
 
-import org.keycloak.admin.client.Keycloak
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
@@ -11,6 +10,7 @@ import ucb.accounting.backend.dao.repository.AttachmentRepository
 import ucb.accounting.backend.dao.repository.CompanyRepository
 import ucb.accounting.backend.dto.AttachmentDto
 import ucb.accounting.backend.exception.UasException
+import ucb.accounting.backend.util.KeycloakSecurityContextHolder
 
 @Controller
 class FilesBl @Autowired constructor(
@@ -22,8 +22,10 @@ class FilesBl @Autowired constructor(
     }
 
     fun uploadFile(attachment: MultipartFile, companyId: Long): AttachmentDto {
-        // Validation
+        // Validation of company
         companyRepository.findByCompanyIdAndStatusTrue(companyId) ?: throw UasException("404-05")
+        // Validation of user belongs to company
+        companyRepository.findByCompanyIdAndAccountant_KcUuidAndStatusTrue(companyId, KeycloakSecurityContextHolder.getSubject()!!) ?: throw UasException("403-18")
         // Upload to database as blob
         val attachmentEntity = Attachment()
         attachmentEntity.companyId = companyId.toInt()

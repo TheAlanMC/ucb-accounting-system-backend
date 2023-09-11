@@ -35,7 +35,7 @@ class FilesApi @Autowired constructor(private val filesBl: FilesBl) {
         val code = "200-16"
         val responseInfo = ResponseCodeUtil.getResponseInfo(code)
         logger.info("Code: $code - ${responseInfo.message}")
-        return ResponseEntity(ResponseDto(code, responseInfo.message!!, null), responseInfo.httpStatus)
+        return ResponseEntity(ResponseDto(code, responseInfo.message!!, attachmentDto), responseInfo.httpStatus)
     }
 
 }
