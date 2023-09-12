@@ -3,24 +3,28 @@ package ucb.accounting.backend.dao
 import javax.persistence.*
 
 @Entity
-@Table(name = "user_company")
-class UserCompany {
+@Table(name = "kc_user_company")
+class KcUserCompany {
     @EmbeddedId
-    var id: UserCompanyId = UserCompanyId()
+    var id: KcUserCompanyId = KcUserCompanyId()
 
     @ManyToOne(fetch = FetchType.LAZY)
     @MapsId("kcUuid")
     @JoinColumn(name = "kc_uuid", referencedColumnName = "kc_uuid", insertable = false, updatable = false)
-    var user: User? = null
+    var kcUser: KcUser? = null
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @MapsId("groupId")
-    @JoinColumn(name = "group_id", referencedColumnName = "group_id", insertable = false, updatable = false)
-    var group: Group? = null
+    @MapsId("kcGroupId")
+    @JoinColumn(name = "kc_group_id", referencedColumnName = "kc_group_id", insertable = false, updatable = false)
+    var kcGroup: KcGroup? = null
 
     @ManyToOne(fetch = FetchType.LAZY)
     @MapsId("companyId")
     @JoinColumn(name = "company_id", referencedColumnName = "company_id", insertable = false, updatable = false)
     var company: Company? = null
+
+    @Column(name = "status")
+    var status: Boolean = true
+
 
 }

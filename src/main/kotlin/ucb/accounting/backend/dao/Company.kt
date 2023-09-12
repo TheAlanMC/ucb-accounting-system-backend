@@ -41,4 +41,7 @@ class Company {
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "business_entity_id", referencedColumnName = "business_entity_id", insertable = false, updatable = false)
     var businessEntity: BusinessEntity? = null
+
+    @OneToMany(mappedBy = "company")
+    var kcUserCompany: List<KcUserCompany>? = null
 }

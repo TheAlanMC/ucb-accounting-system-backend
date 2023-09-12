@@ -8,6 +8,7 @@ import org.springframework.web.multipart.MultipartFile
 import ucb.accounting.backend.dao.Attachment
 import ucb.accounting.backend.dao.repository.AttachmentRepository
 import ucb.accounting.backend.dao.repository.CompanyRepository
+import ucb.accounting.backend.dao.repository.KcUserCompanyRepository
 import ucb.accounting.backend.dto.AttachmentDto
 import ucb.accounting.backend.exception.UasException
 import ucb.accounting.backend.util.KeycloakSecurityContextHolder
@@ -15,7 +16,8 @@ import ucb.accounting.backend.util.KeycloakSecurityContextHolder
 @Controller
 class FilesBl @Autowired constructor(
     private val attachmentRepository: AttachmentRepository,
-    private val companyRepository: CompanyRepository
+    private val companyRepository: CompanyRepository,
+    private val kcUserCompanyRepository: KcUserCompanyRepository
 ){
     companion object {
         val logger: Logger = LoggerFactory.getLogger(FilesBl::class.java)
@@ -24,8 +26,10 @@ class FilesBl @Autowired constructor(
     fun uploadFile(attachment: MultipartFile, companyId: Long): AttachmentDto {
         // Validation of company
         companyRepository.findByCompanyIdAndStatusTrue(companyId) ?: throw UasException("404-05")
+        val kcUuid = KeycloakSecurityContextHolder.getSubject()!!
+        logger.info("User $kcUuid is uploading file to company $companyId")
         // Validation of user belongs to company
-//        companyRepository.findByCompanyIdAndAccountant_KcUuidAndStatusTrue(companyId, KeycloakSecurityContextHolder.getSubject()!!) ?: throw UasException("403-18")
+        kcUserCompanyRepository.findAllByKcUser_KcUuidAndCompany_CompanyIdAndStatusIsTrue(kcUuid, companyId) ?: throw UasException("403-02")
         // Upload to database as blob
         val attachmentEntity = Attachment()
         attachmentEntity.companyId = companyId.toInt()

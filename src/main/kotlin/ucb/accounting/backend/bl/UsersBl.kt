@@ -10,14 +10,19 @@ import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Controller
+import ucb.accounting.backend.dao.KcUserCompany
+import ucb.accounting.backend.dao.repository.KcUserCompanyRepository
 import ucb.accounting.backend.dto.PasswordUpdateDto
+import ucb.accounting.backend.dto.UserCompanyDto
 import ucb.accounting.backend.dto.UserDto
 import ucb.accounting.backend.exception.UasException
+import ucb.accounting.backend.mapper.KcUserCompanyMapper
 import ucb.accounting.backend.util.KeycloakSecurityContextHolder
 
 @Controller
 class UsersBl @Autowired constructor(
     private val keycloak: Keycloak,
+    private val kcUserCompanyRepository: KcUserCompanyRepository
 ) {
 
     companion object {
@@ -54,22 +59,17 @@ class UsersBl @Autowired constructor(
             .users()
             .get(kcUuid)
             .toRepresentation()
-        // TODO: FIX COMPANY ID
-        // val userCompanyEntities: List<UserCompany> = userCompanyRepository.findByKcUuid(kcUuid)
-        // val userCompanies: List<UserCompanyDto> = userCompanyEntities.map { UserCompanyMapper.entityToDto(it) }
-        // Extract companies from userCompanies
-        // val companies: List<Int> = userCompanies.map { it.companyId }
 
-        val companyIdString = user.attributes?.get("company_id")?.get(0)
-        val companyId = companyIdString?.toLongOrNull() ?: 1
-        val profilePicture = user.attributes?.get("s3_profile_picture")?.get(0)?: "1"
+         val userCompanyEntities: List<KcUserCompany> = kcUserCompanyRepository.findAllByKcUser_KcUuidAndStatusIsTrue(kcUuid)
+         val userCompanies: List<UserCompanyDto> = userCompanyEntities.map { KcUserCompanyMapper.entityToDto(it) }
+         val companies: List<Long> = userCompanies.map { it.companyId }
 
         return UserDto(
-            companyId,
-            user.firstName,
-            user.lastName,
-            user.email,
-            profilePicture
+            companyIds = companies,
+            firstName = user.firstName,
+            lastName = user.lastName,
+            email = user.email,
+            profilePicture = "https://www.gravatar.com/avatar/205e460b479e2e5b48aec07710c08d50?s=200",
         )
     }
     fun updateUser(kcUuid: String, userDto: UserDto): UserDto {
@@ -106,8 +106,13 @@ class UsersBl @Autowired constructor(
         logger.info("User info updated")
 
         // TODO: Add logic to update profile picture
+
+        val userCompanyEntities: List<KcUserCompany> = kcUserCompanyRepository.findAllByKcUser_KcUuidAndStatusIsTrue(kcUuid)
+        val userCompanies: List<UserCompanyDto> = userCompanyEntities.map { KcUserCompanyMapper.entityToDto(it) }
+        val companies: List<Long> = userCompanies.map { it.companyId }
+
         return UserDto(
-            companyId = 1,
+            companyIds = companies,
             firstName = user.firstName,
             lastName = user.lastName,
             email = user.email,

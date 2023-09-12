@@ -4,7 +4,7 @@ import javax.persistence.Column
 import javax.persistence.Embeddable
 
 @Embeddable
-class UserCompanyId: java.io.Serializable {
+class KcUserCompanyId: java.io.Serializable {
     @Column(name = "kc_uuid")
     var kcUuid: String = ""
 

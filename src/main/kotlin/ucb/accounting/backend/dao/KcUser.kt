@@ -3,8 +3,8 @@ package ucb.accounting.backend.dao
 import javax.persistence.*
 
 @Entity
-@Table(name = "accountant")
-class User {
+@Table(name = "kc_user")
+class KcUser {
     @Id
     @Column(name = "kc_uuid")
     var kcUuid: String = ""
@@ -14,4 +14,7 @@ class User {
 
     @Column(name = "status")
     var status: Boolean = true
+
+    @OneToMany(mappedBy = "kcUser")
+    var kcUserCompany: List<KcUserCompany>? = null
 }
