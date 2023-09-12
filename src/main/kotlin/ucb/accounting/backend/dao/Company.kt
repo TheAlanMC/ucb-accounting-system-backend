@@ -16,9 +16,6 @@ class Company {
     @Column(name = "business_entity_id")
     var businessEntityId: Int = 0
 
-    @Column(name = "accountant_id")
-    var accountantId: Int = 0
-
     @Column(name = "company_name")
     var companyName: String = ""
 
@@ -37,22 +34,11 @@ class Company {
     @Column(name = "status")
     var status: Boolean = true
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "industry_id", referencedColumnName = "industry_id", insertable = false, updatable = false)
     var industry: Industry? = null
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "business_entity_id", referencedColumnName = "business_entity_id", insertable = false, updatable = false)
     var businessEntity: BusinessEntity? = null
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "accountant_id", referencedColumnName = "accountant_id", insertable = false, updatable = false)
-    var accountant: Accountant? = null
-
-    @OneToMany(mappedBy = "company")
-    var companyAccountingAssistants: List<CompanyAccountingAssistant>? = null
-
-    @OneToMany(mappedBy = "company")
-    var companyClients: List<CompanyClient>? = null
-
 }

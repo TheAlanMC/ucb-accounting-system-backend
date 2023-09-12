@@ -55,6 +55,11 @@ class UsersBl @Autowired constructor(
             .get(kcUuid)
             .toRepresentation()
         // TODO: FIX COMPANY ID
+        // val userCompanyEntities: List<UserCompany> = userCompanyRepository.findByKcUuid(kcUuid)
+        // val userCompanies: List<UserCompanyDto> = userCompanyEntities.map { UserCompanyMapper.entityToDto(it) }
+        // Extract companies from userCompanies
+        // val companies: List<Int> = userCompanies.map { it.companyId }
+
         val companyIdString = user.attributes?.get("company_id")?.get(0)
         val companyId = companyIdString?.toLongOrNull() ?: 1
         val profilePicture = user.attributes?.get("s3_profile_picture")?.get(0)?: "1"

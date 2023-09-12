@@ -34,10 +34,7 @@ class TransactionDetail {
     var transaction: Transaction? = null
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "account_id", referencedColumnName = "account_id", insertable = false, updatable = false)
-    var account: Account? = null
+    @JoinColumn(name = "subaccount_id", referencedColumnName = "subaccount_id", insertable = false, updatable = false)
+    var subaccount: Subaccount? = null
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "currency_type_id", referencedColumnName = "currency_type_id", insertable = false, updatable = false)
-    var currencyType: CurrencyType? = null
 }
