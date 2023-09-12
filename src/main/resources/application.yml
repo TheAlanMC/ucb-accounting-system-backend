@@ -14,7 +14,10 @@ spring:
     jpa:
       hibernate:
         ddl-auto: none
-
+  servlet:
+    multipart:
+      max-file-size: 1MB
+      max-request-size: 1MB
 
 minio:
   url: ${MINIO_SERVER_URI:http://localhost:9000}
@@ -51,3 +54,11 @@ keycloak:
           methods:
             - GET
             - PUT
+    - auth-roles:
+        - common-user
+      security-collections:
+        - name: Profile Picture Upload
+          patterns:
+            - /api/v1/files/pictures/*
+          methods:
+            - POST
