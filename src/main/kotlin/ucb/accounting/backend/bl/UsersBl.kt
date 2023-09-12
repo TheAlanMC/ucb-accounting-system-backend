@@ -33,6 +33,40 @@ class UsersBl @Autowired constructor(
     @Value("\${frontend-client-id}")
     private val frontendClientId: String? = null
 
+    fun findUser(kcUuid: String): UserDto {
+        logger.info("Getting user info")
+        // Validation that the user exists
+        try {
+            keycloak
+                .realm(realm)
+                .users()
+                .get(kcUuid)
+                .toRepresentation()
+        } catch (e: Exception) {
+            throw UasException("404-01")
+        }
+        // Validation of user KcUuid belongs is the same as the logged user
+        if (kcUuid != KeycloakSecurityContextHolder.getSubject()) {
+            throw UasException("403-01")
+        }
+        val user: UserRepresentation = keycloak
+            .realm(realm)
+            .users()
+            .get(kcUuid)
+            .toRepresentation()
+        // TODO: FIX COMPANY ID
+        val companyIdString = user.attributes?.get("company_id")?.get(0)
+        val companyId = companyIdString?.toLongOrNull() ?: 1
+        val profilePicture = user.attributes?.get("s3_profile_picture")?.get(0)?: "1"
+
+        return UserDto(
+            companyId,
+            user.firstName,
+            user.lastName,
+            user.email,
+            profilePicture
+        )
+    }
     fun updateUser(kcUuid: String, userDto: UserDto): UserDto {
         logger.info("Updating user info")
         // Validation that the user exists
@@ -68,6 +102,7 @@ class UsersBl @Autowired constructor(
 
         // TODO: Add logic to update profile picture
         return UserDto(
+            companyId = 1,
             firstName = user.firstName,
             lastName = user.lastName,
             email = user.email,

@@ -5,11 +5,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.data.jpa.repository.support.QueryHints.NoHints
 import org.springframework.http.ResponseEntity
 import org.springframework.stereotype.Service
-import org.springframework.web.bind.annotation.PathVariable
-import org.springframework.web.bind.annotation.PutMapping
-import org.springframework.web.bind.annotation.RequestBody
-import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.bind.annotation.*
 import ucb.accounting.backend.bl.UsersBl
 import ucb.accounting.backend.dto.PasswordUpdateDto
 import ucb.accounting.backend.dto.ResponseDto
@@ -24,13 +20,24 @@ class UsersApi @Autowired constructor(private val usersBl: UsersBl) {
         private val logger = LoggerFactory.getLogger(UsersApi::class.java.name)
     }
 
+    @GetMapping("/{kcUuid}")
+    fun findAllUsersById(@PathVariable kcUuid: String): ResponseEntity<ResponseDto<UserDto>> {
+        logger.info("Starting the API call to get user info")
+        logger.info("GET /api/v1/users/${kcUuid}")
+        val user: UserDto = usersBl.findUser(kcUuid)
+        logger.info("Sending response")
+        val code = "200-01"
+        val responseInfo = ResponseCodeUtil.getResponseInfo(code)
+        logger.info("Code: $code - ${responseInfo.message}")
+        return ResponseEntity(ResponseDto(code, responseInfo.message!!, user), responseInfo.httpStatus)
+    }
     @PutMapping("/{kcUuid}")
     fun updateUserInfo(
         @PathVariable("kcUuid") kcUuid: String,
         @RequestBody userDto: UserDto,
     ) : ResponseEntity<ResponseDto<UserDto>> {
         logger.info("Starting the API call to update user info")
-        logger.info("PUT /api/v1/users/{kcUuid}")
+        logger.info("PUT /api/v1/users/${kcUuid}")
         val newUserDto = usersBl.updateUser(kcUuid, userDto)
         logger.info("Sending response")
         val code = "200-02"
@@ -45,7 +52,7 @@ class UsersApi @Autowired constructor(private val usersBl: UsersBl) {
         @RequestBody passwordUpdateDto: PasswordUpdateDto,
     ) : ResponseEntity<ResponseDto<Nothing>> {
         logger.info("Starting the API call to update user password")
-        logger.info("PUT /api/v1/users/{kcUuid}/passwords")
+        logger.info("PUT /api/v1/users/${kcUuid}/passwords")
         usersBl.updateUserPassword(kcUuid, passwordUpdateDto)
         val code = "200-02"
         val responseInfo = ResponseCodeUtil.getResponseInfo(code)
