@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.multipart.MultipartFile
 import ucb.accounting.backend.bl.FilesBl
 import ucb.accounting.backend.dto.AttachmentDto
+import ucb.accounting.backend.dto.FileDto
 import ucb.accounting.backend.dto.ResponseDto
 import ucb.accounting.backend.util.ResponseCodeUtil
 
@@ -38,4 +39,17 @@ class FilesApi @Autowired constructor(private val filesBl: FilesBl) {
         return ResponseEntity(ResponseDto(code, responseInfo.message!!, attachmentDto), responseInfo.httpStatus)
     }
 
+    @PostMapping("pictures")
+    fun uploadPicture(
+        @RequestParam("picture") picture: MultipartFile,
+    ) : ResponseEntity<ResponseDto<FileDto>>{
+        logger.info("Starting the API call to upload picture")
+        logger.info("POST /api/v1/files/pictures")
+        val attachmentDto = filesBl.uploadPicture(picture)
+        logger.info("Sending response")
+        val code = "200-18"
+        val responseInfo = ResponseCodeUtil.getResponseInfo(code)
+        logger.info("Code: $code - ${responseInfo.message}")
+        return ResponseEntity(ResponseDto(code, responseInfo.message!!, attachmentDto), responseInfo.httpStatus)
+    }
 }

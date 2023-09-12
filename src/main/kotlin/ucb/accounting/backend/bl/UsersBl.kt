@@ -10,19 +10,27 @@ import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Controller
+import ucb.accounting.backend.dao.KcUser
 import ucb.accounting.backend.dao.KcUserCompany
+import ucb.accounting.backend.dao.S3Object
 import ucb.accounting.backend.dao.repository.KcUserCompanyRepository
+import ucb.accounting.backend.dao.repository.KcUserRepository
+import ucb.accounting.backend.dao.repository.S3ObjectRepository
 import ucb.accounting.backend.dto.PasswordUpdateDto
 import ucb.accounting.backend.dto.UserCompanyDto
 import ucb.accounting.backend.dto.UserDto
 import ucb.accounting.backend.exception.UasException
 import ucb.accounting.backend.mapper.KcUserCompanyMapper
+import ucb.accounting.backend.service.MinioService
 import ucb.accounting.backend.util.KeycloakSecurityContextHolder
 
 @Controller
 class UsersBl @Autowired constructor(
     private val keycloak: Keycloak,
-    private val kcUserCompanyRepository: KcUserCompanyRepository
+    private val kcUserCompanyRepository: KcUserCompanyRepository,
+    private val kcUserRepository: KcUserRepository,
+    private val s3ObjectRepository: S3ObjectRepository,
+    private val minioService: MinioService
 ) {
 
     companion object {
@@ -41,15 +49,8 @@ class UsersBl @Autowired constructor(
     fun findUser(kcUuid: String): UserDto {
         logger.info("Getting user info")
         // Validation that the user exists
-        try {
-            keycloak
-                .realm(realm)
-                .users()
-                .get(kcUuid)
-                .toRepresentation()
-        } catch (e: Exception) {
-            throw UasException("404-01")
-        }
+        val kcUserEntity: KcUser = kcUserRepository.findByKcUuidAndStatusIsTrue(kcUuid) ?: throw UasException("404-01")
+
         // Validation of user KcUuid belongs is the same as the logged user
         if (kcUuid != KeycloakSecurityContextHolder.getSubject()) {
             throw UasException("403-01")
@@ -60,34 +61,44 @@ class UsersBl @Autowired constructor(
             .get(kcUuid)
             .toRepresentation()
 
-         val userCompanyEntities: List<KcUserCompany> = kcUserCompanyRepository.findAllByKcUser_KcUuidAndStatusIsTrue(kcUuid)
-         val userCompanies: List<UserCompanyDto> = userCompanyEntities.map { KcUserCompanyMapper.entityToDto(it) }
-         val companies: List<Long> = userCompanies.map { it.companyId }
+        val userCompanyEntities: List<KcUserCompany> = kcUserCompanyRepository.findAllByKcUser_KcUuidAndStatusIsTrue(kcUuid)
+        val userCompanies: List<UserCompanyDto> = userCompanyEntities.map { KcUserCompanyMapper.entityToDto(it) }
+        val companies: List<Long> = userCompanies.map { it.companyId }
+
+        // Get s3 object
+        val s3Object: S3Object = s3ObjectRepository.findByS3ObjectIdAndStatusIsTrue(kcUserEntity.s3ProfilePicture.toLong())?: throw UasException("404-13")
+        val preSignedUrl: String = minioService.getPreSignedUrl(s3Object.bucket, s3Object.filename)
 
         return UserDto(
             companyIds = companies,
             firstName = user.firstName,
             lastName = user.lastName,
             email = user.email,
-            profilePicture = "https://www.gravatar.com/avatar/205e460b479e2e5b48aec07710c08d50?s=200",
+            s3ProfilePictureId = kcUserEntity.s3ProfilePicture.toLong(),
+            profilePicture = preSignedUrl,
         )
     }
     fun updateUser(kcUuid: String, userDto: UserDto): UserDto {
         logger.info("Updating user info")
         // Validation that the user exists
-        try {
-            keycloak
-                .realm(realm)
-                .users()
-                .get(kcUuid)
-                .toRepresentation()
-        } catch (e: Exception) {
-            throw UasException("404-01")
-        }
+        val kcUserEntity: KcUser = kcUserRepository.findByKcUuidAndStatusIsTrue(kcUuid) ?: throw UasException("404-01")
+
         // Validation of user KcUuid belongs is the same as the logged user
         if (kcUuid != KeycloakSecurityContextHolder.getSubject()) {
             throw UasException("403-03")
         }
+
+        // If s3ProfilePictureId is not null, update s3ProfilePicture in KcUser
+        if (userDto.s3ProfilePictureId != null) {
+            // Validation that the s3ProfilePictureId exists
+            s3ObjectRepository.findByS3ObjectIdAndStatusIsTrue(userDto.s3ProfilePictureId) ?: throw UasException("404-13")
+            kcUserEntity.s3ProfilePicture = userDto.s3ProfilePictureId.toInt()
+            kcUserRepository.save(kcUserEntity)
+        }
+
+        // Get s3 object
+        val s3Object: S3Object = s3ObjectRepository.findByS3ObjectIdAndStatusIsTrue(kcUserEntity.s3ProfilePicture.toLong())?: throw UasException("404-13")
+        val preSignedUrl: String = minioService.getPreSignedUrl(s3Object.bucket, s3Object.filename)
 
         // Get user info from keycloak
         val user: UserRepresentation = keycloak
@@ -105,8 +116,6 @@ class UsersBl @Autowired constructor(
             .update(user)
         logger.info("User info updated")
 
-        // TODO: Add logic to update profile picture
-
         val userCompanyEntities: List<KcUserCompany> = kcUserCompanyRepository.findAllByKcUser_KcUuidAndStatusIsTrue(kcUuid)
         val userCompanies: List<UserCompanyDto> = userCompanyEntities.map { KcUserCompanyMapper.entityToDto(it) }
         val companies: List<Long> = userCompanies.map { it.companyId }
@@ -116,22 +125,15 @@ class UsersBl @Autowired constructor(
             firstName = user.firstName,
             lastName = user.lastName,
             email = user.email,
-            profilePicture = "https://www.gravatar.com/avatar/205e460b479e2e5b48aec07710c08d50?s=200",
+            s3ProfilePictureId = userDto.s3ProfilePictureId,
+            profilePicture = preSignedUrl,
         )
     }
 
     fun updateUserPassword (kcUuid: String, passwordUpdateDto: PasswordUpdateDto) {
         logger.info("Updating user password")
         // Validation that the user exists
-        try {
-            keycloak
-                .realm(realm)
-                .users()
-                .get(kcUuid)
-                .toRepresentation()
-        } catch (e: Exception) {
-            throw UasException("404-01")
-        }
+        kcUserRepository.findByKcUuidAndStatusIsTrue(kcUuid) ?: throw UasException("404-01")
         // Validation of user KcUuid belongs is the same as the logged user
         if (kcUuid != KeycloakSecurityContextHolder.getSubject()) {
             throw UasException("403-03")
