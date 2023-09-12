@@ -7,3 +7,4 @@ data class UserDto (
     val email: String?,
     val profilePicture: String?
 )
+
