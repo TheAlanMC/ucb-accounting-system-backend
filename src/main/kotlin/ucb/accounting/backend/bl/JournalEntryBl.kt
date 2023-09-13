@@ -33,11 +33,16 @@ class JournalEntryBl @Autowired constructor(
         companyRepository.findByCompanyIdAndStatusTrue(companyId) ?: throw UasException("404-05")
         // Validation that document type exists
         documentTypeRepository.findByDocumentTypeIdAndStatusTrue(journalEntryDto.documentTypeId) ?: throw UasException("404-12")
-        // Validate that journal entry number is unique
+        // Validation that all the attachments exist
+        journalEntryDto.attachments.map { attachmentRepository.findByAttachmentIdAndStatusTrue(it.attachmentId) ?: throw UasException("404-14") }
+        // Validation that accounting principle of double-entry is being followed
+        if (journalEntryDto.transactionDetails.sumOf { it.debitAmountBs } != journalEntryDto.transactionDetails.sumOf { it.creditAmountBs }) throw UasException("400-21")
+        // Validation that journal entry number is unique
         // TODO: Maybe validate that is sequential
         if (journalEntryRepository.findByCompanyIdAndJournalEntryNumberAndStatusTrue(companyId.toInt(), journalEntryDto.journalEntryNumber) != null) throw UasException("409-04")
-        // Validate that the user belongs to the company
+        // Validation that the user belongs to the company
         val kcUuid = KeycloakSecurityContextHolder.getSubject()!!
+
         logger.info("User $kcUuid is registering a new journal entry")
         // Validation of user belongs to company
         kcUserCompanyRepository.findAllByKcUser_KcUuidAndCompany_CompanyIdAndStatusIsTrue(kcUuid, companyId) ?: throw UasException("403-20")
@@ -61,7 +66,6 @@ class JournalEntryBl @Autowired constructor(
         journalEntryDto.attachments.map {
             val transactionAttachmentEntity = TransactionAttachment()
             transactionAttachmentEntity.transaction = savedTransaction
-            // TODO: Validate that all the attachments exist
             transactionAttachmentEntity.attachment = attachmentRepository.findByAttachmentIdAndStatusTrue(it.attachmentId)!!
             transactionAttachmentRepository.save(transactionAttachmentEntity)
         }
