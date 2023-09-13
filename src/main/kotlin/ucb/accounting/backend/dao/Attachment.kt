@@ -28,4 +28,5 @@ class Attachment {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "company_id", referencedColumnName = "company_id", insertable = false, updatable = false)
     var company: Company? = null
+
 }

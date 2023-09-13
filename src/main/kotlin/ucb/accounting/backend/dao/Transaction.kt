@@ -11,9 +11,6 @@ class Transaction {
     @Column(name = "transaction_id")
     var transactionId: Long = 0
 
-    @Column(name = "company_id")
-    var companyId: Int = 0
-
     @Column(name = "journal_entry_id")
     var journalEntryId: Int = 0
 

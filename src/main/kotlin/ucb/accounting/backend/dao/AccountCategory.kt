@@ -18,4 +18,7 @@ class AccountCategory {
 
     @Column(name = "status")
     var status: Boolean = true
+
+    @OneToMany(mappedBy = "accountCategory")
+    var accountGroups: List<AccountGroup>? = null
 }

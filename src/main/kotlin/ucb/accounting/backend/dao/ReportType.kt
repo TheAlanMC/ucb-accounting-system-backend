@@ -15,4 +15,7 @@ class ReportType {
 
     @Column(name = "status")
     var status: Boolean = true
+
+    @OneToMany(mappedBy = "reportType")
+    var reports: List<Report>? = null
 }

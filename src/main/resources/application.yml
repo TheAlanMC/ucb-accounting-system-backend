@@ -14,7 +14,10 @@ spring:
     jpa:
       hibernate:
         ddl-auto: none
-
+  servlet:
+    multipart:
+      max-file-size: 1MB
+      max-request-size: 1MB
 
 minio:
   url: ${MINIO_SERVER_URI:http://localhost:9000}
@@ -34,13 +37,36 @@ keycloak:
   ssl-required: none
   use-resource-role-mappings: false
   security-constraints:
-#    - auth-roles:
-#        - uj-users-access
-#      security-collections:
-#        - name: Find users related methods
-#          patterns:
-#            - /api/v1/users
-#            - /api/v1/users/group/*
-#          methods:
-#            - GET
-
+    - auth-roles:
+        - journal-entry-recorder
+      security-collections:
+        - name: Journal Entry POST
+          patterns:
+            - /api/v1/files/attachments/companies/*
+          methods:
+            - POST
+    - auth-roles:
+        - common-user
+      security-collections:
+        - name: User Profile CRUD
+          patterns:
+            - /api/v1/users/*
+          methods:
+            - GET
+            - PUT
+    - auth-roles:
+        - common-user
+      security-collections:
+        - name: Profile Picture Upload
+          patterns:
+            - /api/v1/files/pictures/*
+          methods:
+            - POST
+    - auth-roles:
+        - journal-entry-recorder
+      security-collections:
+        - name: Getting Account Plan
+          patterns:
+            - /api/v1/accounting-plans/*
+          methods:
+            - GET

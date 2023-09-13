@@ -100,6 +100,7 @@ class ResponseCodeUtil (var httpStatus: HttpStatus, message: String, messageTran
                 "404-10" -> ResponseCodeUtil(HttpStatus.NOT_FOUND, "Subaccount not found.")
                 "404-11" -> ResponseCodeUtil(HttpStatus.NOT_FOUND, "Attachment not found.")
                 "404-12" -> ResponseCodeUtil(HttpStatus.NOT_FOUND, "Document type not found.")
+                "404-13" -> ResponseCodeUtil(HttpStatus.NOT_FOUND, "S3 Object not found.")
                 "409-01" -> ResponseCodeUtil(HttpStatus.CONFLICT, "An accountant with the same email address already exists in the system.")
                 "409-02" -> ResponseCodeUtil(HttpStatus.CONFLICT, "An accounting assistant with the same email address already exists in the company.")
                 "409-03" -> ResponseCodeUtil(HttpStatus.CONFLICT, "A client with the same email address already exists in the company.")
