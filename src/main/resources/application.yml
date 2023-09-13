@@ -45,6 +45,7 @@ keycloak:
             - /api/v1/files/attachments/companies/*
           methods:
             - POST
+            - GET
     - auth-roles:
         - common-user
       security-collections:
@@ -63,10 +64,18 @@ keycloak:
           methods:
             - POST
     - auth-roles:
-        - journal-entry-recorder
+        - accounting-management
       security-collections:
         - name: Getting Account Plan
           patterns:
             - /api/v1/accounting-plans/*
+          methods:
+            - GET
+    - auth-roles:
+        -  common-user
+      security-collections:
+        - name: Getting Company
+          patterns:
+            - /api/v1/companies/*
           methods:
             - GET

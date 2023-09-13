@@ -25,7 +25,7 @@ class AccountPlanApi @Autowired constructor(private val accountingPlanBl: Accoun
         logger.info("GET /api/v1/accounting-plans/companies/${companyId}")
         val accountingPlan: List<AccountCategoryDto> = accountingPlanBl.getAccountingPlan(companyId)
         logger.info("Sending response")
-        val code = "200-01"
+        val code = "200-07"
         val responseInfo = ResponseCodeUtil.getResponseInfo(code)
         logger.info("Code: $code - ${responseInfo.message}")
         return ResponseEntity(ResponseDto(code, responseInfo.message!!, accountingPlan), responseInfo.httpStatus)

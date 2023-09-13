@@ -35,7 +35,7 @@ class FilesBl @Autowired constructor(
         val kcUuid = KeycloakSecurityContextHolder.getSubject()!!
         logger.info("User $kcUuid is uploading file to company $companyId")
         // Validation of user belongs to company
-        kcUserCompanyRepository.findAllByKcUser_KcUuidAndCompany_CompanyIdAndStatusIsTrue(kcUuid, companyId) ?: throw UasException("403-02")
+        kcUserCompanyRepository.findAllByKcUser_KcUuidAndCompany_CompanyIdAndStatusIsTrue(kcUuid, companyId) ?: throw UasException("403-18")
         // Upload to database as blob
         val attachmentEntity = Attachment()
         attachmentEntity.companyId = companyId.toInt()
