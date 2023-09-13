@@ -12,7 +12,6 @@ import ucb.accounting.backend.dto.ResponseDto
 import ucb.accounting.backend.dto.UserDto
 import ucb.accounting.backend.util.ResponseCodeUtil
 
-@Service
 @RestController
 @RequestMapping("/api/v1/users")
 class UsersApi @Autowired constructor(private val usersBl: UsersBl) {
