@@ -3,8 +3,7 @@ package ucb.accounting.backend.dto
 import java.sql.Date
 
 data class JournalEntryDto(
-    val companyId: Int,
-    val documentTypeId: Int,
+    val documentTypeId: Long,
     val journalEntryNumber: Int,
     val gloss: String,
     val description: String,

@@ -62,6 +62,7 @@ class ResponseCodeUtil (var httpStatus: HttpStatus, message: String, messageTran
                 "400-18" -> ResponseCodeUtil(HttpStatus.BAD_REQUEST, "The required information to retrieve the worksheet report was not provided.")
                 "400-19" -> ResponseCodeUtil(HttpStatus.BAD_REQUEST, "The required information to retrieve the income statement report was not provided.")
                 "400-20" -> ResponseCodeUtil(HttpStatus.BAD_REQUEST, "The required information to retrieve the balance sheet report was not provided.")
+                "400-21" -> ResponseCodeUtil(HttpStatus.BAD_REQUEST, "The accounting principle of double-entry is not being followed with this accounting entry.")
                 "403-01" -> ResponseCodeUtil(HttpStatus.FORBIDDEN, "You don't have permission to view user information.")
                 "403-02" -> ResponseCodeUtil(HttpStatus.FORBIDDEN, "You don't have permission to update user information.")
                 "403-03" -> ResponseCodeUtil(HttpStatus.FORBIDDEN, "You don't have permission to view company information.")

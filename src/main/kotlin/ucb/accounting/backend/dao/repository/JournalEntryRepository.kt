@@ -6,6 +6,6 @@ import ucb.accounting.backend.dao.JournalEntry
 
 @Repository
 interface JournalEntryRepository: JpaRepository<JournalEntry, Long> {
-    fun findByJournalEntryIdAndStatusTrue (journalEntryId: Long): JournalEntry?
+    fun findByCompanyIdAndJournalEntryNumberAndStatusTrue (companyId: Int, journalEntryNumber: Int): JournalEntry?
 
 }

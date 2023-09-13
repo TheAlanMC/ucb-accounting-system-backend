@@ -24,14 +24,16 @@ class JournalEntryApi @Autowired constructor(private val journalEntryBl: Journal
 
     @PostMapping("/{companyId}")
     fun postJournalEntry(
-        @PathVariable("companyId") companyId: Int,
-        @RequestBody request: JournalEntryDto
+        @PathVariable("companyId") companyId: Long,
+        @RequestBody journalEntryDto: JournalEntryDto
     ): ResponseEntity<ResponseDto<Null>>{
         logger.info("Starting the API call to post journal entry")
-        logger.info("POST /api/v1/journal-entries/companies/{companyId}")
-        val journalEntryId = journalEntryBl.createJournalEntry(companyId, request)
-        val code = "200-05"
+        logger.info("POST /api/v1/journal-entries/companies/${companyId}")
+        journalEntryBl.createJournalEntry(companyId, journalEntryDto)
+        logger.info("Sending response")
+        val code = "201-09"
         val responseInfo = ResponseCodeUtil.getResponseInfo(code)
+        logger.info("Code: $code - ${responseInfo.message}")
         return ResponseEntity(ResponseDto(code, responseInfo.message!!, null), responseInfo.httpStatus)
     }
 }

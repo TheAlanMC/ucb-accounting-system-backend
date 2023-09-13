@@ -43,6 +43,7 @@ keycloak:
         - name: Journal Entry POST
           patterns:
             - /api/v1/files/attachments/companies/*
+            - /api/v1/journal-entries/companies/*
           methods:
             - POST
             - GET
