@@ -11,20 +11,30 @@ class TransactionDetail {
     @Column(name = "transaction_detail_id")
     var transactionDetailId: Long = 0
 
+
     @Column(name = "transaction_id")
     var transactionId: Int = 0
 
-    @Column(name = "account_id")
-    var accountId: Int = 0
+    @Column(name = "subaccount_id")
+    var subaccountId: Int = 0
 
-    @Column(name = "currency_type_id")
-    var currencyTypeId: Int = 0
+    @Column(name = "debit_amount_bs")
+    var debitAmountBs: BigDecimal = BigDecimal.ZERO
 
-    @Column(name = "amount")
-    var amount: BigDecimal = BigDecimal.ZERO
+    @Column(name = "credit_amount_bs")
+    var creditAmountBs: BigDecimal = BigDecimal.ZERO
 
-    @Column(name = "description")
-    var description: String = ""
+    @Column(name = "debit_amount_usd")
+    var debitAmountUsd: BigDecimal = BigDecimal.ZERO
+
+    @Column(name = "credit_amount_usd")
+    var creditAmountUsd: BigDecimal = BigDecimal.ZERO
+
+    @Column(name = "debit_amount_ufv")
+    var debitAmountUfv: BigDecimal = BigDecimal.ZERO
+
+    @Column(name = "credit_amount_ufv")
+    var creditAmountUfv: BigDecimal = BigDecimal.ZERO
 
     @Column(name = "status")
     var status: Boolean = true
