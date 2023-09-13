@@ -27,8 +27,8 @@ class Report {
     @Column(name = "kc_uuid")
     var kcUuid: String = ""
 
-    @Column(name = "ledger_date")
-    var ledgerDate: Timestamp = Timestamp(System.currentTimeMillis())
+    @Column(name = "report_date")
+    var reportDate: Timestamp = Timestamp(System.currentTimeMillis())
 
     @Column(name = "period_start_date")
     var periodStartDate: Date = Date(System.currentTimeMillis())

@@ -15,4 +15,7 @@ class DocumentType {
 
     @Column(name = "status")
     var status: Boolean = true
+
+    @OneToMany(mappedBy = "documentType")
+    var journalEntries: List<JournalEntry>? = null
 }
