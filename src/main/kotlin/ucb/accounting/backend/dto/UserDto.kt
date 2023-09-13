@@ -8,4 +8,3 @@ data class UserDto (
     val s3ProfilePictureId: Long?,
     val profilePicture: String?
 )
-
