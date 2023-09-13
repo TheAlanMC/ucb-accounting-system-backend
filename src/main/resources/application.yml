@@ -62,3 +62,11 @@ keycloak:
             - /api/v1/files/pictures/*
           methods:
             - POST
+    - auth-roles:
+        - journal-entry-recorder
+      security-collections:
+        - name: Getting Account Plan
+          patterns:
+            - /api/v1/accounting-plans/*
+          methods:
+            - GET

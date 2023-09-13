@@ -1,5 +1,6 @@
 package ucb.accounting.backend.bl
 
+import org.keycloak.admin.client.Keycloak
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
@@ -11,9 +12,11 @@ import ucb.accounting.backend.dto.AccountCategoryDto
 import ucb.accounting.backend.dto.AccountGroupDto
 import ucb.accounting.backend.dto.AccountSubgroupDto
 import ucb.accounting.backend.exception.UasException
+import ucb.accounting.backend.util.KeycloakSecurityContextHolder
 
 @Service
 class AccountingPlanBl @Autowired constructor(
+    private val kcUserCompanyRepository: KcUserCompanyRepository,
     private val companyRepository: CompanyRepository,
     private val accountCategoryRepository: AccountCategoryRepository,
     private val accountGroupRepository: AccountGroupRepository,
@@ -28,8 +31,13 @@ class AccountingPlanBl @Autowired constructor(
     fun getAccountingPlan(id: Long): List<AccountCategoryDto> {
         logger.info("Getting accounting plan")
         // Validation that the company exists
-        val company = companyRepository.findByCompanyIdAndStatusTrue(id) ?: throw UasException("404-01")
+        val company = companyRepository.findByCompanyIdAndStatusTrue(id.toLong())?: throw UasException("404-05")
+        val companyId = company.companyId.toInt()
         logger.info("Company found")
+        val kcUuid = KeycloakSecurityContextHolder.getSubject()!!
+        FilesBl.logger.info("User $kcUuid is uploading file to company $companyId")
+        // Validation of user belongs to company
+        kcUserCompanyRepository.findAllByKcUser_KcUuidAndCompany_CompanyIdAndStatusIsTrue(kcUuid, companyId.toLong()) ?: throw UasException("403-05")
         val accountCategoryEntities = accountCategoryRepository.findAllByStatusTrue()
         logger.info("Accounting plan found")
         val accountCategories = accountCategoryEntities.map { accountCategory ->
@@ -37,22 +45,22 @@ class AccountingPlanBl @Autowired constructor(
             accountCategory.accountCategoryId,
             accountCategory.accountCategoryCode,
             accountCategory.accountCategoryName,
-            accountGroupRepository.findAllByCompanyIdAndAccountCategoryIdAndStatusIsTrue(company.companyId, accountCategory.accountCategoryId.toLong()).map { accountGroup ->
+            accountGroupRepository.findAllByCompanyIdAndAccountCategoryIdAndStatusIsTrue(companyId, accountCategory.accountCategoryId.toInt()).map { accountGroup ->
                 AccountGroupDto(
                     accountGroup.accountGroupId,
                     accountGroup.accountGroupCode,
                     accountGroup.accountGroupName,
-                    accountSubGroupRepository.findAllByCompanyIdAndAccountGroupIdAndStatusIsTrue(company.companyId, accountGroup.accountGroupId.toLong()).map { accountSubGroup ->
+                    accountSubGroupRepository.findAllByCompanyIdAndAccountGroupIdAndStatusIsTrue(companyId, accountGroup.accountGroupId.toInt()).map { accountSubGroup ->
                         AccountSubgroupDto(
                             accountSubGroup.accountSubgroupId,
                             accountSubGroup.accountSubgroupCode,
                             accountSubGroup.accountSubgroupName,
-                            accountRepository.findAllByCompanyIdAndAccountSubgroupIdAndStatusIsTrue(company.companyId, accountSubGroup.accountSubgroupId.toLong()).map { account ->
+                            accountRepository.findAllByCompanyIdAndAccountSubgroupIdAndStatusIsTrue(companyId, accountSubGroup.accountSubgroupId.toInt()).map { account ->
                                 ucb.accounting.backend.dto.AccountDto(
                                     account.accountId,
                                     account.accountCode,
                                     account.accountName,
-                                    subAccountRepository.findAllByCompanyIdAndAccountIdAndStatusIsTrue(company.companyId, account.accountId.toLong()).map { subAccount ->
+                                    subAccountRepository.findAllByCompanyIdAndAccountIdAndStatusIsTrue(companyId, account.accountId.toInt()).map { subAccount ->
                                         ucb.accounting.backend.dto.SubAccountDto(
                                             subAccount.subaccountId,
                                             subAccount.subaccountCode,
