@@ -16,7 +16,6 @@ import ucb.accounting.backend.dto.FileDto
 import ucb.accounting.backend.dto.ResponseDto
 import ucb.accounting.backend.util.ResponseCodeUtil
 
-@Service
 @RestController
 @RequestMapping("/api/v1/files")
 class FilesApi @Autowired constructor(private val filesBl: FilesBl) {

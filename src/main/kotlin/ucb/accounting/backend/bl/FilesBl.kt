@@ -4,6 +4,7 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Controller
+import org.springframework.stereotype.Service
 import org.springframework.web.multipart.MultipartFile
 import ucb.accounting.backend.dao.Attachment
 import ucb.accounting.backend.dao.S3Object
@@ -17,7 +18,7 @@ import ucb.accounting.backend.exception.UasException
 import ucb.accounting.backend.service.MinioService
 import ucb.accounting.backend.util.KeycloakSecurityContextHolder
 
-@Controller
+@Service
 class FilesBl @Autowired constructor(
     private val attachmentRepository: AttachmentRepository,
     private val s3ObjectRepository: S3ObjectRepository,

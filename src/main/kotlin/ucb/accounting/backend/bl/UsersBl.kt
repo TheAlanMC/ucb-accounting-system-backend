@@ -10,6 +10,7 @@ import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Controller
+import org.springframework.stereotype.Service
 import ucb.accounting.backend.dao.KcUser
 import ucb.accounting.backend.dao.KcUserCompany
 import ucb.accounting.backend.dao.S3Object
@@ -24,7 +25,7 @@ import ucb.accounting.backend.mapper.KcUserCompanyMapper
 import ucb.accounting.backend.service.MinioService
 import ucb.accounting.backend.util.KeycloakSecurityContextHolder
 
-@Controller
+@Service
 class UsersBl @Autowired constructor(
     private val keycloak: Keycloak,
     private val kcUserCompanyRepository: KcUserCompanyRepository,

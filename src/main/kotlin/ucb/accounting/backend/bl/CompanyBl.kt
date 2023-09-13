@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.slf4j.LoggerFactory
 import org.slf4j.Logger
 import org.springframework.stereotype.Controller
+import org.springframework.stereotype.Service
 import ucb.accounting.backend.dao.S3Object
 import ucb.accounting.backend.dao.repository.CompanyRepository
 import ucb.accounting.backend.dao.repository.KcUserCompanyRepository
@@ -16,7 +17,7 @@ import ucb.accounting.backend.mapper.CompanyMapper
 import ucb.accounting.backend.service.MinioService
 import ucb.accounting.backend.util.KeycloakSecurityContextHolder
 
-@Controller
+@Service
 class CompanyBl @Autowired constructor(
     private val s3ObjectRepository: S3ObjectRepository,
     private val companyRepository: CompanyRepository,

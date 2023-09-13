@@ -3,6 +3,7 @@ package ucb.accounting.backend.bl
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Controller
+import org.springframework.stereotype.Service
 import ucb.accounting.backend.dao.JournalEntry
 import ucb.accounting.backend.dao.Transaction
 import ucb.accounting.backend.dao.TransactionAttachment
@@ -12,7 +13,7 @@ import ucb.accounting.backend.dto.JournalEntryDto
 import ucb.accounting.backend.exception.UasException
 import ucb.accounting.backend.util.KeycloakSecurityContextHolder
 
-@Controller
+@Service
 class JournalEntryBl @Autowired constructor(
     private val journalEntryRepository: JournalEntryRepository,
     private val companyRepository: CompanyRepository,
