@@ -46,7 +46,7 @@ class MinioService constructor(
 
     fun uploadTempFile(fileData: ByteArray, filename: String, contentType: String, bucket: String): NewFileDto {
         // file name
-        val newFilename: String =  "${UUID.randomUUID()}.$filename"
+        val newFilename: String =  "${UUID.randomUUID()}.${filename.split(".").last()}"
         // save object
         minioClient.putObject(
             PutObjectArgs.builder()
