@@ -43,4 +43,20 @@ class MinioService constructor(
                 .build()
         )
     }
+
+    fun uploadTempFile(fileData: ByteArray, filename: String, contentType: String, bucket: String): NewFileDto {
+        // file name
+        val newFilename: String =  "${UUID.randomUUID()}.$filename"
+        // save object
+        minioClient.putObject(
+            PutObjectArgs.builder()
+                .bucket(bucket)
+                .`object`(newFilename)
+                .stream(fileData.inputStream(), fileData.size.toLong(), -1)
+                .contentType(contentType)
+                .build()
+        )
+        val url = getPreSignedUrl(bucket, newFilename)
+        return NewFileDto(newFilename, bucket, contentType, url)
+    }
 }

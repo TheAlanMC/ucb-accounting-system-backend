@@ -8,6 +8,6 @@ data class JournalEntryDto(
     val gloss: String,
     val description: String,
     val transactionDate: Date,
-    val attachments: List<AttachmentDto>,
+    val attachments: List<AttachmentDto>?,
     val transactionDetails: List<TransactionDetailDto>
 )

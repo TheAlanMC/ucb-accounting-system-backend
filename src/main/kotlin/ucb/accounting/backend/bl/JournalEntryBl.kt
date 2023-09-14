@@ -34,8 +34,13 @@ class JournalEntryBl @Autowired constructor(
         companyRepository.findByCompanyIdAndStatusTrue(companyId) ?: throw UasException("404-05")
         // Validation that document type exists
         documentTypeRepository.findByDocumentTypeIdAndStatusTrue(journalEntryDto.documentTypeId) ?: throw UasException("404-12")
-        // Validation that all the attachments exist
-        journalEntryDto.attachments.map { attachmentRepository.findByAttachmentIdAndStatusTrue(it.attachmentId) ?: throw UasException("404-14") }
+        // Validation that attachments were sent
+        if (!journalEntryDto.attachments.isNullOrEmpty()) {
+            // Validation that attachments exist
+            journalEntryDto.attachments.map {
+                attachmentRepository.findByAttachmentIdAndStatusTrue(it.attachmentId) ?: throw UasException("404-11")
+            }
+        }
         // Validation that accounting principle of double-entry is being followed
         if (journalEntryDto.transactionDetails.sumOf { it.debitAmountBs } != journalEntryDto.transactionDetails.sumOf { it.creditAmountBs }) throw UasException("400-21")
         // Validation that journal entry number is unique
@@ -63,12 +68,16 @@ class JournalEntryBl @Autowired constructor(
         transactionEntity.description = journalEntryDto.description
         val savedTransaction = transactionRepository.save(transactionEntity)
 
-        logger.info("Saving attachments")
-        journalEntryDto.attachments.map {
-            val transactionAttachmentEntity = TransactionAttachment()
-            transactionAttachmentEntity.transaction = savedTransaction
-            transactionAttachmentEntity.attachment = attachmentRepository.findByAttachmentIdAndStatusTrue(it.attachmentId)!!
-            transactionAttachmentRepository.save(transactionAttachmentEntity)
+        if (!journalEntryDto.attachments.isNullOrEmpty()) {
+            logger.info("Saving attachments")
+            journalEntryDto.attachments.map {
+                val transactionAttachmentEntity = TransactionAttachment()
+                transactionAttachmentEntity.transaction = savedTransaction
+                transactionAttachmentEntity.attachment = attachmentRepository.findByAttachmentIdAndStatusTrue(it.attachmentId)!!
+                transactionAttachmentRepository.save(transactionAttachmentEntity)
+            }
+        } else {
+            logger.info("No attachments were sent")
         }
 
         logger.info("Saving transaction details")

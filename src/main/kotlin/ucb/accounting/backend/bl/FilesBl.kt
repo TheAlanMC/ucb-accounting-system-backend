@@ -12,6 +12,7 @@ import ucb.accounting.backend.dao.repository.AttachmentRepository
 import ucb.accounting.backend.dao.repository.CompanyRepository
 import ucb.accounting.backend.dao.repository.KcUserCompanyRepository
 import ucb.accounting.backend.dao.repository.S3ObjectRepository
+import ucb.accounting.backend.dto.AttachmentDownloadDto
 import ucb.accounting.backend.dto.AttachmentDto
 import ucb.accounting.backend.dto.FileDto
 import ucb.accounting.backend.exception.UasException
@@ -33,10 +34,10 @@ class FilesBl @Autowired constructor(
     fun uploadFile(attachment: MultipartFile, companyId: Long): AttachmentDto {
         // Validation of company
         companyRepository.findByCompanyIdAndStatusTrue(companyId) ?: throw UasException("404-05")
-        val kcUuid = KeycloakSecurityContextHolder.getSubject()!!
-        logger.info("User $kcUuid is uploading file to company $companyId")
         // Validation of user belongs to company
+        val kcUuid = KeycloakSecurityContextHolder.getSubject()!!
         kcUserCompanyRepository.findAllByKcUser_KcUuidAndCompany_CompanyIdAndStatusIsTrue(kcUuid, companyId) ?: throw UasException("403-18")
+        logger.info("User $kcUuid is uploading file to company $companyId")
         // Upload to database as blob
         val attachmentEntity = Attachment()
         attachmentEntity.companyId = companyId.toInt()
@@ -56,7 +57,8 @@ class FilesBl @Autowired constructor(
     fun uploadPicture (picture: MultipartFile): FileDto {
         val kcUuid = KeycloakSecurityContextHolder.getSubject()!!
         logger.info("User $kcUuid is uploading picture")
-        val newFile = minioService.uploadFile(picture, "pictures")
+        val bucket = "pictures"
+        val newFile = minioService.uploadFile(picture, bucket)
         logger.info("Storing file metadata in database")
         val s3Object = S3Object()
         s3Object.filename = newFile.filename
@@ -70,8 +72,30 @@ class FilesBl @Autowired constructor(
             filename = savedS3Object.filename,
             fileUrl = newFile.fileUrl,
         )
+    }
 
-
-
+    fun downloadFile(attachmentId: Long, companyId: Long): AttachmentDownloadDto {
+        // Validation of company
+        companyRepository.findByCompanyIdAndStatusTrue(companyId) ?: throw UasException("404-05")
+        // Validation of attachment
+        val attachmentEntity: Attachment = attachmentRepository.findByAttachmentIdAndStatusTrue(attachmentId) ?: throw UasException("404-11")
+        // Validation of user belongs to company
+        val kcUuid = KeycloakSecurityContextHolder.getSubject()!!
+        kcUserCompanyRepository.findAllByKcUser_KcUuidAndCompany_CompanyIdAndStatusIsTrue(kcUuid, companyId) ?: throw UasException("403-19")
+        // Validate the attachment belongs to the company
+        if (attachmentEntity.companyId != companyId.toInt()) {
+            throw UasException("403-19")
+        }
+        logger.info("User $kcUuid is downloading file from company $companyId")
+        logger.info("File found in database")
+        // Byte array to multipart file
+        val bucket = "documents"
+        val newFile = minioService.uploadTempFile(attachmentEntity.fileData, attachmentEntity.filename, attachmentEntity.contentType, bucket)
+        logger.info("File uploaded to minio")
+        return AttachmentDownloadDto(
+            filename = attachmentEntity.filename,
+            contentType = attachmentEntity.contentType,
+            fileUrl = newFile.fileUrl,
+        )
     }
 }

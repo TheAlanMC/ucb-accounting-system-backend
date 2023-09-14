@@ -13,14 +13,15 @@ class CorsConfig {
     fun corsFilter(): CorsFilter {
         val corsConfiguration = CorsConfiguration()
         corsConfiguration.allowCredentials = false
-        corsConfiguration.allowedOrigins = listOf(
-            "http://localhost:4200",
-            "http://uas-frontend:4200",
-            "http://68.183.126.58:4200",
-            "http://localhost",
-            "http://uas-frontend",
-            "http://68.183.126.58",
-            )
+        corsConfiguration.allowedOrigins = listOf("*")
+//        corsConfiguration.allowedOrigins = listOf(
+//            "http://localhosts:4200",
+//            "http://uas-frontend:4200",
+//            "http://68.183.126.58:4200",
+//            "http://localhost",
+//            "http://uas-frontend",
+//            "http://68.183.126.58",
+//            )
         corsConfiguration.allowedHeaders=listOf(
             "Origin",
             "Access-Control-Allow-Origin",
@@ -33,7 +34,6 @@ class CorsConfig {
         corsConfiguration.exposedHeaders = listOf(
             "Origin", "Content-Type",
             "Accept", "Authorization",
-            "Access-Control-Allow-Origin",
             "Access-Control-Allow-Origin",
             "Access-Control-Allow-Credentials"
         )

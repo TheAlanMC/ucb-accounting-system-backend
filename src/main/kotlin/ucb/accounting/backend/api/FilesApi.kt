@@ -4,6 +4,7 @@ import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.ResponseEntity
 import org.springframework.stereotype.Service
+import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestMapping
@@ -11,6 +12,7 @@ import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.multipart.MultipartFile
 import ucb.accounting.backend.bl.FilesBl
+import ucb.accounting.backend.dto.AttachmentDownloadDto
 import ucb.accounting.backend.dto.AttachmentDto
 import ucb.accounting.backend.dto.FileDto
 import ucb.accounting.backend.dto.ResponseDto
@@ -36,6 +38,21 @@ class FilesApi @Autowired constructor(private val filesBl: FilesBl) {
         val responseInfo = ResponseCodeUtil.getResponseInfo(code)
         logger.info("Code: $code - ${responseInfo.message}")
         return ResponseEntity(ResponseDto(code, responseInfo.message!!, attachmentDto), responseInfo.httpStatus)
+    }
+
+    @GetMapping("attachments/{attachmentId}/companies/{companyId}")
+    fun downloadAttachment(
+        @PathVariable("attachmentId") attachmentId: Long,
+        @PathVariable("companyId") companyId: Long,
+    ) : ResponseEntity<ResponseDto<AttachmentDownloadDto>>{
+        logger.info("Starting the API call to get attachment")
+        logger.info("GET /api/v1/files/attachments/$attachmentId/companies/$companyId")
+        val attachmentDownloadDto = filesBl.downloadFile(attachmentId, companyId)
+        logger.info("Sending response")
+        val code = "200-17"
+        val responseInfo = ResponseCodeUtil.getResponseInfo(code)
+        logger.info("Code: $code - ${responseInfo.message}")
+        return ResponseEntity(ResponseDto(code, responseInfo.message!!, attachmentDownloadDto), responseInfo.httpStatus)
     }
 
     @PostMapping("pictures")
