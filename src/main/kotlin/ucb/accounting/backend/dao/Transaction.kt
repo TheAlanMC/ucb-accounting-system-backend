@@ -24,10 +24,6 @@ class Transaction {
     var status: Boolean = true
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "company_id", referencedColumnName = "company_id", insertable = false, updatable = false)
-    var company: Company? = null
-
-    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "journal_entry_id", referencedColumnName = "journal_entry_id", insertable = false, updatable = false)
     var journalEntry: JournalEntry? = null
 
