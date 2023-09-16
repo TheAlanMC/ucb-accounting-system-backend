@@ -32,4 +32,10 @@ class Subaccount {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "company_id", referencedColumnName = "company_id", insertable = false, updatable = false)
     var company: Company? = null
+
+    @OneToMany(mappedBy = "subaccount")
+    var transactionDetails: List<TransactionDetail>? = null
+
+    @OneToMany(mappedBy = "subaccount")
+    var subaccountTaxes: List<SubaccountTax>? = null
 }

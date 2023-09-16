@@ -11,7 +11,6 @@ import ucb.accounting.backend.dto.ResponseDto
 import ucb.accounting.backend.exception.UasException
 import ucb.accounting.backend.util.ResponseCodeUtil
 
-@Service
 @RestController
 @RequestMapping("/api/v1/examples")
 class ExampleApi {

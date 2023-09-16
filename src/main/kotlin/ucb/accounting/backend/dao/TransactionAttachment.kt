@@ -1,6 +1,5 @@
 package ucb.accounting.backend.dao
 
-import java.math.BigDecimal
 import javax.persistence.*
 
 @Entity

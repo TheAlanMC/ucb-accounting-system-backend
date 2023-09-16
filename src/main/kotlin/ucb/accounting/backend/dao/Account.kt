@@ -32,4 +32,7 @@ class Account {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "company_id", referencedColumnName = "company_id", insertable = false, updatable = false)
     var company: Company? = null
+
+    @OneToMany(mappedBy = "account")
+    var accountSubaccounts: List<Subaccount>? = null
 }

@@ -39,4 +39,8 @@ class JournalEntry {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "document_type_id", referencedColumnName = "document_type_id", insertable = false, updatable = false)
     var documentType: DocumentType? = null
+
+    @OneToOne(mappedBy = "journalEntry")
+    var transaction: Transaction? = null
+
 }

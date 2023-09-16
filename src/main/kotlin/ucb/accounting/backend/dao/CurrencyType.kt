@@ -18,4 +18,7 @@ class CurrencyType {
 
     @Column(name = "status")
     var status: Boolean = true
+
+    @OneToMany(mappedBy = "currencyType")
+    var reports: List<Report>? = null
 }
