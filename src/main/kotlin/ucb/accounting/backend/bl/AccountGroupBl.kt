@@ -58,7 +58,7 @@ class AccountGroupBl @Autowired constructor(
         val company = companyRepository.findByCompanyIdAndStatusTrue(companyId.toLong())?: throw UasException("404-05")
         AccountingPlanBl.logger.info("Company found")
         val kcUuid = KeycloakSecurityContextHolder.getSubject()!!
-        kcUserCompanyRepository.findAllByKcUser_KcUuidAndCompany_CompanyIdAndStatusIsTrue(kcUuid, companyId) ?: throw UasException("403-18")
+        kcUserCompanyRepository.findAllByKcUser_KcUuidAndCompany_CompanyIdAndStatusIsTrue(kcUuid, companyId) ?: throw UasException("403-07")
         logger.info("User $kcUuid is getting account groups from company $companyId")
         val accountGroupEntities = accountGroupRepository.findAllByStatusIsTrue()
         val accountGroups = accountGroupEntities.map { accountGroup ->
@@ -78,7 +78,7 @@ class AccountGroupBl @Autowired constructor(
             val company = companyRepository.findByCompanyIdAndStatusTrue(companyId.toLong())?: throw UasException("404-05")
             AccountingPlanBl.logger.info("Company found")
             val kcUuid = KeycloakSecurityContextHolder.getSubject()!!
-            kcUserCompanyRepository.findAllByKcUser_KcUuidAndCompany_CompanyIdAndStatusIsTrue(kcUuid, companyId) ?: throw UasException("403-18")
+            kcUserCompanyRepository.findAllByKcUser_KcUuidAndCompany_CompanyIdAndStatusIsTrue(kcUuid, companyId) ?: throw UasException("403-07")
             logger.info("User $kcUuid is getting account group from company $companyId")
             // Validation that the account group exists
             val accountGroupEntity = accountGroupRepository.findByAccountGroupIdAndStatusIsTrue(accountGroupId)?: throw UasException("404-07")
