@@ -37,7 +37,7 @@ class AccountingPlanBl @Autowired constructor(
         val kcUuid = KeycloakSecurityContextHolder.getSubject()!!
         FilesBl.logger.info("User $kcUuid is uploading file to company $companyId")
         // Validation of user belongs to company
-        kcUserCompanyRepository.findAllByKcUser_KcUuidAndCompany_CompanyIdAndStatusIsTrue(kcUuid, companyId.toLong()) ?: throw UasException("403-05")
+        kcUserCompanyRepository.findAllByKcUser_KcUuidAndCompany_CompanyIdAndStatusIsTrue(kcUuid, companyId.toLong()) ?: throw UasException("403-02")
         val accountCategoryEntities = accountCategoryRepository.findAllByStatusTrue()
         logger.info("Accounting plan found")
         val accountCategories = accountCategoryEntities.map { accountCategory ->

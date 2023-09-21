@@ -80,3 +80,13 @@ keycloak:
             - /api/v1/companies/*
           methods:
             - GET
+    - auth-roles:
+        - accounting-management
+      security-collections:
+        - name: CRUD for account group
+          patterns:
+            - /api/v1/account-groups/*
+          methods:
+            - POST
+            - GET
+            - PUT
