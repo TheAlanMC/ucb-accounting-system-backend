@@ -11,7 +11,6 @@ import ucb.accounting.backend.dao.repository.CompanyRepository
 import ucb.accounting.backend.dao.repository.KcUserCompanyRepository
 import ucb.accounting.backend.dto.AccoGroupDto
 import ucb.accounting.backend.exception.UasException
-import ucb.accounting.backend.mapper.AccountGroupMapper
 import ucb.accounting.backend.util.KeycloakSecurityContextHolder
 
 @Service
@@ -64,13 +63,33 @@ class AccountGroupBl @Autowired constructor(
         val accountGroupEntities = accountGroupRepository.findAllByStatusIsTrue()
         val accountGroups = accountGroupEntities.map { accountGroup ->
             AccoGroupDto(
-                accountGroup.accountGroupId,
+                accountGroup.accountCategoryId.toLong(),
                 accountGroup.accountGroupCode,
                 accountGroup.accountGroupName
             )
         }
         logger.info("Account groups found")
         return accountGroups
+    }
+
+    fun getAccountGroup(companyId: Long, accountGroupId: Long): AccoGroupDto {
+            logger.info("Getting account group")
+            // Validation that the company exists
+            val company = companyRepository.findByCompanyIdAndStatusTrue(companyId.toLong())?: throw UasException("404-05")
+            AccountingPlanBl.logger.info("Company found")
+            val kcUuid = KeycloakSecurityContextHolder.getSubject()!!
+            kcUserCompanyRepository.findAllByKcUser_KcUuidAndCompany_CompanyIdAndStatusIsTrue(kcUuid, companyId) ?: throw UasException("403-18")
+            logger.info("User $kcUuid is getting account group from company $companyId")
+            // Validation that the account group exists
+            val accountGroupEntity = accountGroupRepository.findByAccountGroupIdAndStatusIsTrue(accountGroupId)?: throw UasException("404-07")
+            logger.info("Account group found")
+
+            val accountGroup = AccoGroupDto(
+                accountGroupEntity.accountCategoryId.toLong(),
+                accountGroupEntity.accountGroupCode,
+                accountGroupEntity.accountGroupName
+            )
+            return accountGroup
     }
 
 }

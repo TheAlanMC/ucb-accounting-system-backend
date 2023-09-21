@@ -8,5 +8,6 @@ interface AccountGroupRepository: JpaRepository<AccountGroup, Long> {
 
     fun findAllByStatusIsTrue (): List<AccountGroup>
     fun findAllByCompanyIdAndAccountCategoryIdAndStatusIsTrue (companyId: Int, accountCategoryId: Int): List<AccountGroup>
+    fun findByAccountGroupIdAndStatusIsTrue(id: Long): AccountGroup?
 
 }

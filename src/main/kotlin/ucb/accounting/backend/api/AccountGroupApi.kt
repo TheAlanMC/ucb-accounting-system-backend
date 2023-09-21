@@ -47,4 +47,16 @@ class AccountGroupApi @Autowired constructor(private val accountGroupBl: Account
         return ResponseEntity(ResponseDto(code, responseInfo.message!!, accountGroups), responseInfo.httpStatus)
     }
 
+    @GetMapping("/{accountGroupId}/companies/{companyId}")
+    fun getAccountGroup(@PathVariable companyId: Long, @PathVariable accountGroupId: Long): ResponseEntity<ResponseDto<AccoGroupDto>>{
+        logger.info("Starting the API call to get account group")
+        logger.info("GET /api/v1/account-groups/${accountGroupId}/companies/${companyId}")
+        val accountGroup = accountGroupBl.getAccountGroup(companyId, accountGroupId)
+        logger.info("Sending response")
+        val code = "200-08"
+        val responseInfo = ResponseCodeUtil.getResponseInfo(code)
+        logger.info("Code: $code - ${responseInfo.message}")
+        return ResponseEntity(ResponseDto(code, responseInfo.message!!, accountGroup), responseInfo.httpStatus)
+    }
+
 }
