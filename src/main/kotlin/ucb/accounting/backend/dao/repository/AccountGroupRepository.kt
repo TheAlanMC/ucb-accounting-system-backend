@@ -6,7 +6,7 @@ import ucb.accounting.backend.dto.AccoGroupDto
 
 interface AccountGroupRepository: JpaRepository<AccountGroup, Long> {
 
-    fun findAllByStatusIsTrue (): List<AccountGroup>
+    fun findAllByCompanyIdAndStatusIsTrue (companyId: Int): List<AccountGroup>
     fun findAllByCompanyIdAndAccountCategoryIdAndStatusIsTrue (companyId: Int, accountCategoryId: Int): List<AccountGroup>
     fun findByAccountGroupIdAndStatusIsTrue(id: Long): AccountGroup?
 

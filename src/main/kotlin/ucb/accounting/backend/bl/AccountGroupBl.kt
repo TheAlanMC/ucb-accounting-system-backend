@@ -60,7 +60,7 @@ class AccountGroupBl @Autowired constructor(
         val kcUuid = KeycloakSecurityContextHolder.getSubject()!!
         kcUserCompanyRepository.findAllByKcUser_KcUuidAndCompany_CompanyIdAndStatusIsTrue(kcUuid, companyId) ?: throw UasException("403-07")
         logger.info("User $kcUuid is getting account groups from company $companyId")
-        val accountGroupEntities = accountGroupRepository.findAllByStatusIsTrue()
+        val accountGroupEntities = accountGroupRepository.findAllByCompanyIdAndStatusIsTrue(companyId.toInt())
         val accountGroups = accountGroupEntities.map { accountGroup ->
             AccoGroupDto(
                 accountGroup.accountCategoryId.toLong(),
@@ -77,19 +77,46 @@ class AccountGroupBl @Autowired constructor(
             // Validation that the company exists
             val company = companyRepository.findByCompanyIdAndStatusTrue(companyId.toLong())?: throw UasException("404-05")
             AccountingPlanBl.logger.info("Company found")
-            val kcUuid = KeycloakSecurityContextHolder.getSubject()!!
-            kcUserCompanyRepository.findAllByKcUser_KcUuidAndCompany_CompanyIdAndStatusIsTrue(kcUuid, companyId) ?: throw UasException("403-07")
-            logger.info("User $kcUuid is getting account group from company $companyId")
             // Validation that the account group exists
             val accountGroupEntity = accountGroupRepository.findByAccountGroupIdAndStatusIsTrue(accountGroupId)?: throw UasException("404-07")
             logger.info("Account group found")
-
+            if (accountGroupEntity.companyId != companyId.toInt()) {
+                throw UasException("403-07")
+            }
+            logger.info("Account group found")
             val accountGroup = AccoGroupDto(
                 accountGroupEntity.accountCategoryId.toLong(),
                 accountGroupEntity.accountGroupCode,
                 accountGroupEntity.accountGroupName
             )
             return accountGroup
+    }
+
+    fun updateAccountGroup(companyId: Long, accountGroupId: Long, accoGroupDto: AccoGroupDto): AccoGroupDto{
+        logger.info("Updating account group")
+        // Validation that the company exists
+        val company = companyRepository.findByCompanyIdAndStatusTrue(companyId.toLong())?: throw UasException("404-05")
+        AccountingPlanBl.logger.info("Company found")
+        // Validation that all the parameters were sent
+        if (accoGroupDto.accountCategoryId == null || accoGroupDto.accountGroupCode == null || accoGroupDto.accountGroupName == null) {
+            throw UasException("400-08")
+        }
+        logger.info("Parameters found")
+        // Validation that the account group exists
+        val accountGroupEntity = accountGroupRepository.findByAccountGroupIdAndStatusIsTrue(accountGroupId)?: throw UasException("404-07")
+        logger.info("Account group found")
+        if (accountGroupEntity.companyId != companyId.toInt()) {
+            throw UasException("403-08")
+        }
+        // Validation that the account category exists
+        accountCategoryRepository.findByAccountCategoryIdAndStatusIsTrue(accoGroupDto.accountCategoryId.toLong())?: throw UasException("404-06")
+        AccountingPlanBl.logger.info("Account category found")
+        accountGroupEntity.accountCategoryId = accoGroupDto.accountCategoryId.toInt()
+        accountGroupEntity.accountGroupCode = accoGroupDto.accountGroupCode
+        accountGroupEntity.accountGroupName = accoGroupDto.accountGroupName
+        accountGroupRepository.save(accountGroupEntity)
+        logger.info("Account group updated")
+        return accoGroupDto
     }
 
 }
