@@ -2,19 +2,23 @@ package ucb.accounting.backend.dao
 
 import ucb.accounting.backend.util.HttpUtil
 import ucb.accounting.backend.util.KeycloakSecurityContextHolder
+import java.math.BigDecimal
 import java.sql.Timestamp
 import javax.persistence.*
 
 @Entity
-@Table(name = "report_type")
-class ReportType {
+@Table(name = "tax_type")
+class TaxType {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "report_type_id")
-    var reportTypeId: Long = 0
+    @Column(name = "tax_type_id")
+    var taxTypeId: Long = 0
 
-    @Column(name = "report_name")
-    var reportName: String = ""
+    @Column(name = "tax_type_name")
+    var taxName: String = ""
+
+    @Column(name = "description")
+    var description: String = ""
 
     @Column(name = "status")
     var status: Boolean = true
@@ -28,6 +32,6 @@ class ReportType {
     @Column(name = "tx_host")
     var txHost: String = HttpUtil.getRequestHost() ?: "localhost"
 
-    @OneToMany(mappedBy = "reportType")
-    var reports: List<Report>? = null
+    @OneToMany(mappedBy = "taxType")
+    var subaccountTaxTypes: List<SubaccountTaxType>? = null
 }

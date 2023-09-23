@@ -11,9 +11,9 @@ spring:
     username: ${POSTGRES_USERNAME:postgres}
     password: ${POSTGRES_PASSWORD:mysecretpassword}
     url: ${POSTGRES_URL:jdbc:postgresql://localhost:5432/db_uas}
-    jpa:
-      hibernate:
-        ddl-auto: none
+  jpa:
+    hibernate:
+      ddl-auto: none
   servlet:
     multipart:
       max-file-size: 10MB

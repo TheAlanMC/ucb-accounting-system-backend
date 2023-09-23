@@ -2,28 +2,21 @@ package ucb.accounting.backend.dao
 
 import ucb.accounting.backend.util.HttpUtil
 import ucb.accounting.backend.util.KeycloakSecurityContextHolder
+import java.math.BigDecimal
 import java.sql.Timestamp
 import javax.persistence.*
 
 @Entity
-@Table(name = "account_subgroup")
-class AccountSubgroup {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "account_subgroup_id")
-    var accountSubgroupId: Long = 0
-
-    @Column(name = "account_group_id")
-    var accountGroupId: Int = 0
+@Table(name = "subaccount_tax_type")
+class SubaccountTaxType {
+    @EmbeddedId
+    var id: SubaccountTaxTypeId? = SubaccountTaxTypeId()
 
     @Column(name = "company_id")
-    var companyId: Int = 0
+    var companyId: Long = 0
 
-    @Column(name = "account_subgroup_code")
-    var accountSubgroupCode: Int = 0
-
-    @Column(name = "account_subgroup_name")
-    var accountSubgroupName: String = ""
+    @Column(name = "tax_rate")
+    var taxRate: BigDecimal = BigDecimal.ZERO
 
     @Column(name = "status")
     var status: Boolean = true
@@ -38,13 +31,18 @@ class AccountSubgroup {
     var txHost: String = HttpUtil.getRequestHost() ?: "localhost"
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "account_group_id", referencedColumnName = "account_group_id", insertable = false, updatable = false)
-    var accountGroup: AccountGroup? = null
+    @MapsId("subaccountId")
+    @JoinColumn(name = "subaccount_id", referencedColumnName = "subaccount_id", insertable = false, updatable = false)
+    var subaccount: Subaccount? = null
 
     @ManyToOne(fetch = FetchType.LAZY)
+    @MapsId("taxTypeId")
+    @JoinColumn(name = "tax_type_id", referencedColumnName = "tax_type_id", insertable = false, updatable = false)
+    var taxType: TaxType? = null
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @MapsId("companyId")
     @JoinColumn(name = "company_id", referencedColumnName = "company_id", insertable = false, updatable = false)
     var company: Company? = null
 
-    @OneToMany(mappedBy = "accountSubgroup")
-    var accounts: List<Account>? = null
 }
