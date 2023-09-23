@@ -105,6 +105,7 @@ class AccountGroupBl @Autowired constructor(
         // Validation that the account group exists
         val accountGroupEntity = accountGroupRepository.findByAccountGroupIdAndStatusIsTrue(accountGroupId)?: throw UasException("404-07")
         logger.info("Account group found")
+        //validation that the account group belongs to the company
         if (accountGroupEntity.companyId != companyId.toInt()) {
             throw UasException("403-08")
         }
