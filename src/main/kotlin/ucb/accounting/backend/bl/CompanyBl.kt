@@ -99,19 +99,19 @@ class CompanyBl @Autowired constructor(
         if (companyDto.phoneNumber.isEmpty()) throw UasException("400-06")
         if (companyDto.companyLogo.isEmpty()) throw UasException("400-06")
 
-        /*val kcUuid = KeycloakSecurityContextHolder.getSubject()!!
+        val kcUuid = KeycloakSecurityContextHolder.getSubject()!!
 
         logger.info("User $kcUuid is updating a company")
         // Validation of user belongs to company
         kcUserCompanyRepository.findAllByKcUser_KcUuidAndCompany_CompanyIdAndStatusIsTrue(kcUuid, companyId)
-            ?: throw UasException("403-04")*/
+            ?: throw UasException("403-04")
 
-        /*logger.info("Saving s3 object")
+        logger.info("Saving s3 object")
         val s3ObjectEntity = S3Object()
         s3ObjectEntity.filename = "companyLogo"
         s3ObjectEntity.bucket = "ucb-accounting"
         s3ObjectEntity.filename = companyDto.companyLogo
-        val savedS3Object = s3ObjectRepository.save(s3ObjectEntity)*/
+        val savedS3Object = s3ObjectRepository.save(s3ObjectEntity)
 
         logger.info("Updating company")
 

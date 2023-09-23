@@ -75,8 +75,20 @@ keycloak:
     - auth-roles:
         -  common-user
       security-collections:
-        - name: Getting Company
+        - name: Company CRUD
           patterns:
             - /api/v1/companies/*
           methods:
             - GET
+            - POST
+            - PUT
+    - auth-roles:
+        -  common-user
+      security-collections:
+        - name: Account CRUD
+          patterns:
+            - /api/v1/accounts/companies/*
+          methods:
+            - GET
+            - POST
+            - PUT
