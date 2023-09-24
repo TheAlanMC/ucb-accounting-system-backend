@@ -7,6 +7,7 @@ import org.springframework.http.ResponseEntity
 import org.springframework.stereotype.Service
 import org.springframework.web.bind.annotation.*
 import ucb.accounting.backend.bl.UsersBl
+import ucb.accounting.backend.dto.ListUsersDto
 import ucb.accounting.backend.dto.PasswordUpdateDto
 import ucb.accounting.backend.dto.ResponseDto
 import ucb.accounting.backend.dto.UserDto
@@ -18,7 +19,6 @@ class UsersApi @Autowired constructor(private val usersBl: UsersBl) {
     companion object {
         private val logger = LoggerFactory.getLogger(UsersApi::class.java.name)
     }
-
     @GetMapping("/{kcUuid}")
     fun findAllUsersById(@PathVariable kcUuid: String): ResponseEntity<ResponseDto<UserDto>> {
         logger.info("Starting the API call to get user info")
@@ -29,6 +29,17 @@ class UsersApi @Autowired constructor(private val usersBl: UsersBl) {
         val responseInfo = ResponseCodeUtil.getResponseInfo(code)
         logger.info("Code: $code - ${responseInfo.message}")
         return ResponseEntity(ResponseDto(code, responseInfo.message!!, user), responseInfo.httpStatus)
+    }
+    @GetMapping("/companies/{companyId}")
+    fun findAllUsersByCompanyId(@PathVariable companyId: Long): ResponseEntity<ResponseDto<List<ListUsersDto>>> {
+        logger.info("Starting the API call to get all users by company id")
+        logger.info("GET /api/v1/users/companies/${companyId}")
+        val users: List<ListUsersDto> = usersBl.findAllUsersByCompanyId(companyId)
+        logger.info("Sending response")
+        val code = "200-01"
+        val responseInfo = ResponseCodeUtil.getResponseInfo(code)
+        logger.info("Code: $code - ${responseInfo.message}")
+        return ResponseEntity(ResponseDto(code, responseInfo.message!!, users), responseInfo.httpStatus)
     }
     @PutMapping("/{kcUuid}")
     fun updateUserInfo(

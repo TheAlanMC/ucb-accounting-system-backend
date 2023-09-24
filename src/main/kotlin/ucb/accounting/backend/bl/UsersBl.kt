@@ -17,6 +17,7 @@ import ucb.accounting.backend.dao.S3Object
 import ucb.accounting.backend.dao.repository.KcUserCompanyRepository
 import ucb.accounting.backend.dao.repository.KcUserRepository
 import ucb.accounting.backend.dao.repository.S3ObjectRepository
+import ucb.accounting.backend.dto.ListUsersDto
 import ucb.accounting.backend.dto.PasswordUpdateDto
 import ucb.accounting.backend.dto.UserCompanyDto
 import ucb.accounting.backend.dto.UserDto
@@ -24,6 +25,7 @@ import ucb.accounting.backend.exception.UasException
 import ucb.accounting.backend.mapper.KcUserCompanyMapper
 import ucb.accounting.backend.service.MinioService
 import ucb.accounting.backend.util.KeycloakSecurityContextHolder
+import java.sql.Date
 
 @Service
 class UsersBl @Autowired constructor(
@@ -79,6 +81,31 @@ class UsersBl @Autowired constructor(
             profilePicture = preSignedUrl,
         )
     }
+
+    fun findAllUsersByCompanyId(companyId: Long): List<ListUsersDto> {
+        logger.info("Getting all users by company id")
+        // Validation that the company exists
+        kcUserCompanyRepository.findAllByCompany_CompanyIdAndStatusIsTrue(companyId) ?: throw UasException("404-05")
+        // Get all users from company
+        val userCompanyEntities: List<KcUserCompany> = kcUserCompanyRepository.findAllByCompany_CompanyIdAndStatusIsTrue(companyId)
+        //val userCompanies: List<UserCompanyDto> = userCompanyEntities.map { KcUserCompanyMapper.entityToDto(it) }
+        val users: List<ListUsersDto> = userCompanyEntities.map { val user: UserRepresentation = keycloak
+            .realm(realm)
+            .users()
+            .get(it.kcUser!!.kcUuid)
+            .toRepresentation()
+            ListUsersDto(
+                kcGroupName = it.kcGroup!!.groupName,
+                firstName = user.firstName,
+                lastName = user.lastName,
+                email = user.email,
+                creationDate = Date(2021, 1, 1)
+            )
+        }
+        // TODO: Add creation date
+        return users
+    }
+
     fun updateUser(kcUuid: String, userDto: UserDto): UserDto {
         logger.info("Updating user info")
         // Validation that the user exists
