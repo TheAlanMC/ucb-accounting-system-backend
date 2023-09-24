@@ -90,3 +90,13 @@ keycloak:
             - POST
             - GET
             - PUT
+    - auth-roles:
+        - accounting-management
+      security-collections:
+        - name: CRUD for account subgroup
+          patterns:
+            - /api/v1/account-subgroups/*
+          methods:
+            - POST
+            - GET
+            - PUT
