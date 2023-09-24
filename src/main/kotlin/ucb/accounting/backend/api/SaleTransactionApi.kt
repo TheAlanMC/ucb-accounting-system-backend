@@ -7,6 +7,8 @@ import org.springframework.web.bind.annotation.*
 import ucb.accounting.backend.bl.SaleTransactionBl
 import ucb.accounting.backend.dto.ResponseDto
 import ucb.accounting.backend.dto.SaleTransactionDto
+import ucb.accounting.backend.dto.SaleTransactionPartialDto
+import ucb.accounting.backend.dto.SubAccountDto
 import ucb.accounting.backend.util.ResponseCodeUtil
 import javax.validation.constraints.Null
 
@@ -31,5 +33,33 @@ class SaleTransactionApi @Autowired constructor(private val saleTransactionBl: S
         val responseInfo = ResponseCodeUtil.getResponseInfo(code)
         logger.info("Code: $code - ${responseInfo.message}")
         return ResponseEntity(ResponseDto(code, responseInfo.message!!, null), responseInfo.httpStatus)
+    }
+
+    @GetMapping("/{companyId}/subaccounts")
+    fun getSubaccountsForSaleTransaction (
+        @PathVariable("companyId") companyId: Long
+    ): ResponseEntity<ResponseDto<List<SubAccountDto>>>{
+        logger.info("Starting the API call to get subaccounts for sale transaction")
+        logger.info("GET /api/v1/sale-transactions/companies/${companyId}/subaccounts")
+        val subaccounts: List<SubAccountDto> = saleTransactionBl.getSubaccountsForSaleTransaction(companyId)
+        logger.info("Sending response")
+        val code = "200-14"
+        val responseInfo = ResponseCodeUtil.getResponseInfo(code)
+        logger.info("Code: $code - ${responseInfo.message}")
+        return ResponseEntity(ResponseDto(code, responseInfo.message!!, subaccounts), responseInfo.httpStatus)
+    }
+
+    @GetMapping("/{companyId}")
+    fun getSaleTransactions (
+        @PathVariable("companyId") companyId: Long
+    ): ResponseEntity<ResponseDto<List<SaleTransactionPartialDto>>>{
+        logger.info("Starting the API call to get sale transactions")
+        logger.info("GET /api/v1/sale-transactions/companies/${companyId}")
+        val saleTransactions: List<SaleTransactionPartialDto> = saleTransactionBl.getSaleTransactions(companyId)
+        logger.info("Sending response")
+        val code = "200-32"
+        val responseInfo = ResponseCodeUtil.getResponseInfo(code)
+        logger.info("Code: $code - ${responseInfo.message}")
+        return ResponseEntity(ResponseDto(code, responseInfo.message!!, saleTransactions), responseInfo.httpStatus)
     }
 }

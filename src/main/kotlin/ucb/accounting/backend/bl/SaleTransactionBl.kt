@@ -6,7 +6,11 @@ import org.springframework.stereotype.Service
 import ucb.accounting.backend.dao.*
 import ucb.accounting.backend.dao.repository.*
 import ucb.accounting.backend.dto.SaleTransactionDto
+import ucb.accounting.backend.dto.SaleTransactionPartialDto
+import ucb.accounting.backend.dto.SubAccountDto
 import ucb.accounting.backend.exception.UasException
+import ucb.accounting.backend.mapper.SaleTransactionMapper
+import ucb.accounting.backend.mapper.SubaccountMapper
 import ucb.accounting.backend.util.KeycloakSecurityContextHolder
 import java.math.BigDecimal
 
@@ -124,5 +128,36 @@ class SaleTransactionBl @Autowired constructor(
             saleTransactionDetailRepository.save(saleTransactionDetailEntity)
         }
         logger.info("Sale transaction created successfully")
+    }
+
+    fun getSubaccountsForSaleTransaction(companyId: Long):List<SubAccountDto>{
+        logger.info("Starting the BL call to get subaccounts for sale transaction")
+        // Validation of company exists
+        companyRepository.findByCompanyIdAndStatusTrue(companyId) ?: throw UasException("404-05")
+        // Validation that the user belongs to the company
+        val kcUuid = KeycloakSecurityContextHolder.getSubject()!!
+        logger.info("User $kcUuid is getting subaccounts for sale transaction")
+        // Validation of user belongs to company
+        kcUserCompanyRepository.findAllByKcUser_KcUuidAndCompany_CompanyIdAndStatusIsTrue(kcUuid, companyId) ?: throw UasException("403-16")
+        // Getting subaccounts
+        val subaccountEntities = subAccountRepository.findAllByAccountAccountSubgroupAccountGroupAccountCategoryAccountCategoryNameAndCompanyIdAndStatusIsTrue("Ingresos", companyId.toInt())
+        logger.info("Subaccounts for sale transaction obtained successfully")
+        return subaccountEntities.map { SubaccountMapper.entityToDto(it) }
+    }
+
+    fun getSaleTransactions(companyId: Long): List<SaleTransactionPartialDto>{
+        logger.info("Starting the BL call to get sale transactions")
+        // Validation of company exists
+        companyRepository.findByCompanyIdAndStatusTrue(companyId) ?: throw UasException("404-05")
+        // Validation that the user belongs to the company
+        val kcUuid = KeycloakSecurityContextHolder.getSubject()!!
+        logger.info("User $kcUuid is getting sale transactions")
+        // Validation of user belongs to company
+        kcUserCompanyRepository.findAllByKcUser_KcUuidAndCompany_CompanyIdAndStatusIsTrue(kcUuid, companyId) ?: throw UasException("403-34" +
+                "")
+        // Getting sale transactions
+        val saleTransactionEntities = saleTransactionRepository.findAllByCompanyIdAndStatusIsTrue(companyId.toInt())
+        logger.info("Sale transactions obtained successfully")
+        return saleTransactionEntities.map { SaleTransactionMapper.entityToDto(it) }
     }
 }

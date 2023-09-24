@@ -12,6 +12,7 @@ import ucb.accounting.backend.dto.CustomerDto
 import ucb.accounting.backend.dto.CustomerPartialDto
 import ucb.accounting.backend.exception.UasException
 import ucb.accounting.backend.mapper.CustomerMapper
+import ucb.accounting.backend.mapper.CustomerPartialMapper
 import ucb.accounting.backend.util.KeycloakSecurityContextHolder
 import java.sql.Date
 
@@ -73,15 +74,7 @@ class CustomerBl @Autowired constructor(
         // Get customers
         val customers = customerRepository.findAllByCompanyIdAndStatusTrue(companyId)
         logger.info("${customers.size} customers found")
-        return customers.map { customer ->
-            CustomerPartialDto(
-                customerId = customer.customerId,
-                displayName = customer.displayName,
-                companyName = customer.companyName,
-                companyPhoneNumber = customer.companyPhoneNumber,
-                creationDate = Date(customer.txDate.time)
-            )
-        }
+        return customers.map { CustomerPartialMapper.entityToDto(it) }
     }
 
     fun getCustomer(customerId:Long, companyId: Long): CustomerDto{
