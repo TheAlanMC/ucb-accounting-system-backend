@@ -27,7 +27,7 @@ class ExpenseTransactionDetail {
     var unitPriceBs: BigDecimal = BigDecimal.ZERO
 
     @Column(name = "status")
-    var status: Boolean = false
+    var status: Boolean = true
 
     @Column(name = "tx_date")
     var txDate: Timestamp = Timestamp(System.currentTimeMillis())

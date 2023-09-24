@@ -80,3 +80,24 @@ keycloak:
             - /api/v1/companies/*
           methods:
             - GET
+    - auth-roles:
+        - journal-entry-recorder-assistant
+      security-collections:
+        - name: Sales and Expenses Transaction Management
+          patterns:
+            - /api/v1/sales-transactions/*
+            - /api/v1/expenses-transactions/*
+          methods:
+            - GET
+            - POST
+    - auth-roles:
+        - journal-entry-recorder-assistant
+      security-collections:
+        - name: Customer and Supplier Management
+          patterns:
+            - /api/v1/customers/*
+            - /api/v1/suppliers/*
+          methods:
+            - GET
+            - POST
+            - PUT
