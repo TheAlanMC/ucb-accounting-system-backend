@@ -59,7 +59,7 @@ class AccountSubGroupBl @Autowired constructor(
             AccountingPlanBl.logger.info("Company found")
             val kcUuid = KeycloakSecurityContextHolder.getSubject()!!
             kcUserCompanyRepository.findAllByKcUser_KcUuidAndCompany_CompanyIdAndStatusIsTrue(kcUuid, companyId) ?: throw UasException("403-07")
-//            logger.info("User $kcUuid is getting account sub groups to company $companyId")
+            logger.info("User $kcUuid is getting account sub groups to company $companyId")
             val accountSubGroups = accountSubGroupRepository.findAllByCompanyIdAndStatusIsTrue(companyId.toInt())
             val accountSubGroupsDto = accountSubGroups.map { accountSubGroup ->
                 AccoSubGroupDto(
@@ -70,6 +70,26 @@ class AccountSubGroupBl @Autowired constructor(
             }
             logger.info("Account sub groups found")
             return accountSubGroupsDto
+    }
+
+    fun getAccountSubGroup(companyId: Long, accountSubGroupId: Long): AccoSubGroupDto {
+        logger.info("Getting account sub group")
+        // Validation that the company exists
+        val company = companyRepository.findByCompanyIdAndStatusTrue(companyId.toLong())?: throw UasException("404-05")
+        AccountingPlanBl.logger.info("Company found")
+        // Validation that the account sub group exists
+        val accountSubGroupEntity = accountSubGroupRepository.findByAccountSubgroupIdAndStatusIsTrue(accountSubGroupId)?: throw UasException("404-08")
+        if (accountSubGroupEntity.companyId != companyId.toInt()) {
+            throw UasException("403-10")
+        }
+        AccountingPlanBl.logger.info("Account sub group found")
+        val accountSubGroupDto = AccoSubGroupDto(
+            accountSubGroupEntity.accountGroupId.toLong(),
+            accountSubGroupEntity.accountSubgroupCode,
+            accountSubGroupEntity.accountSubgroupName
+        )
+        logger.info("Account sub group found")
+        return accountSubGroupDto
     }
 
 

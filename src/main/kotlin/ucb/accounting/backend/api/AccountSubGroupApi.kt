@@ -48,19 +48,19 @@ class AccountSubGroupApi @Autowired constructor(private val accountSubGroupBl: A
         return ResponseEntity(ResponseDto(code, responseInfo.message!!, accountSubGroups), responseInfo.httpStatus)
     }
 
-//    @GetMapping("/{accountSubGroupId}/companies/{companyId}")
-//    fun getAccountSubGroup(@PathVariable companyId: Long,
-//                           @PathVariable accountSubGroupId: Long): ResponseEntity<ResponseDto<AccoSubGroupDto>>{
-//        logger.info("Starting the API call to get account sub group")
-//        logger.info("GET /api/v1/account-subgroups/${accountSubGroupId}/companies/${companyId}")
-//        val accountSubGroup = accountSubGroupBl.getAccountSubGroup(companyId, accountSubGroupId)
-//        logger.info("Sending response")
-//        val code = "200-09"
-//        val responseInfo = ResponseCodeUtil.getResponseInfo(code)
-//        logger.info("Code: $code - ${responseInfo.message}")
-//        return ResponseEntity(ResponseDto(code, responseInfo.message!!, accountSubGroup), responseInfo.httpStatus)
-//    }
-//
+    @GetMapping("/{accountSubGroupId}/companies/{companyId}")
+    fun getAccountSubGroup(@PathVariable companyId: Long,
+                           @PathVariable accountSubGroupId: Long): ResponseEntity<ResponseDto<AccoSubGroupDto>>{
+        logger.info("Starting the API call to get account sub group")
+        logger.info("GET /api/v1/account-subgroups/${accountSubGroupId}/companies/${companyId}")
+        val accountSubGroup = accountSubGroupBl.getAccountSubGroup(companyId, accountSubGroupId)
+        logger.info("Sending response")
+        val code = "200-10"
+        val responseInfo = ResponseCodeUtil.getResponseInfo(code)
+        logger.info("Code: $code - ${responseInfo.message}")
+        return ResponseEntity(ResponseDto(code, responseInfo.message!!, accountSubGroup), responseInfo.httpStatus)
+    }
+
 //    @PutMapping("/{accountSubGroupId}/companies/{companyId}")
 //    fun updateAccountSubGroup(@PathVariable companyId: Long,
 //                              @PathVariable accountSubGroupId: Long,
