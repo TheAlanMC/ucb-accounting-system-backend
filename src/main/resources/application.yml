@@ -85,8 +85,8 @@ keycloak:
       security-collections:
         - name: Sales and Expenses Transaction Management
           patterns:
-            - /api/v1/sales-transactions/*
-            - /api/v1/expenses-transactions/*
+            - /api/v1/sale-transactions/*
+            - /api/v1/expense-transactions/*
           methods:
             - GET
             - POST

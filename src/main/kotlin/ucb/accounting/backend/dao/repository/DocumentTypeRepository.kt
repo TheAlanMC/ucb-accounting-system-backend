@@ -7,4 +7,6 @@ interface DocumentTypeRepository: JpaRepository<DocumentType, Long> {
     fun findByDocumentTypeIdAndStatusTrue (documentTypeId: Long): DocumentType?
 
     fun findAllByStatusTrue(): List<DocumentType>
+
+    fun findByDocumentTypeNameAndStatusIsTrue (documentTypeName: String): DocumentType?
 }

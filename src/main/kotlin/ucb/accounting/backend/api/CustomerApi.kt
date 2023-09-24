@@ -16,7 +16,7 @@ import ucb.accounting.backend.util.ResponseCodeUtil
 class CustomerApi @Autowired constructor(private val customerBl: CustomerBl){
 
     companion object {
-        private val logger = LoggerFactory.getLogger(FilesApi::class.java.name)
+        private val logger = LoggerFactory.getLogger(CustomerApi::class.java.name)
     }
 
     @PostMapping("/companies/{companyId}")

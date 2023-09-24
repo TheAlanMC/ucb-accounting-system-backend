@@ -2,6 +2,7 @@ package ucb.accounting.backend.dao
 
 import ucb.accounting.backend.util.HttpUtil
 import ucb.accounting.backend.util.KeycloakSecurityContextHolder
+import java.sql.Date
 import java.sql.Timestamp
 import javax.persistence.*
 
@@ -14,22 +15,22 @@ class SaleTransaction {
     var saleTransactionId: Long = 0
 
     @Column(name = "journal_entry_id")
-    var journalEntryId: Long = 0
+    var journalEntryId: Int = 0
 
     @Column(name = "company_id")
-    var companyId: Long = 0
+    var companyId: Int = 0
 
     @Column(name = "customer_id")
-    var customerId: Long = 0
+    var customerId: Int = 0
 
     @Column(name = "subaccount_id")
-    var subaccountId: Long = 0
+    var subaccountId: Int = 0
 
     @Column(name = "sale_transaction_number")
-    var saleTransactionNumber: String = ""
+    var saleTransactionNumber: Int = 0
 
     @Column(name = "sale_transaction_date")
-    var saleTransactionDate: Timestamp = Timestamp(System.currentTimeMillis())
+    var saleTransactionDate: Date = Date(System.currentTimeMillis())
 
     @Column(name = "description")
     var description: String = ""
