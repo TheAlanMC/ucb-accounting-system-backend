@@ -14,10 +14,10 @@ class Customer {
     var customerId: Long = 0
 
     @Column(name = "company_id")
-    var companyId: Long = 0
+    var companyId: Int = 0
 
     @Column(name = "subaccount_id")
-    var subaccountId: Long = 0
+    var subaccountId: Int = 0
 
     @Column(name = "prefix")
     var prefix: String = ""

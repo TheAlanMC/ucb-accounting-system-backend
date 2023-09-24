@@ -6,5 +6,5 @@ import ucb.accounting.backend.dao.Customer
 interface CustomerRepository: JpaRepository<Customer, Long> {
     fun findByCustomerIdAndStatusTrue (customerId: Long): Customer?
 
-    fun findAllByCompanyIdAndStatusTrue (companyId: Long): List<Customer>
+    fun findAllByCompanyIdAndStatusTrue (companyId: Int): List<Customer>
 }

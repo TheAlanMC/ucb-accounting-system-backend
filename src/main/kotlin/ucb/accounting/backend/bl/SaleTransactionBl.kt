@@ -158,6 +158,9 @@ class SaleTransactionBl @Autowired constructor(
         // Getting sale transactions
         val saleTransactionEntities = saleTransactionRepository.findAllByCompanyIdAndStatusIsTrue(companyId.toInt())
         logger.info("Sale transactions obtained successfully")
-        return saleTransactionEntities.map { SaleTransactionMapper.entityToDto(it) }
-    }
+        return saleTransactionEntities.map { saleTransactionEntity ->
+            SaleTransactionMapper.entityToDto(saleTransactionEntity,
+                saleTransactionDetailRepository.findAllBySaleTransactionIdAndStatusIsTrue(saleTransactionEntity.saleTransactionId).sumOf { it.unitPriceBs.times(it.quantity.toBigDecimal()) }
+            )
+        }}
 }

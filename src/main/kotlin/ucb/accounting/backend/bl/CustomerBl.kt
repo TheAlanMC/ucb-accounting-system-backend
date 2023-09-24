@@ -47,8 +47,8 @@ class CustomerBl @Autowired constructor(
         logger.info("User $kcUuid is creating a new customer")
 
         val customerEntity = Customer()
-        customerEntity.companyId = companyId
-        customerEntity.subaccountId = customerDto.subaccountId
+        customerEntity.companyId = companyId.toInt()
+        customerEntity.subaccountId = customerDto.subaccountId.toInt()
         customerEntity.prefix = customerDto.prefix
         customerEntity.displayName = customerDto.displayName
         customerEntity.firstName = customerDto.firstName
@@ -72,7 +72,7 @@ class CustomerBl @Autowired constructor(
         kcUserCompanyRepository.findAllByKcUser_KcUuidAndCompany_CompanyIdAndStatusIsTrue(kcUuid, companyId) ?: throw UasException("403-28")
         logger.info("User $kcUuid is getting customers from company $companyId")
         // Get customers
-        val customers = customerRepository.findAllByCompanyIdAndStatusTrue(companyId)
+        val customers = customerRepository.findAllByCompanyIdAndStatusTrue(companyId.toInt())
         logger.info("${customers.size} customers found")
         return customers.map { CustomerPartialMapper.entityToDto(it) }
     }
@@ -88,7 +88,7 @@ class CustomerBl @Autowired constructor(
         kcUserCompanyRepository.findAllByKcUser_KcUuidAndCompany_CompanyIdAndStatusIsTrue(kcUuid, companyId) ?: throw UasException("403-28")
         logger.info("User $kcUuid is getting customer $customerId from company $companyId")
         // Validation that customer belongs to company
-        if (customerEntity.companyId != companyId) throw UasException("403-28")
+        if (customerEntity.companyId != companyId.toInt()) throw UasException("403-28")
         logger.info("Customer found")
         return CustomerMapper.entityToDto(customerEntity)
     }
@@ -108,7 +108,7 @@ class CustomerBl @Autowired constructor(
         kcUserCompanyRepository.findAllByKcUser_KcUuidAndCompany_CompanyIdAndStatusIsTrue(kcUuid, companyId) ?: throw UasException("403-29")
         logger.info("User $kcUuid is updating customer $customerId from company $companyId")
         // Validation that customer belongs to company
-        if (customerEntity.companyId != companyId) throw UasException("403-29")
+        if (customerEntity.companyId != companyId.toInt()) throw UasException("403-29")
         // Validation that subaccount exists
         if (customerDto.subaccountId != null) {
             val subAccountEntity = subAccountRepository.findBySubaccountIdAndStatusTrue(customerDto.subaccountId) ?: throw UasException("404-10")
@@ -118,7 +118,7 @@ class CustomerBl @Autowired constructor(
 
         logger.info("User $kcUuid is updating customer $customerId from company $companyId")
 
-        customerEntity.subaccountId = customerDto.subaccountId ?: customerEntity.subaccountId
+        customerEntity.subaccountId = (customerDto.subaccountId ?: customerEntity.subaccountId).toInt()
         customerEntity.prefix = customerDto.prefix ?: customerEntity.prefix
         customerEntity.displayName = customerDto.displayName ?: customerEntity.displayName
         customerEntity.firstName = customerDto.firstName ?: customerEntity.firstName
