@@ -92,5 +92,28 @@ class AccountSubGroupBl @Autowired constructor(
         return accountSubGroupDto
     }
 
+    fun updateAccountSubGroup(companyId: Long, accountSubGroupId: Long, accoSubGroupDto: AccoSubGroupDto): AccoSubGroupDto {
+        logger.info("Updating account sub group")
+        // Validation that the company exists
+        val company = companyRepository.findByCompanyIdAndStatusTrue(companyId.toLong())?: throw UasException("404-05")
+        AccountingPlanBl.logger.info("Company found")
+        // Validation that all the parameters were sent
+        if (accoSubGroupDto.accountGroupId == null || accoSubGroupDto.accountSubGroupCode == null || accoSubGroupDto.accountSubGroupName == null) {
+            throw UasException("400-10")
+        }
+        logger.info("Parameters found")
+        // Validation that the account sub group exists
+        val accountSubGroupEntity = accountSubGroupRepository.findByAccountSubgroupIdAndStatusIsTrue(accountSubGroupId)?: throw UasException("404-08")
+        if (accountSubGroupEntity.companyId != companyId.toInt()) {
+            throw UasException("403-11")
+        }
+        logger.info("Account sub group found")
+        accountSubGroupEntity.accountGroupId = accoSubGroupDto.accountGroupId.toInt()
+        accountSubGroupEntity.accountSubgroupCode = accoSubGroupDto.accountSubGroupCode
+        accountSubGroupEntity.accountSubgroupName = accoSubGroupDto.accountSubGroupName
+        accountSubGroupRepository.save(accountSubGroupEntity)
+        logger.info("Account sub group updated")
+        return accoSubGroupDto
+    }
 
 }

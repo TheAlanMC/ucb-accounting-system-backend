@@ -61,18 +61,18 @@ class AccountSubGroupApi @Autowired constructor(private val accountSubGroupBl: A
         return ResponseEntity(ResponseDto(code, responseInfo.message!!, accountSubGroup), responseInfo.httpStatus)
     }
 
-//    @PutMapping("/{accountSubGroupId}/companies/{companyId}")
-//    fun updateAccountSubGroup(@PathVariable companyId: Long,
-//                              @PathVariable accountSubGroupId: Long,
-//                              @RequestBody accoSubGroupDto: AccoSubGroupDto): ResponseEntity<ResponseDto<Nothing>>{
-//        logger.info("Starting the API call to update account sub group")
-//        logger.info("PUT /api/v1/account-subgroups/${accountSubGroupId}/companies/${companyId}")
-//        accountSubGroupBl.updateAccountSubGroup(companyId, accountSubGroupId, accoSubGroupDto)
-//        logger.info("Sending response")
-//        val code = "200-10"
-//        val responseInfo = ResponseCodeUtil.getResponseInfo(code)
-//        logger.info("Code: $code - ${responseInfo.message}")
-//        return ResponseEntity(ResponseDto(code, responseInfo.message!!, null), responseInfo.httpStatus)
-//    }
+    @PutMapping("/{accountSubGroupId}/companies/{companyId}")
+    fun updateAccountSubGroup(@PathVariable companyId: Long,
+                              @PathVariable accountSubGroupId: Long,
+                              @RequestBody accoSubGroupDto: AccoSubGroupDto): ResponseEntity<ResponseDto<AccoSubGroupDto>>{
+        logger.info("Starting the API call to update account sub group")
+        logger.info("PUT /api/v1/account-subgroups/${accountSubGroupId}/companies/${companyId}")
+        accountSubGroupBl.updateAccountSubGroup(companyId, accountSubGroupId, accoSubGroupDto)
+        logger.info("Sending response")
+        val code = "200-11"
+        val responseInfo = ResponseCodeUtil.getResponseInfo(code)
+        logger.info("Code: $code - ${responseInfo.message}")
+        return ResponseEntity(ResponseDto(code, responseInfo.message!!, accoSubGroupDto), responseInfo.httpStatus)
+    }
 
 }
