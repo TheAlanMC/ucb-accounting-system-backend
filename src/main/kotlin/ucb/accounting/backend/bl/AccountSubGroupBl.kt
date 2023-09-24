@@ -45,4 +45,22 @@ class AccountSubGroupBl @Autowired constructor(
         logger.info("Account sub group created")
     }
 
+    fun getAccountSubGroups(companyId: Long): List<AccoSubGroupDto> {
+            logger.info("Getting account sub groups")
+            // Validation that the company exists
+            val company = companyRepository.findByCompanyIdAndStatusTrue(companyId.toLong())?: throw UasException("404-05")
+            AccountingPlanBl.logger.info("Company found")
+            val accountSubGroupList = accountSubGroupRepository.findAllByCompanyIdAndStatusIsTrue(companyId.toInt())
+            val accountSubGroups = accountSubGroupList.map { accountSubgroup ->
+                AccoSubGroupDto(
+                    accountSubgroup.accountGroupId,
+                    accountSubgroup.accountSubgroupCode,
+                    accountSubgroup.accountSubgroupName
+                )
+            }
+            logger.info("Account sub groups found")
+            return accountSubGroups
+    }
+
+
 }

@@ -36,18 +36,18 @@ class AccountSubGroupApi @Autowired constructor(private val accountSubGroupBl: A
         return ResponseEntity(ResponseDto(code, responseInfo.message!!, null), responseInfo.httpStatus)
     }
 
-//    @GetMapping("/companies/{companyId}")
-//    fun getAccountSubGroups(@PathVariable companyId: Long): ResponseEntity<ResponseDto<List<AccoSubGroupDto>>>{
-//        logger.info("Starting the API call to get account sub groups")
-//        logger.info("GET /api/v1/account-subgroups/companies/${companyId}")
-//        val accountSubGroups = accountSubGroupBl.getAccountSubGroups(companyId)
-//        logger.info("Sending response")
-//        val code = "200-09"
-//        val responseInfo = ResponseCodeUtil.getResponseInfo(code)
-//        logger.info("Code: $code - ${responseInfo.message}")
-//        return ResponseEntity(ResponseDto(code, responseInfo.message!!, accountSubGroups), responseInfo.httpStatus)
-//    }
-//
+    @GetMapping("/companies/{companyId}")
+    fun getAccountSubGroups(@PathVariable companyId: Long): ResponseEntity<ResponseDto<List<AccoSubGroupDto>>>{
+        logger.info("Starting the API call to get account sub groups")
+        logger.info("GET /api/v1/account-subgroups/companies/${companyId}")
+        val accountSubGroups = accountSubGroupBl.getAccountSubGroups(companyId)
+        logger.info("Sending response")
+        val code = "200-09"
+        val responseInfo = ResponseCodeUtil.getResponseInfo(code)
+        logger.info("Code: $code - ${responseInfo.message}")
+        return ResponseEntity(ResponseDto(code, responseInfo.message!!, accountSubGroups), responseInfo.httpStatus)
+    }
+
 //    @GetMapping("/{accountSubGroupId}/companies/{companyId}")
 //    fun getAccountSubGroup(@PathVariable companyId: Long,
 //                           @PathVariable accountSubGroupId: Long): ResponseEntity<ResponseDto<AccoSubGroupDto>>{
