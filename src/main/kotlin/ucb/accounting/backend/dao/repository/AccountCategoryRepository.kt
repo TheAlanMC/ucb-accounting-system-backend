@@ -6,5 +6,7 @@ import ucb.accounting.backend.dao.AccountCategory
 
 @Repository
 interface AccountCategoryRepository: JpaRepository<AccountCategory, Long> {
+
+    fun findByAccountCategoryIdAndStatusIsTrue (accountCategoryId: Long): AccountCategory?
     fun findAllByStatusIsTrue (): List<AccountCategory>
 }

@@ -81,6 +81,25 @@ keycloak:
           methods:
             - GET
     - auth-roles:
+        - accounting-management
+      security-collections:
+        - name: CRUD for account group
+          patterns:
+            - /api/v1/account-groups/*
+          methods:
+            - POST
+            - GET
+            - PUT
+    - auth-roles:
+        - accounting-management
+      security-collections:
+        - name: CRUD for account subgroup
+          patterns:
+            - /api/v1/account-subgroups/*
+          methods:
+            - POST
+            - GET
+            - PUT
         - journal-entry-recorder-assistant
       security-collections:
         - name: Sales and Expenses Transaction Management
