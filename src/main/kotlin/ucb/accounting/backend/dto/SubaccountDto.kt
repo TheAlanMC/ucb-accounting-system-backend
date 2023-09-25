@@ -1,6 +1,6 @@
 package ucb.accounting.backend.dto
 
-data class SubAccountDto(
+data class SubaccountDto(
     val subaccountId: Long?,
     val subaccountCode: Int?,
     val subaccountName: String?

@@ -2,7 +2,6 @@ package ucb.accounting.backend.bl
 
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.stereotype.Controller
 import org.springframework.stereotype.Service
 import ucb.accounting.backend.dao.JournalEntry
 import ucb.accounting.backend.dao.Transaction
@@ -23,9 +22,9 @@ class JournalEntryBl @Autowired constructor(
     private val transactionAttachmentRepository: TransactionAttachmentRepository,
     private val attachmentRepository: AttachmentRepository,
     private val transactionDetailRepository: TransactionDetailRepository,
-    private val subAccountRepository: SubAccountRepository,
+    private val subaccountRepository: SubaccountRepository,
 
-) {
+    ) {
     companion object{
         private val logger = LoggerFactory.getLogger(JournalEntryBl::class.java.name)
     }
@@ -44,7 +43,7 @@ class JournalEntryBl @Autowired constructor(
         }
         // Validation that subaccounts exist
         journalEntryDto.transactionDetails.map {
-            subAccountRepository.findBySubaccountIdAndStatusIsTrue(it.subaccountId) ?: throw UasException("404-10")
+            subaccountRepository.findBySubaccountIdAndStatusIsTrue(it.subaccountId) ?: throw UasException("404-10")
         }
         // Validation that accounting principle of double-entry is being followed
         if (journalEntryDto.transactionDetails.sumOf { it.debitAmountBs } != journalEntryDto.transactionDetails.sumOf { it.creditAmountBs }) throw UasException("400-21")

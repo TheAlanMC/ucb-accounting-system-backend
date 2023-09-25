@@ -7,20 +7,19 @@ import org.slf4j.LoggerFactory
 import ucb.accounting.backend.dao.Customer
 import ucb.accounting.backend.dao.repository.CompanyRepository
 import ucb.accounting.backend.dao.repository.KcUserCompanyRepository
-import ucb.accounting.backend.dao.repository.SubAccountRepository
+import ucb.accounting.backend.dao.repository.SubaccountRepository
 import ucb.accounting.backend.dto.CustomerDto
 import ucb.accounting.backend.dto.CustomerPartialDto
 import ucb.accounting.backend.exception.UasException
 import ucb.accounting.backend.mapper.CustomerMapper
 import ucb.accounting.backend.mapper.CustomerPartialMapper
 import ucb.accounting.backend.util.KeycloakSecurityContextHolder
-import java.sql.Date
 
 @Service
 class CustomerBl @Autowired constructor(
     private val customerRepository: CustomerRepository,
     private val companyRepository: CompanyRepository,
-    private val subAccountRepository: SubAccountRepository,
+    private val subaccountRepository: SubaccountRepository,
     private val kcUserCompanyRepository: KcUserCompanyRepository,
 ) {
 
@@ -36,13 +35,13 @@ class CustomerBl @Autowired constructor(
         // Validation of company
         companyRepository.findByCompanyIdAndStatusIsTrue(companyId) ?: throw UasException("404-05")
         // Validation that subaccount exists
-        val subAccountEntity = subAccountRepository.findBySubaccountIdAndStatusIsTrue(customerDto.subaccountId) ?: throw UasException("404-10")
+        val subaccountEntity = subaccountRepository.findBySubaccountIdAndStatusIsTrue(customerDto.subaccountId) ?: throw UasException("404-10")
         // Validation of user belongs to company
         val kcUuid = KeycloakSecurityContextHolder.getSubject()!!
         kcUserCompanyRepository.findAllByKcUser_KcUuidAndCompany_CompanyIdAndStatusIsTrue(kcUuid, companyId) ?: throw UasException("403-27")
         logger.info("User $kcUuid is uploading file to company $companyId")
         // Validation that subaccount belongs to company
-        if (subAccountEntity.companyId != companyId.toInt()) throw UasException("403-27")
+        if (subaccountEntity.companyId != companyId.toInt()) throw UasException("403-27")
 
         logger.info("User $kcUuid is creating a new customer")
 
@@ -111,9 +110,9 @@ class CustomerBl @Autowired constructor(
         if (customerEntity.companyId != companyId.toInt()) throw UasException("403-29")
         // Validation that subaccount exists
         if (customerDto.subaccountId != null) {
-            val subAccountEntity = subAccountRepository.findBySubaccountIdAndStatusIsTrue(customerDto.subaccountId) ?: throw UasException("404-10")
+            val subaccountEntity = subaccountRepository.findBySubaccountIdAndStatusIsTrue(customerDto.subaccountId) ?: throw UasException("404-10")
             // Validation that subaccount belongs to company
-            if (subAccountEntity.companyId != companyId.toInt()) throw UasException("403-29")
+            if (subaccountEntity.companyId != companyId.toInt()) throw UasException("403-29")
         }
 
         logger.info("User $kcUuid is updating customer $customerId from company $companyId")

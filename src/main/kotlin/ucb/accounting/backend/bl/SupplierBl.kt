@@ -16,7 +16,7 @@ import ucb.accounting.backend.util.KeycloakSecurityContextHolder
 class SupplierBl @Autowired constructor(
     private val supplierRepository: SupplierRepository,
     private val companyRepository: CompanyRepository,
-    private val subAccountRepository: SubAccountRepository,
+    private val subaccountRepository: SubaccountRepository,
     private val kcUserCompanyRepository: KcUserCompanyRepository,
 ) {
 
@@ -32,13 +32,13 @@ class SupplierBl @Autowired constructor(
         // Validation of company
         companyRepository.findByCompanyIdAndStatusIsTrue(companyId) ?: throw UasException("404-05")
         // Validation that subaccount exists
-        val subAccountEntity = subAccountRepository.findBySubaccountIdAndStatusIsTrue(supplierDto.subaccountId) ?: throw UasException("404-10")
+        val subaccountEntity = subaccountRepository.findBySubaccountIdAndStatusIsTrue(supplierDto.subaccountId) ?: throw UasException("404-10")
         // Validation of user belongs to company
         val kcUuid = KeycloakSecurityContextHolder.getSubject()!!
         kcUserCompanyRepository.findAllByKcUser_KcUuidAndCompany_CompanyIdAndStatusIsTrue(kcUuid, companyId) ?: throw UasException("403-30")
         logger.info("User $kcUuid is uploading file to company $companyId")
         // Validation that subaccount belongs to company
-        if (subAccountEntity.companyId != companyId.toInt()) throw UasException("403-30")
+        if (subaccountEntity.companyId != companyId.toInt()) throw UasException("403-30")
 
         logger.info("User $kcUuid is creating a new supplier")
 
@@ -107,9 +107,9 @@ class SupplierBl @Autowired constructor(
         if (supplierEntity.companyId != companyId.toInt()) throw UasException("403-32")
         // Validation that subaccount exists
         if (supplierDto.subaccountId != null) {
-            val subAccountEntity = subAccountRepository.findBySubaccountIdAndStatusIsTrue(supplierDto.subaccountId) ?: throw UasException("404-10")
+            val subaccountEntity = subaccountRepository.findBySubaccountIdAndStatusIsTrue(supplierDto.subaccountId) ?: throw UasException("404-10")
             // Validation that subaccount belongs to company
-            if (subAccountEntity.companyId != companyId.toInt()) throw UasException("403-32")
+            if (subaccountEntity.companyId != companyId.toInt()) throw UasException("403-32")
         }
 
         logger.info("User $kcUuid is updating supplier $supplierId from company $companyId")

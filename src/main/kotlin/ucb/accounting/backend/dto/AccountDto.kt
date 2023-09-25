@@ -4,5 +4,5 @@ data class AccountDto(
     val accountId: Long?,
     val accountCode: Int?,
     val accountName: String?,
-    val subaccounts: List<SubAccountDto>? // Lista de subcuentas
+    val subaccounts: List<SubaccountDto>? // Lista de subcuentas
 )

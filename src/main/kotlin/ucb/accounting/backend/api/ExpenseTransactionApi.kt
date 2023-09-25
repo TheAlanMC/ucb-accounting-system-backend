@@ -8,7 +8,7 @@ import ucb.accounting.backend.bl.ExpenseTransactionBl
 import ucb.accounting.backend.dto.ResponseDto
 import ucb.accounting.backend.dto.ExpenseTransactionDto
 import ucb.accounting.backend.dto.ExpenseTransactionPartialDto
-import ucb.accounting.backend.dto.SubAccountDto
+import ucb.accounting.backend.dto.SubaccountDto
 import ucb.accounting.backend.util.ResponseCodeUtil
 import javax.validation.constraints.Null
 
@@ -38,10 +38,10 @@ class ExpenseTransactionApi @Autowired constructor(private val expenseTransactio
     @GetMapping("/companies/{companyId}/subaccounts")
     fun getSubaccountsForExpenseTransaction (
         @PathVariable("companyId") companyId: Long
-    ): ResponseEntity<ResponseDto<List<SubAccountDto>>>{
+    ): ResponseEntity<ResponseDto<List<SubaccountDto>>>{
         logger.info("Starting the API call to get subaccounts for expense transaction")
         logger.info("GET /api/v1/expense-transactions/companies/${companyId}/subaccounts")
-        val subaccounts: List<SubAccountDto> = expenseTransactionBl.getSubaccountsForExpenseTransaction(companyId)
+        val subaccounts: List<SubaccountDto> = expenseTransactionBl.getSubaccountsForExpenseTransaction(companyId)
         logger.info("Sending response")
         val code = "200-14"
         val responseInfo = ResponseCodeUtil.getResponseInfo(code)

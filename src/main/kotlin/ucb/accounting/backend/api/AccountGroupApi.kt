@@ -66,12 +66,12 @@ class AccountGroupApi @Autowired constructor(private val accountGroupBl: Account
                            @RequestBody accoGroupDto: AccoGroupDto): ResponseEntity<ResponseDto<AccoGroupDto>>{
         logger.info("Starting the API call to update account group")
         logger.info("PUT /api/v1/account-groups/${accountGroupId}/companies/${companyId}")
-        accountGroupBl.updateAccountGroup(companyId, accountGroupId, accoGroupDto)
+        val newAccountGroup = accountGroupBl.updateAccountGroup(companyId, accountGroupId, accoGroupDto)
         logger.info("Sending response")
         val code = "200-09"
         val responseInfo = ResponseCodeUtil.getResponseInfo(code)
         logger.info("Code: $code - ${responseInfo.message}")
-        return ResponseEntity(ResponseDto(code, responseInfo.message!!, accoGroupDto), responseInfo.httpStatus)
+        return ResponseEntity(ResponseDto(code, responseInfo.message!!, newAccountGroup), responseInfo.httpStatus)
     }
 
 }

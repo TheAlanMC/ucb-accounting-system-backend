@@ -7,7 +7,7 @@ import ucb.accounting.backend.dao.*
 import ucb.accounting.backend.dao.repository.*
 import ucb.accounting.backend.dto.ExpenseTransactionDto
 import ucb.accounting.backend.dto.ExpenseTransactionPartialDto
-import ucb.accounting.backend.dto.SubAccountDto
+import ucb.accounting.backend.dto.SubaccountDto
 import ucb.accounting.backend.exception.UasException
 import ucb.accounting.backend.mapper.ExpenseTransactionMapper
 import ucb.accounting.backend.mapper.SubaccountMapper
@@ -26,7 +26,7 @@ class ExpenseTransactionBl @Autowired constructor(
     private val transactionDetailRepository: TransactionDetailRepository,
     private val expenseTransactionRepository: ExpenseTransactionRepository,
     private val expenseTransactionDetailRepository: ExpenseTransactionDetailRepository,
-    private val subAccountRepository: SubAccountRepository,
+    private val subaccountRepository: SubaccountRepository,
     private val supplierRepository: SupplierRepository
 ){
     companion object{
@@ -46,9 +46,9 @@ class ExpenseTransactionBl @Autowired constructor(
         }
         // Validation that subaccounts exist
         expenseTransactionDto.expenseTransactionDetails.map {
-            subAccountRepository.findBySubaccountIdAndStatusIsTrue(it.subaccountId) ?: throw UasException("404-10")
+            subaccountRepository.findBySubaccountIdAndStatusIsTrue(it.subaccountId) ?: throw UasException("404-10")
         }
-        subAccountRepository.findBySubaccountIdAndStatusIsTrue(expenseTransactionDto.subaccountId) ?: throw UasException("404-10")
+        subaccountRepository.findBySubaccountIdAndStatusIsTrue(expenseTransactionDto.subaccountId) ?: throw UasException("404-10")
         // Validation supplier exists
         supplierRepository.findBySupplierIdAndStatusIsTrue(expenseTransactionDto.supplierId) ?: throw UasException("404-15")
         // Validation that the expense transaction number is unique
@@ -129,7 +129,7 @@ class ExpenseTransactionBl @Autowired constructor(
         logger.info("Expense transaction created successfully")
     }
 
-    fun getSubaccountsForExpenseTransaction(companyId: Long):List<SubAccountDto>{
+    fun getSubaccountsForExpenseTransaction(companyId: Long):List<SubaccountDto>{
         logger.info("Starting the BL call to get subaccounts for expense transaction")
         // Validation of company exists
         companyRepository.findByCompanyIdAndStatusIsTrue(companyId) ?: throw UasException("404-05")
@@ -139,7 +139,7 @@ class ExpenseTransactionBl @Autowired constructor(
         // Validation of user belongs to company
         kcUserCompanyRepository.findAllByKcUser_KcUuidAndCompany_CompanyIdAndStatusIsTrue(kcUuid, companyId) ?: throw UasException("403-16")
         // Getting subaccounts
-        val subaccountEntities = subAccountRepository.findAllByAccountAccountSubgroupAccountGroupAccountCategoryAccountCategoryNameAndCompanyIdAndStatusIsTrue("Egresos", companyId.toInt())
+        val subaccountEntities = subaccountRepository.findAllByAccountAccountSubgroupAccountGroupAccountCategoryAccountCategoryNameAndCompanyIdAndStatusIsTrue("Egresos", companyId.toInt())
         logger.info("Subaccounts for expense transaction obtained successfully")
         return subaccountEntities.map { SubaccountMapper.entityToDto(it) }
     }

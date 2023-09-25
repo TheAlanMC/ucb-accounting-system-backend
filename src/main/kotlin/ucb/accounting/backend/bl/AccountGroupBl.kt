@@ -28,7 +28,7 @@ class AccountGroupBl @Autowired constructor(
     fun createAccountGroup(id: Long, accoGroupDto: AccoGroupDto) {
         logger.info("Creating account group")
         // Validation that the company exists
-        val company = companyRepository.findByCompanyIdAndStatusTrue(id.toLong())?: throw UasException("404-05")
+        val company = companyRepository.findByCompanyIdAndStatusIsTrue(id.toLong())?: throw UasException("404-05")
         val companyId = company.companyId.toInt()
         AccountingPlanBl.logger.info("Company found")
         // Validation that all the parameters were sent
@@ -55,7 +55,7 @@ class AccountGroupBl @Autowired constructor(
 
         logger.info("Getting account groups")
         // Validation that the company exists
-        val company = companyRepository.findByCompanyIdAndStatusTrue(companyId.toLong())?: throw UasException("404-05")
+        val company = companyRepository.findByCompanyIdAndStatusIsTrue(companyId.toLong())?: throw UasException("404-05")
         AccountingPlanBl.logger.info("Company found")
         val kcUuid = KeycloakSecurityContextHolder.getSubject()!!
         kcUserCompanyRepository.findAllByKcUser_KcUuidAndCompany_CompanyIdAndStatusIsTrue(kcUuid, companyId) ?: throw UasException("403-07")
@@ -63,6 +63,7 @@ class AccountGroupBl @Autowired constructor(
         val accountGroupEntities = accountGroupRepository.findAllByCompanyIdAndStatusIsTrue(companyId.toInt())
         val accountGroups = accountGroupEntities.map { accountGroup ->
             AccoGroupDto(
+                accountGroup.accountGroupId,
                 accountGroup.accountCategoryId.toLong(),
                 accountGroup.accountGroupCode,
                 accountGroup.accountGroupName
@@ -75,7 +76,7 @@ class AccountGroupBl @Autowired constructor(
     fun getAccountGroup(companyId: Long, accountGroupId: Long): AccoGroupDto {
             logger.info("Getting account group")
             // Validation that the company exists
-            val company = companyRepository.findByCompanyIdAndStatusTrue(companyId.toLong())?: throw UasException("404-05")
+            val company = companyRepository.findByCompanyIdAndStatusIsTrue(companyId.toLong())?: throw UasException("404-05")
             AccountingPlanBl.logger.info("Company found")
             // Validation that the account group exists
             val accountGroupEntity = accountGroupRepository.findByAccountGroupIdAndStatusIsTrue(accountGroupId)?: throw UasException("404-07")
@@ -85,6 +86,7 @@ class AccountGroupBl @Autowired constructor(
             }
             logger.info("Account group found")
             val accountGroup = AccoGroupDto(
+                accountGroupEntity.accountGroupId,
                 accountGroupEntity.accountCategoryId.toLong(),
                 accountGroupEntity.accountGroupCode,
                 accountGroupEntity.accountGroupName
@@ -95,7 +97,7 @@ class AccountGroupBl @Autowired constructor(
     fun updateAccountGroup(companyId: Long, accountGroupId: Long, accoGroupDto: AccoGroupDto): AccoGroupDto{
         logger.info("Updating account group")
         // Validation that the company exists
-        val company = companyRepository.findByCompanyIdAndStatusTrue(companyId.toLong())?: throw UasException("404-05")
+        val company = companyRepository.findByCompanyIdAndStatusIsTrue(companyId.toLong())?: throw UasException("404-05")
         AccountingPlanBl.logger.info("Company found")
         // Validation that all the parameters were sent
         if (accoGroupDto.accountCategoryId == null || accoGroupDto.accountGroupCode == null || accoGroupDto.accountGroupName == null) {
@@ -117,7 +119,13 @@ class AccountGroupBl @Autowired constructor(
         accountGroupEntity.accountGroupName = accoGroupDto.accountGroupName
         accountGroupRepository.save(accountGroupEntity)
         logger.info("Account group updated")
-        return accoGroupDto
+
+        return AccoGroupDto(
+            accountGroupEntity.accountGroupId,
+            accountGroupEntity.accountCategoryId.toLong(),
+            accountGroupEntity.accountGroupCode,
+            accountGroupEntity.accountGroupName
+        )
     }
 
 }

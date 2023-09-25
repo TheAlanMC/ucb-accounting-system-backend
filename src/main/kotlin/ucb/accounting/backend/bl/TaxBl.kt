@@ -17,7 +17,7 @@ import ucb.accounting.backend.util.KeycloakSecurityContextHolder
 class TaxBl @Autowired constructor(
     private val taxTypeRepository: TaxTypeRepository,
     private val companyRepository: CompanyRepository,
-    private val subAccountRepository: SubAccountRepository,
+    private val subaccountRepository: SubaccountRepository,
     private val subaccountTaxTypeRepository: SubaccountTaxTypeRepository,
     private val kcUserCompanyRepository: KcUserCompanyRepository,
 ) {
@@ -39,7 +39,7 @@ class TaxBl @Autowired constructor(
         // Validation that company exists
         companyRepository.findByCompanyIdAndStatusIsTrue(companyId) ?: throw UasException("404-05")
         // Validation that subaccount exists
-        val subAccountEntity = subAccountRepository.findBySubaccountIdAndStatusIsTrue(subaccountTaxTypeDto.subaccountId) ?: throw UasException("404-10")
+        val subaccountEntity = subaccountRepository.findBySubaccountIdAndStatusIsTrue(subaccountTaxTypeDto.subaccountId) ?: throw UasException("404-10")
         // Validation that tax type exists
         val taxTypeEntity = taxTypeRepository.findByTaxTypeIdAndStatusIsTrue(subaccountTaxTypeDto.taxTypeId) ?: throw UasException("404-16")
         // Validation that subaccount is not associated with tax type
@@ -49,13 +49,13 @@ class TaxBl @Autowired constructor(
         kcUserCompanyRepository.findAllByKcUser_KcUuidAndCompany_CompanyIdAndStatusIsTrue(kcUuid, companyId) ?: throw UasException("403-37")
         logger.info("User $kcUuid is uploading file to company $companyId")
         // Validation that subaccount belongs to company
-        if (subAccountEntity.companyId != companyId.toInt()) throw UasException("403-37")
+        if (subaccountEntity.companyId != companyId.toInt()) throw UasException("403-37")
 
         logger.info("User $kcUuid is creating a new subaccount associated with tax type")
 
         val subaccountTaxTypeEntity = SubaccountTaxType()
         subaccountTaxTypeEntity.companyId = companyId
-        subaccountTaxTypeEntity.subaccount = subAccountEntity
+        subaccountTaxTypeEntity.subaccount = subaccountEntity
         subaccountTaxTypeEntity.taxType = taxTypeEntity
         subaccountTaxTypeEntity.taxRate = subaccountTaxTypeDto.taxRate
 

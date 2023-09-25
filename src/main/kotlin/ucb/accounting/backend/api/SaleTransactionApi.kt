@@ -8,7 +8,7 @@ import ucb.accounting.backend.bl.SaleTransactionBl
 import ucb.accounting.backend.dto.ResponseDto
 import ucb.accounting.backend.dto.SaleTransactionDto
 import ucb.accounting.backend.dto.SaleTransactionPartialDto
-import ucb.accounting.backend.dto.SubAccountDto
+import ucb.accounting.backend.dto.SubaccountDto
 import ucb.accounting.backend.util.ResponseCodeUtil
 import javax.validation.constraints.Null
 
@@ -38,10 +38,10 @@ class SaleTransactionApi @Autowired constructor(private val saleTransactionBl: S
     @GetMapping("/companies/{companyId}/subaccounts")
     fun getSubaccountsForSaleTransaction (
         @PathVariable("companyId") companyId: Long
-    ): ResponseEntity<ResponseDto<List<SubAccountDto>>>{
+    ): ResponseEntity<ResponseDto<List<SubaccountDto>>>{
         logger.info("Starting the API call to get subaccounts for sale transaction")
         logger.info("GET /api/v1/sale-transactions/companies/${companyId}/subaccounts")
-        val subaccounts: List<SubAccountDto> = saleTransactionBl.getSubaccountsForSaleTransaction(companyId)
+        val subaccounts: List<SubaccountDto> = saleTransactionBl.getSubaccountsForSaleTransaction(companyId)
         logger.info("Sending response")
         val code = "200-14"
         val responseInfo = ResponseCodeUtil.getResponseInfo(code)

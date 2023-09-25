@@ -1,12 +1,9 @@
 package ucb.accounting.backend.bl
 
-import org.keycloak.admin.client.Keycloak
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
-import ucb.accounting.backend.dao.AccountCategory
-import ucb.accounting.backend.dao.AccountGroup
 import ucb.accounting.backend.dao.repository.*
 import ucb.accounting.backend.dto.AccountCategoryDto
 import ucb.accounting.backend.dto.AccountGroupDto
@@ -20,9 +17,9 @@ class AccountingPlanBl @Autowired constructor(
     private val companyRepository: CompanyRepository,
     private val accountCategoryRepository: AccountCategoryRepository,
     private val accountGroupRepository: AccountGroupRepository,
-    private val accountSubGroupRepository: AccountSubGroupRepository,
+    private val accountSubgroupRepository: AccountSubgroupRepository,
     private val accountRepository: AccountRepository,
-    private val subAccountRepository: SubAccountRepository){
+    private val subaccountRepository: SubaccountRepository){
 
     companion object {
         val logger: Logger = LoggerFactory.getLogger(AccountingPlanBl::class.java)
@@ -50,21 +47,21 @@ class AccountingPlanBl @Autowired constructor(
                     accountGroup.accountGroupId,
                     accountGroup.accountGroupCode,
                     accountGroup.accountGroupName,
-                    accountSubGroupRepository.findAllByCompanyIdAndAccountGroupIdAndStatusIsTrue(companyId, accountGroup.accountGroupId.toInt()).map { accountSubGroup ->
+                    accountSubgroupRepository.findAllByCompanyIdAndAccountGroupIdAndStatusIsTrue(companyId, accountGroup.accountGroupId.toInt()).map { accountSubgroup ->
                         AccountSubgroupDto(
-                            accountSubGroup.accountSubgroupId,
-                            accountSubGroup.accountSubgroupCode,
-                            accountSubGroup.accountSubgroupName,
-                            accountRepository.findAllByCompanyIdAndAccountSubgroupIdAndStatusIsTrue(companyId, accountSubGroup.accountSubgroupId.toInt()).map { account ->
+                            accountSubgroup.accountSubgroupId,
+                            accountSubgroup.accountSubgroupCode,
+                            accountSubgroup.accountSubgroupName,
+                            accountRepository.findAllByCompanyIdAndAccountSubgroupIdAndStatusIsTrue(companyId, accountSubgroup.accountSubgroupId.toInt()).map { account ->
                                 ucb.accounting.backend.dto.AccountDto(
                                     account.accountId,
                                     account.accountCode,
                                     account.accountName,
-                                    subAccountRepository.findAllByCompanyIdAndAccountIdAndStatusIsTrue(companyId, account.accountId.toInt()).map { subAccount ->
-                                        ucb.accounting.backend.dto.SubAccountDto(
-                                            subAccount.subaccountId,
-                                            subAccount.subaccountCode,
-                                            subAccount.subaccountName
+                                    subaccountRepository.findAllByCompanyIdAndAccountIdAndStatusIsTrue(companyId, account.accountId.toInt()).map { subaccount ->
+                                        ucb.accounting.backend.dto.SubaccountDto(
+                                            subaccount.subaccountId,
+                                            subaccount.subaccountCode,
+                                            subaccount.subaccountName
                                         )
                                     }
                                 )
