@@ -13,14 +13,14 @@ import ucb.accounting.backend.util.ResponseCodeUtil
 import javax.validation.constraints.Null
 
 @RestController
-@RequestMapping("/api/v1/sale-transactions/companies")
+@RequestMapping("/api/v1/sale-transactions")
 class SaleTransactionApi @Autowired constructor(private val saleTransactionBl: SaleTransactionBl) {
 
     companion object {
         private val logger = LoggerFactory.getLogger(SaleTransactionApi::class.java.name)
     }
 
-    @PostMapping("/{companyId}")
+    @PostMapping("/companies/{companyId}")
     fun postSaleTransaction(
         @PathVariable("companyId") companyId: Long,
         @RequestBody saleTransactionDto: SaleTransactionDto
@@ -35,7 +35,7 @@ class SaleTransactionApi @Autowired constructor(private val saleTransactionBl: S
         return ResponseEntity(ResponseDto(code, responseInfo.message!!, null), responseInfo.httpStatus)
     }
 
-    @GetMapping("/{companyId}/subaccounts")
+    @GetMapping("/companies/{companyId}/subaccounts")
     fun getSubaccountsForSaleTransaction (
         @PathVariable("companyId") companyId: Long
     ): ResponseEntity<ResponseDto<List<SubAccountDto>>>{
@@ -49,7 +49,7 @@ class SaleTransactionApi @Autowired constructor(private val saleTransactionBl: S
         return ResponseEntity(ResponseDto(code, responseInfo.message!!, subaccounts), responseInfo.httpStatus)
     }
 
-    @GetMapping("/{companyId}")
+    @GetMapping("/companies/{companyId}")
     fun getSaleTransactions (
         @PathVariable("companyId") companyId: Long
     ): ResponseEntity<ResponseDto<List<SaleTransactionPartialDto>>>{

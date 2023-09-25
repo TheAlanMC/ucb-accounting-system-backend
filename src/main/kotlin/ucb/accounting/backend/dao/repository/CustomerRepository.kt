@@ -4,7 +4,7 @@ import org.springframework.data.jpa.repository.JpaRepository
 import ucb.accounting.backend.dao.Customer
 
 interface CustomerRepository: JpaRepository<Customer, Long> {
-    fun findByCustomerIdAndStatusTrue (customerId: Long): Customer?
+    fun findByCustomerIdAndStatusIsTrue (customerId: Long): Customer?
 
-    fun findAllByCompanyIdAndStatusTrue (companyId: Int): List<Customer>
+    fun findAllByCompanyIdAndStatusIsTrue (companyId: Int): List<Customer>
 }

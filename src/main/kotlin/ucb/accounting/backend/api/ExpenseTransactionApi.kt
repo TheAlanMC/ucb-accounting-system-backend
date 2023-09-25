@@ -13,14 +13,14 @@ import ucb.accounting.backend.util.ResponseCodeUtil
 import javax.validation.constraints.Null
 
 @RestController
-@RequestMapping("/api/v1/expense-transactions/companies")
+@RequestMapping("/api/v1/expense-transactions")
 class ExpenseTransactionApi @Autowired constructor(private val expenseTransactionBl: ExpenseTransactionBl) {
 
     companion object {
         private val logger = LoggerFactory.getLogger(ExpenseTransactionApi::class.java.name)
     }
 
-    @PostMapping("/{companyId}")
+    @PostMapping("/companies/{companyId}")
     fun postExpenseTransaction(
         @PathVariable("companyId") companyId: Long,
         @RequestBody expenseTransactionDto: ExpenseTransactionDto
@@ -35,7 +35,7 @@ class ExpenseTransactionApi @Autowired constructor(private val expenseTransactio
         return ResponseEntity(ResponseDto(code, responseInfo.message!!, null), responseInfo.httpStatus)
     }
 
-    @GetMapping("/{companyId}/subaccounts")
+    @GetMapping("/companies/{companyId}/subaccounts")
     fun getSubaccountsForExpenseTransaction (
         @PathVariable("companyId") companyId: Long
     ): ResponseEntity<ResponseDto<List<SubAccountDto>>>{
@@ -49,7 +49,7 @@ class ExpenseTransactionApi @Autowired constructor(private val expenseTransactio
         return ResponseEntity(ResponseDto(code, responseInfo.message!!, subaccounts), responseInfo.httpStatus)
     }
 
-    @GetMapping("/{companyId}")
+    @GetMapping("/companies/{companyId}")
     fun getExpenseTransactions (
         @PathVariable("companyId") companyId: Long
     ): ResponseEntity<ResponseDto<List<ExpenseTransactionPartialDto>>>{

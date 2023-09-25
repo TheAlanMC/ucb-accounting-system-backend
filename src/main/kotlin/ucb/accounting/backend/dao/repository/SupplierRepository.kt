@@ -5,7 +5,7 @@ import ucb.accounting.backend.dao.Customer
 import ucb.accounting.backend.dao.Supplier
 
 interface SupplierRepository: JpaRepository<Supplier, Long> {
-    fun findBySupplierIdAndStatusTrue (supplierId: Long): Supplier?
+    fun findBySupplierIdAndStatusIsTrue (supplierId: Long): Supplier?
 
-    fun findAllByCompanyIdAndStatusTrue (companyId: Int): List<Supplier>
+    fun findAllByCompanyIdAndStatusIsTrue (companyId: Int): List<Supplier>
 }

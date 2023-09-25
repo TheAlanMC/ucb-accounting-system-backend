@@ -32,19 +32,19 @@ class JournalEntryBl @Autowired constructor(
     fun createJournalEntry(companyId: Long, journalEntryDto: JournalEntryDto){
         logger.info("Starting the BL call to create journal entry")
         // Validation of company exists
-        companyRepository.findByCompanyIdAndStatusTrue(companyId) ?: throw UasException("404-05")
+        companyRepository.findByCompanyIdAndStatusIsTrue(companyId) ?: throw UasException("404-05")
         // Validation that document type exists
-        documentTypeRepository.findByDocumentTypeIdAndStatusTrue(journalEntryDto.documentTypeId) ?: throw UasException("404-12")
+        documentTypeRepository.findByDocumentTypeIdAndStatusIsTrue(journalEntryDto.documentTypeId) ?: throw UasException("404-12")
         // Validation that attachments were sent
         if (!journalEntryDto.attachments.isNullOrEmpty()) {
             // Validation that attachments exist
             journalEntryDto.attachments.map {
-                attachmentRepository.findByAttachmentIdAndStatusTrue(it.attachmentId) ?: throw UasException("404-11")
+                attachmentRepository.findByAttachmentIdAndStatusIsTrue(it.attachmentId) ?: throw UasException("404-11")
             }
         }
         // Validation that subaccounts exist
         journalEntryDto.transactionDetails.map {
-            subAccountRepository.findBySubaccountIdAndStatusTrue(it.subaccountId) ?: throw UasException("404-10")
+            subAccountRepository.findBySubaccountIdAndStatusIsTrue(it.subaccountId) ?: throw UasException("404-10")
         }
         // Validation that accounting principle of double-entry is being followed
         if (journalEntryDto.transactionDetails.sumOf { it.debitAmountBs } != journalEntryDto.transactionDetails.sumOf { it.creditAmountBs }) throw UasException("400-21")
@@ -78,7 +78,7 @@ class JournalEntryBl @Autowired constructor(
             journalEntryDto.attachments.map {
                 val transactionAttachmentEntity = TransactionAttachment()
                 transactionAttachmentEntity.transaction = savedTransaction
-                transactionAttachmentEntity.attachment = attachmentRepository.findByAttachmentIdAndStatusTrue(it.attachmentId)!!
+                transactionAttachmentEntity.attachment = attachmentRepository.findByAttachmentIdAndStatusIsTrue(it.attachmentId)!!
                 transactionAttachmentRepository.save(transactionAttachmentEntity)
             }
         } else {

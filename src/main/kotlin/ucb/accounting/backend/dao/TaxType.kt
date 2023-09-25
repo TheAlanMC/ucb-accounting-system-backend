@@ -15,7 +15,7 @@ class TaxType {
     var taxTypeId: Long = 0
 
     @Column(name = "tax_type_name")
-    var taxName: String = ""
+    var taxTypeName: String = ""
 
     @Column(name = "description")
     var description: String = ""

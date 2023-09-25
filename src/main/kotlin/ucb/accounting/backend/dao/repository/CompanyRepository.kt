@@ -6,5 +6,5 @@ import ucb.accounting.backend.dao.Company
 
 @Repository
 interface CompanyRepository: JpaRepository<Company, Long> {
-    fun findByCompanyIdAndStatusTrue (companyId: Long): Company?
+    fun findByCompanyIdAndStatusIsTrue (companyId: Long): Company?
 }

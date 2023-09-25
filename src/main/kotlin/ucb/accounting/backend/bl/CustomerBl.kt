@@ -34,9 +34,9 @@ class CustomerBl @Autowired constructor(
             customerDto.displayName == null || customerDto.companyName == null || customerDto.companyAddress == null || customerDto.companyPhoneNumber == null ||
             customerDto.companyEmail== null) throw UasException("400-23")
         // Validation of company
-        companyRepository.findByCompanyIdAndStatusTrue(companyId) ?: throw UasException("404-05")
+        companyRepository.findByCompanyIdAndStatusIsTrue(companyId) ?: throw UasException("404-05")
         // Validation that subaccount exists
-        val subAccountEntity = subAccountRepository.findBySubaccountIdAndStatusTrue(customerDto.subaccountId) ?: throw UasException("404-10")
+        val subAccountEntity = subAccountRepository.findBySubaccountIdAndStatusIsTrue(customerDto.subaccountId) ?: throw UasException("404-10")
         // Validation of user belongs to company
         val kcUuid = KeycloakSecurityContextHolder.getSubject()!!
         kcUserCompanyRepository.findAllByKcUser_KcUuidAndCompany_CompanyIdAndStatusIsTrue(kcUuid, companyId) ?: throw UasException("403-27")
@@ -66,13 +66,13 @@ class CustomerBl @Autowired constructor(
     fun getCustomers(companyId: Long): List<CustomerPartialDto> {
         logger.info("Starting the BL call to get customers")
         // Validation of company
-        companyRepository.findByCompanyIdAndStatusTrue(companyId) ?: throw UasException("404-05")
+        companyRepository.findByCompanyIdAndStatusIsTrue(companyId) ?: throw UasException("404-05")
         // Validation of user belongs to company
         val kcUuid = KeycloakSecurityContextHolder.getSubject()!!
         kcUserCompanyRepository.findAllByKcUser_KcUuidAndCompany_CompanyIdAndStatusIsTrue(kcUuid, companyId) ?: throw UasException("403-28")
         logger.info("User $kcUuid is getting customers from company $companyId")
         // Get customers
-        val customers = customerRepository.findAllByCompanyIdAndStatusTrue(companyId.toInt())
+        val customers = customerRepository.findAllByCompanyIdAndStatusIsTrue(companyId.toInt())
         logger.info("${customers.size} customers found")
         return customers.map { CustomerPartialMapper.entityToDto(it) }
     }
@@ -80,9 +80,9 @@ class CustomerBl @Autowired constructor(
     fun getCustomer(customerId:Long, companyId: Long): CustomerDto{
         logger.info("Starting the BL call to get customer")
         // Validation of company
-        companyRepository.findByCompanyIdAndStatusTrue(companyId) ?: throw UasException("404-05")
+        companyRepository.findByCompanyIdAndStatusIsTrue(companyId) ?: throw UasException("404-05")
         // Validation of customer
-        val customerEntity = customerRepository.findByCustomerIdAndStatusTrue(customerId) ?: throw UasException("404-14")
+        val customerEntity = customerRepository.findByCustomerIdAndStatusIsTrue(customerId) ?: throw UasException("404-14")
         // Validation of user belongs to company
         val kcUuid = KeycloakSecurityContextHolder.getSubject()!!
         kcUserCompanyRepository.findAllByKcUser_KcUuidAndCompany_CompanyIdAndStatusIsTrue(kcUuid, companyId) ?: throw UasException("403-28")
@@ -100,9 +100,9 @@ class CustomerBl @Autowired constructor(
             customerDto.displayName == null && customerDto.companyName == null && customerDto.companyAddress == null && customerDto.companyPhoneNumber == null &&
             customerDto.companyEmail== null) throw UasException("400-24")
         // Validation of company
-        companyRepository.findByCompanyIdAndStatusTrue(companyId) ?: throw UasException("404-05")
+        companyRepository.findByCompanyIdAndStatusIsTrue(companyId) ?: throw UasException("404-05")
         // Validation of customer
-        val customerEntity = customerRepository.findByCustomerIdAndStatusTrue(customerId) ?: throw UasException("404-14")
+        val customerEntity = customerRepository.findByCustomerIdAndStatusIsTrue(customerId) ?: throw UasException("404-14")
         // Validation of user belongs to company
         val kcUuid = KeycloakSecurityContextHolder.getSubject()!!
         kcUserCompanyRepository.findAllByKcUser_KcUuidAndCompany_CompanyIdAndStatusIsTrue(kcUuid, companyId) ?: throw UasException("403-29")
@@ -111,7 +111,7 @@ class CustomerBl @Autowired constructor(
         if (customerEntity.companyId != companyId.toInt()) throw UasException("403-29")
         // Validation that subaccount exists
         if (customerDto.subaccountId != null) {
-            val subAccountEntity = subAccountRepository.findBySubaccountIdAndStatusTrue(customerDto.subaccountId) ?: throw UasException("404-10")
+            val subAccountEntity = subAccountRepository.findBySubaccountIdAndStatusIsTrue(customerDto.subaccountId) ?: throw UasException("404-10")
             // Validation that subaccount belongs to company
             if (subAccountEntity.companyId != companyId.toInt()) throw UasException("403-29")
         }

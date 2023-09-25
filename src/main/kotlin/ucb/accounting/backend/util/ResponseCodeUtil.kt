@@ -145,6 +145,7 @@ class ResponseCodeUtil (var httpStatus: HttpStatus, message: String, messageTran
                 "409-04" -> ResponseCodeUtil(HttpStatus.CONFLICT, "A journal entry with the same number already exists in the system.")
                 "409-05" -> ResponseCodeUtil(HttpStatus.CONFLICT, "A sale transaction with the same number already exists in the system.")
                 "409-06" -> ResponseCodeUtil(HttpStatus.CONFLICT, "An expense transaction with the same number already exists in the system.")
+                "409-07" -> ResponseCodeUtil(HttpStatus.CONFLICT, "A tax associated with the subaccount already exists in the system.")
                 else -> ResponseCodeUtil(HttpStatus.INTERNAL_SERVER_ERROR, "An unexpected error occurred.")
             }
         }

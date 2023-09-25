@@ -101,3 +101,21 @@ keycloak:
             - GET
             - POST
             - PUT
+    - auth-roles:
+        - journal-entry-recorder-assistant
+        - journal-entry-recorder
+      security-collections:
+        - name: Partners List
+          patterns:
+            - /api/v1/partners/*
+          methods:
+            - GET
+    - auth-roles:
+        - journal-entry-recorder-assistant
+      security-collections:
+        - name: Tax Management
+          patterns:
+            - /api/v1/taxes/*
+          methods:
+            - GET
+            - POST

@@ -35,22 +35,22 @@ class SaleTransactionBl @Autowired constructor(
     fun createSaleTransaction(companyId: Long, saleTransactionDto: SaleTransactionDto){
         logger.info("Starting the BL call to create sale transaction")
         // Validation of company exists
-        companyRepository.findByCompanyIdAndStatusTrue(companyId) ?: throw UasException("404-05")
+        companyRepository.findByCompanyIdAndStatusIsTrue(companyId) ?: throw UasException("404-05")
 
         // Validation that attachments were sent
         if (!saleTransactionDto.attachments.isNullOrEmpty()) {
             // Validation that attachments exist
             saleTransactionDto.attachments.map {
-                attachmentRepository.findByAttachmentIdAndStatusTrue(it.attachmentId) ?: throw UasException("404-11")
+                attachmentRepository.findByAttachmentIdAndStatusIsTrue(it.attachmentId) ?: throw UasException("404-11")
             }
         }
         // Validation that subaccounts exist
         saleTransactionDto.saleTransactionDetails.map {
-            subAccountRepository.findBySubaccountIdAndStatusTrue(it.subaccountId) ?: throw UasException("404-10")
+            subAccountRepository.findBySubaccountIdAndStatusIsTrue(it.subaccountId) ?: throw UasException("404-10")
         }
-        subAccountRepository.findBySubaccountIdAndStatusTrue(saleTransactionDto.subaccountId) ?: throw UasException("404-10")
+        subAccountRepository.findBySubaccountIdAndStatusIsTrue(saleTransactionDto.subaccountId) ?: throw UasException("404-10")
         // Validation customer exists
-        customerRepository.findByCustomerIdAndStatusTrue(saleTransactionDto.customerId) ?: throw UasException("404-14")
+        customerRepository.findByCustomerIdAndStatusIsTrue(saleTransactionDto.customerId) ?: throw UasException("404-14")
         // Validation that the sale transaction number is unique
         // TODO: Maybe validate that is sequential
         if (saleTransactionRepository.findByCompanyIdAndSaleTransactionNumberAndStatusIsTrue(companyId.toInt(), saleTransactionDto.saleTransactionNumber) != null) throw UasException("409-05")
@@ -82,7 +82,7 @@ class SaleTransactionBl @Autowired constructor(
             saleTransactionDto.attachments.map {
                 val transactionAttachmentEntity = TransactionAttachment()
                 transactionAttachmentEntity.transaction = savedTransaction
-                transactionAttachmentEntity.attachment = attachmentRepository.findByAttachmentIdAndStatusTrue(it.attachmentId)!!
+                transactionAttachmentEntity.attachment = attachmentRepository.findByAttachmentIdAndStatusIsTrue(it.attachmentId)!!
                 transactionAttachmentRepository.save(transactionAttachmentEntity)
             }
         } else {
@@ -133,7 +133,7 @@ class SaleTransactionBl @Autowired constructor(
     fun getSubaccountsForSaleTransaction(companyId: Long):List<SubAccountDto>{
         logger.info("Starting the BL call to get subaccounts for sale transaction")
         // Validation of company exists
-        companyRepository.findByCompanyIdAndStatusTrue(companyId) ?: throw UasException("404-05")
+        companyRepository.findByCompanyIdAndStatusIsTrue(companyId) ?: throw UasException("404-05")
         // Validation that the user belongs to the company
         val kcUuid = KeycloakSecurityContextHolder.getSubject()!!
         logger.info("User $kcUuid is getting subaccounts for sale transaction")
@@ -148,7 +148,7 @@ class SaleTransactionBl @Autowired constructor(
     fun getSaleTransactions(companyId: Long): List<SaleTransactionPartialDto>{
         logger.info("Starting the BL call to get sale transactions")
         // Validation of company exists
-        companyRepository.findByCompanyIdAndStatusTrue(companyId) ?: throw UasException("404-05")
+        companyRepository.findByCompanyIdAndStatusIsTrue(companyId) ?: throw UasException("404-05")
         // Validation that the user belongs to the company
         val kcUuid = KeycloakSecurityContextHolder.getSubject()!!
         logger.info("User $kcUuid is getting sale transactions")

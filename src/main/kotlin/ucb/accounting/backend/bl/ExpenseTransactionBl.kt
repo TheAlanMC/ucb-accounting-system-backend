@@ -35,22 +35,22 @@ class ExpenseTransactionBl @Autowired constructor(
     fun createExpenseTransaction(companyId: Long, expenseTransactionDto: ExpenseTransactionDto){
         logger.info("Starting the BL call to create expense transaction")
         // Validation of company exists
-        companyRepository.findByCompanyIdAndStatusTrue(companyId) ?: throw UasException("404-05")
+        companyRepository.findByCompanyIdAndStatusIsTrue(companyId) ?: throw UasException("404-05")
 
         // Validation that attachments were sent
         if (!expenseTransactionDto.attachments.isNullOrEmpty()) {
             // Validation that attachments exist
             expenseTransactionDto.attachments.map {
-                attachmentRepository.findByAttachmentIdAndStatusTrue(it.attachmentId) ?: throw UasException("404-11")
+                attachmentRepository.findByAttachmentIdAndStatusIsTrue(it.attachmentId) ?: throw UasException("404-11")
             }
         }
         // Validation that subaccounts exist
         expenseTransactionDto.expenseTransactionDetails.map {
-            subAccountRepository.findBySubaccountIdAndStatusTrue(it.subaccountId) ?: throw UasException("404-10")
+            subAccountRepository.findBySubaccountIdAndStatusIsTrue(it.subaccountId) ?: throw UasException("404-10")
         }
-        subAccountRepository.findBySubaccountIdAndStatusTrue(expenseTransactionDto.subaccountId) ?: throw UasException("404-10")
+        subAccountRepository.findBySubaccountIdAndStatusIsTrue(expenseTransactionDto.subaccountId) ?: throw UasException("404-10")
         // Validation supplier exists
-        supplierRepository.findBySupplierIdAndStatusTrue(expenseTransactionDto.supplierId) ?: throw UasException("404-15")
+        supplierRepository.findBySupplierIdAndStatusIsTrue(expenseTransactionDto.supplierId) ?: throw UasException("404-15")
         // Validation that the expense transaction number is unique
         // TODO: Maybe validate that is sequential
         if (expenseTransactionRepository.findByCompanyIdAndExpenseTransactionNumberAndStatusIsTrue(companyId.toInt(), expenseTransactionDto.expenseTransactionNumber) != null) throw UasException("409-06")
@@ -82,7 +82,7 @@ class ExpenseTransactionBl @Autowired constructor(
             expenseTransactionDto.attachments.map {
                 val transactionAttachmentEntity = TransactionAttachment()
                 transactionAttachmentEntity.transaction = savedTransaction
-                transactionAttachmentEntity.attachment = attachmentRepository.findByAttachmentIdAndStatusTrue(it.attachmentId)!!
+                transactionAttachmentEntity.attachment = attachmentRepository.findByAttachmentIdAndStatusIsTrue(it.attachmentId)!!
                 transactionAttachmentRepository.save(transactionAttachmentEntity)
             }
         } else {
@@ -132,7 +132,7 @@ class ExpenseTransactionBl @Autowired constructor(
     fun getSubaccountsForExpenseTransaction(companyId: Long):List<SubAccountDto>{
         logger.info("Starting the BL call to get subaccounts for expense transaction")
         // Validation of company exists
-        companyRepository.findByCompanyIdAndStatusTrue(companyId) ?: throw UasException("404-05")
+        companyRepository.findByCompanyIdAndStatusIsTrue(companyId) ?: throw UasException("404-05")
         // Validation that the user belongs to the company
         val kcUuid = KeycloakSecurityContextHolder.getSubject()!!
         logger.info("User $kcUuid is getting subaccounts for expense transaction")
@@ -147,7 +147,7 @@ class ExpenseTransactionBl @Autowired constructor(
     fun getExpenseTransactions(companyId: Long): List<ExpenseTransactionPartialDto>{
         logger.info("Starting the BL call to get expense transactions")
         // Validation of company exists
-        companyRepository.findByCompanyIdAndStatusTrue(companyId) ?: throw UasException("404-05")
+        companyRepository.findByCompanyIdAndStatusIsTrue(companyId) ?: throw UasException("404-05")
         // Validation that the user belongs to the company
         val kcUuid = KeycloakSecurityContextHolder.getSubject()!!
         logger.info("User $kcUuid is getting expense transactions")
