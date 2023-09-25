@@ -153,8 +153,7 @@ class SaleTransactionBl @Autowired constructor(
         val kcUuid = KeycloakSecurityContextHolder.getSubject()!!
         logger.info("User $kcUuid is getting sale transactions")
         // Validation of user belongs to company
-        kcUserCompanyRepository.findAllByKcUser_KcUuidAndCompany_CompanyIdAndStatusIsTrue(kcUuid, companyId) ?: throw UasException("403-34" +
-                "")
+        kcUserCompanyRepository.findAllByKcUser_KcUuidAndCompany_CompanyIdAndStatusIsTrue(kcUuid, companyId) ?: throw UasException("403-34")
         // Getting sale transactions
         val saleTransactionEntities = saleTransactionRepository.findAllByCompanyIdAndStatusIsTrue(companyId.toInt())
         logger.info("Sale transactions obtained successfully")
