@@ -31,14 +31,14 @@ class AccountingPlanBl @Autowired constructor(
     fun getAccountingPlan(id: Long): List<AccountCategoryDto> {
         logger.info("Getting accounting plan")
         // Validation that the company exists
-        val company = companyRepository.findByCompanyIdAndStatusTrue(id.toLong())?: throw UasException("404-05")
+        val company = companyRepository.findByCompanyIdAndStatusIsTrue(id.toLong())?: throw UasException("404-05")
         val companyId = company.companyId.toInt()
         logger.info("Company found")
         val kcUuid = KeycloakSecurityContextHolder.getSubject()!!
         FilesBl.logger.info("User $kcUuid is uploading file to company $companyId")
         // Validation of user belongs to company
-        kcUserCompanyRepository.findAllByKcUser_KcUuidAndCompany_CompanyIdAndStatusIsTrue(kcUuid, companyId.toLong()) ?: throw UasException("403-02")
-        val accountCategoryEntities = accountCategoryRepository.findAllByStatusTrue()
+        kcUserCompanyRepository.findAllByKcUser_KcUuidAndCompany_CompanyIdAndStatusIsTrue(kcUuid, companyId.toLong()) ?: throw UasException("403-05")
+        val accountCategoryEntities = accountCategoryRepository.findAllByStatusIsTrue()
         logger.info("Accounting plan found")
         val accountCategories = accountCategoryEntities.map { accountCategory ->
             AccountCategoryDto (

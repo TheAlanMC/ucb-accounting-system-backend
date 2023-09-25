@@ -11,9 +11,9 @@ spring:
     username: ${POSTGRES_USERNAME:postgres}
     password: ${POSTGRES_PASSWORD:mysecretpassword}
     url: ${POSTGRES_URL:jdbc:postgresql://localhost:5432/db_uas}
-    jpa:
-      hibernate:
-        ddl-auto: none
+  jpa:
+    hibernate:
+      ddl-auto: none
   servlet:
     multipart:
       max-file-size: 10MB
@@ -100,3 +100,41 @@ keycloak:
             - POST
             - GET
             - PUT
+        - journal-entry-recorder-assistant
+      security-collections:
+        - name: Sales and Expenses Transaction Management
+          patterns:
+            - /api/v1/sale-transactions/*
+            - /api/v1/expense-transactions/*
+          methods:
+            - GET
+            - POST
+    - auth-roles:
+        - journal-entry-recorder-assistant
+      security-collections:
+        - name: Customer and Supplier Management
+          patterns:
+            - /api/v1/customers/*
+            - /api/v1/suppliers/*
+          methods:
+            - GET
+            - POST
+            - PUT
+    - auth-roles:
+        - journal-entry-recorder-assistant
+        - journal-entry-recorder
+      security-collections:
+        - name: Partners List
+          patterns:
+            - /api/v1/partners/*
+          methods:
+            - GET
+    - auth-roles:
+        - journal-entry-recorder-assistant
+      security-collections:
+        - name: Tax Management
+          patterns:
+            - /api/v1/taxes/*
+          methods:
+            - GET
+            - POST

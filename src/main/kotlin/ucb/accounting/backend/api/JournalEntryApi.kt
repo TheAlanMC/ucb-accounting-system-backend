@@ -19,7 +19,7 @@ import javax.validation.constraints.Null
 class JournalEntryApi @Autowired constructor(private val journalEntryBl: JournalEntryBl){
 
     companion object {
-        private val logger = LoggerFactory.getLogger(CompanyApi::class.java.name)
+        private val logger = LoggerFactory.getLogger(JournalEntryApi::class.java.name)
     }
 
     @PostMapping("/{companyId}")
