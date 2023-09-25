@@ -1,6 +1,9 @@
 package ucb.accounting.backend.dao
 
+import ucb.accounting.backend.util.HttpUtil
+import ucb.accounting.backend.util.KeycloakSecurityContextHolder
 import java.math.BigDecimal
+import java.sql.Timestamp
 import javax.persistence.*
 
 @Entity
@@ -10,7 +13,6 @@ class TransactionDetail {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "transaction_detail_id")
     var transactionDetailId: Long = 0
-
 
     @Column(name = "transaction_id")
     var transactionId: Int = 0
@@ -38,6 +40,15 @@ class TransactionDetail {
 
     @Column(name = "status")
     var status: Boolean = true
+
+    @Column(name = "tx_date")
+    var txDate: Timestamp = Timestamp(System.currentTimeMillis())
+
+    @Column(name = "tx_user")
+    var txUser: String = KeycloakSecurityContextHolder.getSubject() ?: "admin"
+
+    @Column(name = "tx_host")
+    var txHost: String = HttpUtil.getRequestHost() ?: "localhost"
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "transaction_id", referencedColumnName = "transaction_id", insertable = false, updatable = false)

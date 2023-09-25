@@ -16,7 +16,7 @@ import ucb.accounting.backend.util.ResponseCodeUtil
 class AccountPlanApi @Autowired constructor(private val accountingPlanBl: AccountingPlanBl){
 
     companion object {
-        private val logger = LoggerFactory.getLogger(UsersApi::class.java.name)
+        private val logger = LoggerFactory.getLogger(AccountPlanApi::class.java.name)
     }
 
     @GetMapping("/{companyId}")

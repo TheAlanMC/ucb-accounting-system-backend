@@ -1,5 +1,7 @@
 package ucb.accounting.backend.dao
 
+import ucb.accounting.backend.util.HttpUtil
+import ucb.accounting.backend.util.KeycloakSecurityContextHolder
 import java.sql.Date
 import java.sql.Timestamp
 import javax.persistence.*
@@ -24,12 +26,6 @@ class Report {
     @Column(name = "attachment_id")
     var attachmentId: Int = 0
 
-    @Column(name = "kc_uuid")
-    var kcUuid: String = ""
-
-    @Column(name = "report_date")
-    var reportDate: Timestamp = Timestamp(System.currentTimeMillis())
-
     @Column(name = "period_start_date")
     var periodStartDate: Date = Date(System.currentTimeMillis())
 
@@ -44,6 +40,15 @@ class Report {
 
     @Column(name = "status")
     var status: Boolean = true
+
+    @Column(name = "tx_date")
+    var txDate: Timestamp = Timestamp(System.currentTimeMillis())
+
+    @Column(name = "tx_user")
+    var txUser: String = KeycloakSecurityContextHolder.getSubject() ?: "admin"
+
+    @Column(name = "tx_host")
+    var txHost: String = HttpUtil.getRequestHost() ?: "localhost"
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "company_id", referencedColumnName = "company_id", insertable = false, updatable = false)

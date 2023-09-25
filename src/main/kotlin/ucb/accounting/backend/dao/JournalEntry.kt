@@ -1,5 +1,7 @@
 package ucb.accounting.backend.dao
 
+import ucb.accounting.backend.util.HttpUtil
+import ucb.accounting.backend.util.KeycloakSecurityContextHolder
 import javax.persistence.*
 import java.sql.Timestamp
 
@@ -20,9 +22,6 @@ class JournalEntry {
     @Column(name = "journal_entry_number")
     var journalEntryNumber: Int = 0
 
-    @Column(name = "entry_date")
-    var entryDate: Timestamp = Timestamp(System.currentTimeMillis())
-
     @Column(name = "gloss")
     var gloss: String = ""
 
@@ -31,6 +30,15 @@ class JournalEntry {
 
     @Column(name = "status")
     var status: Boolean = true
+
+    @Column(name = "tx_date")
+    var txDate: Timestamp = Timestamp(System.currentTimeMillis())
+
+    @Column(name = "tx_user")
+    var txUser: String = KeycloakSecurityContextHolder.getSubject() ?: "admin"
+
+    @Column(name = "tx_host")
+    var txHost: String = HttpUtil.getRequestHost() ?: "localhost"
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "company_id", referencedColumnName = "company_id", insertable = false, updatable = false)
@@ -42,5 +50,4 @@ class JournalEntry {
 
     @OneToOne(mappedBy = "journalEntry")
     var transaction: Transaction? = null
-
 }

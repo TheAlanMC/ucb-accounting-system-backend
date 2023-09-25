@@ -1,5 +1,8 @@
 package ucb.accounting.backend.dao
 
+import ucb.accounting.backend.util.HttpUtil
+import ucb.accounting.backend.util.KeycloakSecurityContextHolder
+import java.sql.Timestamp
 import javax.persistence.*
 
 @Entity
@@ -25,6 +28,15 @@ class Subaccount {
     @Column(name = "status")
     var status: Boolean = true
 
+    @Column(name = "tx_date")
+    var txDate: Timestamp = Timestamp(System.currentTimeMillis())
+
+    @Column(name = "tx_user")
+    var txUser: String = KeycloakSecurityContextHolder.getSubject() ?: "admin"
+
+    @Column(name = "tx_host")
+    var txHost: String = HttpUtil.getRequestHost() ?: "localhost"
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "account_id", referencedColumnName = "account_id", insertable = false, updatable = false)
     var account: Account? = null
@@ -37,5 +49,23 @@ class Subaccount {
     var transactionDetails: List<TransactionDetail>? = null
 
     @OneToMany(mappedBy = "subaccount")
-    var subaccountTaxes: List<SubaccountTax>? = null
+    var subaccountTaxTypes: List<SubaccountTaxType>? = null
+
+    @OneToMany(mappedBy = "subaccount")
+    var customers: List<Customer>? = null
+
+    @OneToMany(mappedBy = "subaccount")
+    var saleTransactions: List<SaleTransaction>? = null
+
+    @OneToMany(mappedBy = "subaccount")
+    var saleTransactionDetails: List<SaleTransactionDetail>? = null
+
+    @OneToMany(mappedBy = "subaccount")
+    var suppliers: List<Supplier>? = null
+
+    @OneToMany(mappedBy = "subaccount")
+    var expenseTransactions: List<ExpenseTransaction>? = null
+
+    @OneToMany(mappedBy = "subaccount")
+    var expenseTransactionDetails: List<ExpenseTransactionDetail>? = null
 }

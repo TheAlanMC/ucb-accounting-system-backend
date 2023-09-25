@@ -33,7 +33,7 @@ class FilesBl @Autowired constructor(
 
     fun uploadFile(attachment: MultipartFile, companyId: Long): AttachmentDto {
         // Validation of company
-        companyRepository.findByCompanyIdAndStatusTrue(companyId) ?: throw UasException("404-05")
+        companyRepository.findByCompanyIdAndStatusIsTrue(companyId) ?: throw UasException("404-05")
         // Validation of user belongs to company
         val kcUuid = KeycloakSecurityContextHolder.getSubject()!!
         kcUserCompanyRepository.findAllByKcUser_KcUuidAndCompany_CompanyIdAndStatusIsTrue(kcUuid, companyId) ?: throw UasException("403-18")
@@ -76,9 +76,9 @@ class FilesBl @Autowired constructor(
 
     fun downloadFile(attachmentId: Long, companyId: Long): AttachmentDownloadDto {
         // Validation of company
-        companyRepository.findByCompanyIdAndStatusTrue(companyId) ?: throw UasException("404-05")
+        companyRepository.findByCompanyIdAndStatusIsTrue(companyId) ?: throw UasException("404-05")
         // Validation of attachment
-        val attachmentEntity: Attachment = attachmentRepository.findByAttachmentIdAndStatusTrue(attachmentId) ?: throw UasException("404-11")
+        val attachmentEntity: Attachment = attachmentRepository.findByAttachmentIdAndStatusIsTrue(attachmentId) ?: throw UasException("404-11")
         // Validation of user belongs to company
         val kcUuid = KeycloakSecurityContextHolder.getSubject()!!
         kcUserCompanyRepository.findAllByKcUser_KcUuidAndCompany_CompanyIdAndStatusIsTrue(kcUuid, companyId) ?: throw UasException("403-19")

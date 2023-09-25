@@ -1,5 +1,8 @@
 package ucb.accounting.backend.dao
 
+import ucb.accounting.backend.util.HttpUtil
+import ucb.accounting.backend.util.KeycloakSecurityContextHolder
+import java.sql.Timestamp
 import javax.persistence.*
 
 @Entity
@@ -34,6 +37,15 @@ class Company {
     @Column(name = "status")
     var status: Boolean = true
 
+    @Column(name = "tx_date")
+    var txDate: Timestamp = Timestamp(System.currentTimeMillis())
+
+    @Column(name = "tx_user")
+    var txUser: String = KeycloakSecurityContextHolder.getSubject() ?: "admin"
+
+    @Column(name = "tx_host")
+    var txHost: String = HttpUtil.getRequestHost() ?: "localhost"
+
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "industry_id", referencedColumnName = "industry_id", insertable = false, updatable = false)
     var industry: Industry? = null
@@ -43,5 +55,44 @@ class Company {
     var businessEntity: BusinessEntity? = null
 
     @OneToMany(mappedBy = "company")
-    var kcUserCompany: List<KcUserCompany>? = null
+    var kcUserCompanies: List<KcUserCompany>? = null
+
+    @OneToMany(mappedBy = "company")
+    var exchangeRates: List<ExchangeRate>? = null
+
+    @OneToMany(mappedBy = "company")
+    var accountGroups: List<AccountGroup>? = null
+
+    @OneToMany(mappedBy = "company")
+    var accountSubgroups: List<AccountSubgroup>? = null
+
+    @OneToMany(mappedBy = "company")
+    var accounts: List<Account>? = null
+
+    @OneToMany(mappedBy = "company")
+    var subaccounts: List<Subaccount>? = null
+
+    @OneToMany(mappedBy = "company")
+    var subaccountTaxTypes: List<SubaccountTaxType>? = null
+
+    @OneToMany(mappedBy = "company")
+    var customers: List<Customer>? = null
+
+    @OneToMany(mappedBy = "company")
+    var saleTransactions: List<SaleTransaction>? = null
+
+    @OneToMany(mappedBy = "company")
+    var suppliers: List<Supplier>? = null
+
+    @OneToMany(mappedBy = "company")
+    var expenseTransactions: List<ExpenseTransaction>? = null
+
+    @OneToMany(mappedBy = "company")
+    var journalEntries: List<JournalEntry>? = null
+
+    @OneToMany(mappedBy = "company")
+    var attachments: List<Attachment>? = null
+
+    @OneToMany(mappedBy = "company")
+    var reports: List<Report>? = null
 }

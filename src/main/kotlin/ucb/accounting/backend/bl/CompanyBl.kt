@@ -31,7 +31,7 @@ class CompanyBl @Autowired constructor(
     fun getCompanyInfo(companyId: Long): CompanyDto {
         logger.info("Starting the BL call to get company info")
         logger.info("BL call to get company info")
-        val company = companyRepository.findByCompanyIdAndStatusTrue(companyId) ?: throw UasException("404-05")
+        val company = companyRepository.findByCompanyIdAndStatusIsTrue(companyId) ?: throw UasException("404-05")
 
         val kcUuid = KeycloakSecurityContextHolder.getSubject()!!
         logger.info("User $kcUuid is getting company info")
