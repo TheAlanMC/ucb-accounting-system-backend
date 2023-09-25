@@ -7,7 +7,7 @@ data class SaleTransactionPartialDto (
     val saleTransactionId: Int,
     val saleTransactionNumber: Int,
     val saleTransactionDate: Date,
-    val customerPartial: CustomerPartialDto,
+    val customer: CustomerPartialDto,
     val gloss: String,
     val totalAmountBs: BigDecimal,
     val saleTransactionAccepted: Boolean

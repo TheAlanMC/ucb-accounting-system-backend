@@ -11,7 +11,7 @@ class ExpenseTransactionMapper {
                 expenseTransactionId = expenseTransaction.expenseTransactionId.toInt(),
                 expenseTransactionNumber = expenseTransaction.expenseTransactionNumber,
                 expenseTransactionDate = expenseTransaction.expenseTransactionDate,
-                supplierPartial = SupplierPartialMapper.entityToDto(expenseTransaction.supplier!!),
+                supplier = SupplierPartialMapper.entityToDto(expenseTransaction.supplier!!),
                 gloss = expenseTransaction.gloss,
                 totalAmountBs = totalAmountBs,
                 expenseTransactionAccepted = expenseTransaction.expenseTransactionAccepted

@@ -7,7 +7,7 @@ data class ExpenseTransactionPartialDto (
     val expenseTransactionId: Int,
     val expenseTransactionNumber: Int,
     val expenseTransactionDate: Date,
-    val supplierPartial: SupplierPartialDto,
+    val supplier: SupplierPartialDto,
     val gloss: String,
     val totalAmountBs: BigDecimal,
     val expenseTransactionAccepted: Boolean
