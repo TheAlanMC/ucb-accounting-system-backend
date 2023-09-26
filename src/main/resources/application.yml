@@ -92,3 +92,13 @@ keycloak:
             - GET
             - POST
             - PUT
+    - auth-roles:
+        - common-user
+      security-collections:
+        - name: Subaccount CRUD
+          patterns:
+            - /api/v1/subaccounts/companies/*
+          methods:
+            - GET
+            - POST
+            - PUT
