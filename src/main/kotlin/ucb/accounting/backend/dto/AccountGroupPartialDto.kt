@@ -1,6 +1,6 @@
 package ucb.accounting.backend.dto
 
-data class AccoGroupDto (
+data class AccountGroupPartialDto (
     val accountGroupId: Long?,
     val accountCategoryId: Long?,
     val accountGroupCode: Int?,

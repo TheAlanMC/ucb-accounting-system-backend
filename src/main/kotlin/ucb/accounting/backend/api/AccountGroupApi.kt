@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 import ucb.accounting.backend.bl.AccountGroupBl
-import ucb.accounting.backend.dto.AccoGroupDto
+import ucb.accounting.backend.dto.AccountGroupPartialDto
 import ucb.accounting.backend.dto.ResponseDto
 import ucb.accounting.backend.util.ResponseCodeUtil
 
@@ -24,11 +24,13 @@ class AccountGroupApi @Autowired constructor(private val accountGroupBl: Account
     }
 
     @PostMapping("/companies/{companyId}")
-    fun createAccountGroup(@PathVariable companyId: Long,
-                           @RequestBody accoGroupDto: AccoGroupDto): ResponseEntity<ResponseDto<Nothing>>{
+    fun createAccountGroup(
+        @PathVariable companyId: Long,
+        @RequestBody accountGroupPartialDto: AccountGroupPartialDto
+    ): ResponseEntity<ResponseDto<Nothing>>{
         logger.info("Starting the API call to create account group")
         logger.info("POST /api/v1/account-groups/companies/${companyId}")
-        accountGroupBl.createAccountGroup(companyId, accoGroupDto)
+        accountGroupBl.createAccountGroup(companyId, accountGroupPartialDto)
         logger.info("Sending response")
         val code = "201-05"
         val responseInfo = ResponseCodeUtil.getResponseInfo(code)
@@ -37,7 +39,7 @@ class AccountGroupApi @Autowired constructor(private val accountGroupBl: Account
     }
 
     @GetMapping("/companies/{companyId}")
-    fun getAccountGroups(@PathVariable companyId: Long): ResponseEntity<ResponseDto<List<AccoGroupDto>>>{
+    fun getAccountGroups(@PathVariable companyId: Long): ResponseEntity<ResponseDto<List<AccountGroupPartialDto>>>{
         logger.info("Starting the API call to get account groups")
         logger.info("GET /api/v1/account-groups/companies/${companyId}")
         val accountGroups = accountGroupBl.getAccountGroups(companyId)
@@ -49,7 +51,7 @@ class AccountGroupApi @Autowired constructor(private val accountGroupBl: Account
     }
 
     @GetMapping("/{accountGroupId}/companies/{companyId}")
-    fun getAccountGroup(@PathVariable companyId: Long, @PathVariable accountGroupId: Long): ResponseEntity<ResponseDto<AccoGroupDto>>{
+    fun getAccountGroup(@PathVariable companyId: Long, @PathVariable accountGroupId: Long): ResponseEntity<ResponseDto<AccountGroupPartialDto>>{
         logger.info("Starting the API call to get account group")
         logger.info("GET /api/v1/account-groups/${accountGroupId}/companies/${companyId}")
         val accountGroup = accountGroupBl.getAccountGroup(companyId, accountGroupId)
@@ -61,12 +63,14 @@ class AccountGroupApi @Autowired constructor(private val accountGroupBl: Account
     }
 
     @PutMapping("/{accountGroupId}/companies/{companyId}")
-    fun updateAccountGroup(@PathVariable companyId: Long,
-                           @PathVariable accountGroupId: Long,
-                           @RequestBody accoGroupDto: AccoGroupDto): ResponseEntity<ResponseDto<AccoGroupDto>>{
+    fun updateAccountGroup(
+        @PathVariable companyId: Long,
+        @PathVariable accountGroupId: Long,
+        @RequestBody accountGroupPartialDto: AccountGroupPartialDto
+    ): ResponseEntity<ResponseDto<AccountGroupPartialDto>>{
         logger.info("Starting the API call to update account group")
         logger.info("PUT /api/v1/account-groups/${accountGroupId}/companies/${companyId}")
-        val newAccountGroup = accountGroupBl.updateAccountGroup(companyId, accountGroupId, accoGroupDto)
+        val newAccountGroup = accountGroupBl.updateAccountGroup(companyId, accountGroupId, accountGroupPartialDto)
         logger.info("Sending response")
         val code = "200-09"
         val responseInfo = ResponseCodeUtil.getResponseInfo(code)

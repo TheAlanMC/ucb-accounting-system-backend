@@ -14,10 +14,10 @@ import ucb.accounting.backend.util.KeycloakSecurityContextHolder
 
 @Service
 class SupplierBl @Autowired constructor(
-    private val supplierRepository: SupplierRepository,
     private val companyRepository: CompanyRepository,
-    private val subaccountRepository: SubaccountRepository,
     private val kcUserCompanyRepository: KcUserCompanyRepository,
+    private val subaccountRepository: SubaccountRepository,
+    private val supplierRepository: SupplierRepository,
 ) {
 
     companion object{
@@ -29,14 +29,18 @@ class SupplierBl @Autowired constructor(
         if (supplierDto.subaccountId == null || supplierDto.prefix == null || supplierDto.firstName == null || supplierDto.lastName == null ||
             supplierDto.displayName == null || supplierDto.companyName == null || supplierDto.companyAddress == null || supplierDto.companyPhoneNumber == null ||
             supplierDto.companyEmail== null) throw UasException("400-26")
+
         // Validation of company
         companyRepository.findByCompanyIdAndStatusIsTrue(companyId) ?: throw UasException("404-05")
+
         // Validation that subaccount exists
         val subaccountEntity = subaccountRepository.findBySubaccountIdAndStatusIsTrue(supplierDto.subaccountId) ?: throw UasException("404-10")
+
         // Validation of user belongs to company
         val kcUuid = KeycloakSecurityContextHolder.getSubject()!!
         kcUserCompanyRepository.findAllByKcUser_KcUuidAndCompany_CompanyIdAndStatusIsTrue(kcUuid, companyId) ?: throw UasException("403-30")
         logger.info("User $kcUuid is uploading file to company $companyId")
+
         // Validation that subaccount belongs to company
         if (subaccountEntity.companyId != companyId.toInt()) throw UasException("403-30")
 
@@ -63,10 +67,12 @@ class SupplierBl @Autowired constructor(
         logger.info("Starting the BL call to get suppliers")
         // Validation of company
         companyRepository.findByCompanyIdAndStatusIsTrue(companyId) ?: throw UasException("404-05")
+
         // Validation of user belongs to company
         val kcUuid = KeycloakSecurityContextHolder.getSubject()!!
         kcUserCompanyRepository.findAllByKcUser_KcUuidAndCompany_CompanyIdAndStatusIsTrue(kcUuid, companyId) ?: throw UasException("403-31")
         logger.info("User $kcUuid is getting suppliers from company $companyId")
+
         // Get suppliers
         val suppliers = supplierRepository.findAllByCompanyIdAndStatusIsTrue(companyId.toInt())
         logger.info("${suppliers.size} suppliers found")
@@ -75,14 +81,18 @@ class SupplierBl @Autowired constructor(
 
     fun getSupplier(supplierId:Long, companyId: Long): SupplierDto{
         logger.info("Starting the BL call to get supplier")
+
         // Validation of company
         companyRepository.findByCompanyIdAndStatusIsTrue(companyId) ?: throw UasException("404-05")
+
         // Validation of supplier
         val supplierEntity = supplierRepository.findBySupplierIdAndStatusIsTrue(supplierId) ?: throw UasException("404-15")
+
         // Validation of user belongs to company
         val kcUuid = KeycloakSecurityContextHolder.getSubject()!!
         kcUserCompanyRepository.findAllByKcUser_KcUuidAndCompany_CompanyIdAndStatusIsTrue(kcUuid, companyId) ?: throw UasException("403-31")
         logger.info("User $kcUuid is getting supplier $supplierId from company $companyId")
+
         // Validation that supplier belongs to company
         if (supplierEntity.companyId != companyId.toInt()) throw UasException("403-31")
         logger.info("Supplier found")
@@ -95,16 +105,21 @@ class SupplierBl @Autowired constructor(
         if (supplierDto.subaccountId == null && supplierDto.prefix == null && supplierDto.firstName == null && supplierDto.lastName == null &&
             supplierDto.displayName == null && supplierDto.companyName == null && supplierDto.companyAddress == null && supplierDto.companyPhoneNumber == null &&
             supplierDto.companyEmail== null) throw UasException("400-27")
+
         // Validation of company
         companyRepository.findByCompanyIdAndStatusIsTrue(companyId) ?: throw UasException("404-05")
+
         // Validation of supplier
         val supplierEntity = supplierRepository.findBySupplierIdAndStatusIsTrue(supplierId) ?: throw UasException("404-15")
+
         // Validation of user belongs to company
         val kcUuid = KeycloakSecurityContextHolder.getSubject()!!
         kcUserCompanyRepository.findAllByKcUser_KcUuidAndCompany_CompanyIdAndStatusIsTrue(kcUuid, companyId) ?: throw UasException("403-32")
         logger.info("User $kcUuid is updating supplier $supplierId from company $companyId")
+
         // Validation that supplier belongs to company
         if (supplierEntity.companyId != companyId.toInt()) throw UasException("403-32")
+
         // Validation that subaccount exists
         if (supplierDto.subaccountId != null) {
             val subaccountEntity = subaccountRepository.findBySubaccountIdAndStatusIsTrue(supplierDto.subaccountId) ?: throw UasException("404-10")

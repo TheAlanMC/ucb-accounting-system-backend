@@ -2,7 +2,6 @@ package ucb.accounting.backend.dao
 
 import ucb.accounting.backend.util.HttpUtil
 import ucb.accounting.backend.util.KeycloakSecurityContextHolder
-import java.math.BigDecimal
 import java.sql.Timestamp
 import javax.persistence.*
 

@@ -13,13 +13,14 @@ import ucb.accounting.backend.util.KeycloakSecurityContextHolder
 
 @Service
 class AccountingPlanBl @Autowired constructor(
-    private val kcUserCompanyRepository: KcUserCompanyRepository,
-    private val companyRepository: CompanyRepository,
     private val accountCategoryRepository: AccountCategoryRepository,
     private val accountGroupRepository: AccountGroupRepository,
-    private val accountSubgroupRepository: AccountSubgroupRepository,
     private val accountRepository: AccountRepository,
-    private val subaccountRepository: SubaccountRepository){
+    private val accountSubgroupRepository: AccountSubgroupRepository,
+    private val companyRepository: CompanyRepository,
+    private val kcUserCompanyRepository: KcUserCompanyRepository,
+    private val subaccountRepository: SubaccountRepository
+){
 
     companion object {
         val logger: Logger = LoggerFactory.getLogger(AccountingPlanBl::class.java)
@@ -28,7 +29,7 @@ class AccountingPlanBl @Autowired constructor(
     fun getAccountingPlan(id: Long): List<AccountCategoryDto> {
         logger.info("Getting accounting plan")
         // Validation that the company exists
-        val company = companyRepository.findByCompanyIdAndStatusIsTrue(id.toLong())?: throw UasException("404-05")
+        val company = companyRepository.findByCompanyIdAndStatusIsTrue(id)?: throw UasException("404-05")
         val companyId = company.companyId.toInt()
         logger.info("Company found")
         val kcUuid = KeycloakSecurityContextHolder.getSubject()!!

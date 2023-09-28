@@ -2,8 +2,7 @@ package ucb.accounting.backend.dto
 
 import java.sql.Date
 
-
-data class ListUsersDto (
+data class UserPartialDto (
     val kcGroupName: String?,
     val firstName: String?,
     val lastName: String?,

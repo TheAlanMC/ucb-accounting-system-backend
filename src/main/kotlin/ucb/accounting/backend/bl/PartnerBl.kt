@@ -12,10 +12,10 @@ import ucb.accounting.backend.util.KeycloakSecurityContextHolder
 
 @Service
 class PartnerBl  @Autowired constructor(
-    private val customerRepository: CustomerRepository,
-    private val supplierRepository: SupplierRepository,
     private val companyRepository: CompanyRepository,
-    private val kcUserCompanyRepository: KcUserCompanyRepository
+    private val customerRepository: CustomerRepository,
+    private val kcUserCompanyRepository: KcUserCompanyRepository,
+    private val supplierRepository: SupplierRepository,
 ) {
 
     companion object {
@@ -24,14 +24,14 @@ class PartnerBl  @Autowired constructor(
 
     fun getPartners(companyId: Long): PartnerDto {
         logger.info("Starting the API call to get partners")
-        logger.info("GET /api/v1/partners/companies/${companyId}")
         // Validation of company
         companyRepository.findByCompanyIdAndStatusIsTrue(companyId) ?: throw UasException("404-05")
+
         // Validation of user belongs to company
         val kcUuid = KeycloakSecurityContextHolder.getSubject()!!
-        kcUserCompanyRepository.findAllByKcUser_KcUuidAndCompany_CompanyIdAndStatusIsTrue(kcUuid, companyId)
-            ?: throw UasException("403-36")
+        kcUserCompanyRepository.findAllByKcUser_KcUuidAndCompany_CompanyIdAndStatusIsTrue(kcUuid, companyId) ?: throw UasException("403-37")
         logger.info("User $kcUuid is getting partners from company $companyId")
+
         // Get partners
         val customers = customerRepository.findAllByCompanyIdAndStatusIsTrue(companyId.toInt())
         logger.info("${customers.size} customers found")

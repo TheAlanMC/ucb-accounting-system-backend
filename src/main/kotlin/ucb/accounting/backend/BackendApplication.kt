@@ -2,13 +2,11 @@ package ucb.accounting.backend
 
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.runApplication
-import org.springframework.context.annotation.Bean
-import org.springframework.web.context.request.RequestContextListener
-
-
+import springfox.documentation.swagger2.annotations.EnableSwagger2
 
 
 @SpringBootApplication
+@EnableSwagger2
 class BackendApplication
 
 fun main(args: Array<String>) {

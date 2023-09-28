@@ -7,4 +7,6 @@ interface SaleTransactionRepository: JpaRepository<SaleTransaction, Long> {
     fun findByCompanyIdAndSaleTransactionNumberAndStatusIsTrue (companyId: Int, saleTransactionNumber: Int): SaleTransaction?
 
     fun findAllByCompanyIdAndStatusIsTrue (companyId: Int): List<SaleTransaction>
+
+    fun findFirstByCompanyIdAndStatusIsTrueOrderBySaleTransactionNumberDesc (companyId: Int): SaleTransaction?
 }

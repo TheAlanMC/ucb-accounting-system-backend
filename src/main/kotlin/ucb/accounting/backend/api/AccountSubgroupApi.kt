@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 import ucb.accounting.backend.bl.AccountSubgroupBl
-import ucb.accounting.backend.dto.AccoSubgroupDto
+import ucb.accounting.backend.dto.AccountSubgroupPartialDto
 import ucb.accounting.backend.dto.ResponseDto
 import ucb.accounting.backend.util.ResponseCodeUtil
 
@@ -24,11 +24,13 @@ class AccountSubgroupApi @Autowired constructor(private val accountSubgroupBl: A
     }
 
     @PostMapping("/companies/{companyId}")
-    fun createAccountSubgroup(@PathVariable companyId: Long,
-                              @RequestBody accoSubgroupDto: AccoSubgroupDto): ResponseEntity<ResponseDto<Nothing>> {
+    fun createAccountSubgroup(
+        @PathVariable companyId: Long,
+        @RequestBody accountSubgroupPartialDto: AccountSubgroupPartialDto
+    ): ResponseEntity<ResponseDto<Nothing>> {
         logger.info("Starting the API call to create account sub group")
         logger.info("POST /api/v1/account-subgroups/companies/${companyId}")
-        accountSubgroupBl.createAccountSubgroup(companyId, accoSubgroupDto)
+        accountSubgroupBl.createAccountSubgroup(companyId, accountSubgroupPartialDto)
         logger.info("Sending response")
         val code = "201-06"
         val responseInfo = ResponseCodeUtil.getResponseInfo(code)
@@ -37,20 +39,22 @@ class AccountSubgroupApi @Autowired constructor(private val accountSubgroupBl: A
     }
 
     @GetMapping("/companies/{companyId}")
-    fun getAccountSubgroups(@PathVariable companyId: Long): ResponseEntity<ResponseDto<List<AccoSubgroupDto>>>{
+    fun getAccountSubgroups(@PathVariable companyId: Long): ResponseEntity<ResponseDto<List<AccountSubgroupPartialDto>>>{
         logger.info("Starting the API call to get account sub groups")
         logger.info("GET /api/v1/account-subgroups/companies/${companyId}")
         val accountSubgroups = accountSubgroupBl.getAccountSubgroups(companyId)
         logger.info("Sending response")
-        val code = "200-09"
+        val code = "200-10"
         val responseInfo = ResponseCodeUtil.getResponseInfo(code)
         logger.info("Code: $code - ${responseInfo.message}")
         return ResponseEntity(ResponseDto(code, responseInfo.message!!, accountSubgroups), responseInfo.httpStatus)
     }
 
     @GetMapping("/{accountSubgroupId}/companies/{companyId}")
-    fun getAccountSubgroup(@PathVariable companyId: Long,
-                           @PathVariable accountSubgroupId: Long): ResponseEntity<ResponseDto<AccoSubgroupDto>>{
+    fun getAccountSubgroup(
+        @PathVariable companyId: Long,
+        @PathVariable accountSubgroupId: Long
+    ): ResponseEntity<ResponseDto<AccountSubgroupPartialDto>>{
         logger.info("Starting the API call to get account sub group")
         logger.info("GET /api/v1/account-subgroups/${accountSubgroupId}/companies/${companyId}")
         val accountSubgroup = accountSubgroupBl.getAccountSubgroup(companyId, accountSubgroupId)
@@ -62,12 +66,14 @@ class AccountSubgroupApi @Autowired constructor(private val accountSubgroupBl: A
     }
 
     @PutMapping("/{accountSubgroupId}/companies/{companyId}")
-    fun updateAccountSubgroup(@PathVariable companyId: Long,
-                              @PathVariable accountSubgroupId: Long,
-                              @RequestBody accoSubgroupDto: AccoSubgroupDto): ResponseEntity<ResponseDto<AccoSubgroupDto>>{
+    fun updateAccountSubgroup(
+        @PathVariable companyId: Long,
+        @PathVariable accountSubgroupId: Long,
+        @RequestBody accountSubgroupPartialDto: AccountSubgroupPartialDto
+    ): ResponseEntity<ResponseDto<AccountSubgroupPartialDto>>{
         logger.info("Starting the API call to update account sub group")
         logger.info("PUT /api/v1/account-subgroups/${accountSubgroupId}/companies/${companyId}")
-        val newAccountSubgroup = accountSubgroupBl.updateAccountSubgroup(companyId, accountSubgroupId, accoSubgroupDto)
+        val newAccountSubgroup = accountSubgroupBl.updateAccountSubgroup(companyId, accountSubgroupId, accountSubgroupPartialDto)
         logger.info("Sending response")
         val code = "200-11"
         val responseInfo = ResponseCodeUtil.getResponseInfo(code)

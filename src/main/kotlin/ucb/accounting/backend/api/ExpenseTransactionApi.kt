@@ -62,4 +62,18 @@ class ExpenseTransactionApi @Autowired constructor(private val expenseTransactio
         logger.info("Code: $code - ${responseInfo.message}")
         return ResponseEntity(ResponseDto(code, responseInfo.message!!, expenseTransactions), responseInfo.httpStatus)
     }
+
+    @GetMapping("/last-number/companies/{companyId}")
+    fun getLastExpenseTransactionNumber(
+        @PathVariable("companyId") companyId: Long
+    ): ResponseEntity<ResponseDto<Int>>{
+        logger.info("Starting the API call to get last expense transaction number")
+        logger.info("GET /api/v1/expense-transactions/last-number/companies/${companyId}")
+        val lastExpenseTransactionNumber: Int = expenseTransactionBl.getLastExpenseTransactionNumber(companyId)
+        logger.info("Sending response")
+        val code = "200-39"
+        val responseInfo = ResponseCodeUtil.getResponseInfo(code)
+        logger.info("Code: $code - ${responseInfo.message}")
+        return ResponseEntity(ResponseDto(code, responseInfo.message!!, lastExpenseTransactionNumber), responseInfo.httpStatus)
+    }
 }

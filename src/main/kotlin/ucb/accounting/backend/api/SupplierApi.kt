@@ -4,7 +4,6 @@ import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
-import ucb.accounting.backend.bl.CompanyBl
 import ucb.accounting.backend.bl.SupplierBl
 import ucb.accounting.backend.dto.SupplierDto
 import ucb.accounting.backend.dto.SupplierPartialDto

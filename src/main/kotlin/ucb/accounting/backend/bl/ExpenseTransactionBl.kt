@@ -16,24 +16,29 @@ import java.math.BigDecimal
 
 @Service
 class ExpenseTransactionBl @Autowired constructor(
-    private val journalEntryRepository: JournalEntryRepository,
+    private val attachmentRepository: AttachmentRepository,
     private val companyRepository: CompanyRepository,
     private val documentTypeRepository: DocumentTypeRepository,
-    private val kcUserCompanyRepository: KcUserCompanyRepository,
-    private val transactionRepository: TransactionRepository,
-    private val transactionAttachmentRepository: TransactionAttachmentRepository,
-    private val attachmentRepository: AttachmentRepository,
-    private val transactionDetailRepository: TransactionDetailRepository,
-    private val expenseTransactionRepository: ExpenseTransactionRepository,
     private val expenseTransactionDetailRepository: ExpenseTransactionDetailRepository,
+    private val expenseTransactionRepository: ExpenseTransactionRepository,
+    private val journalEntryRepository: JournalEntryRepository,
+    private val kcUserCompanyRepository: KcUserCompanyRepository,
     private val subaccountRepository: SubaccountRepository,
-    private val supplierRepository: SupplierRepository
+    private val supplierRepository: SupplierRepository,
+    private val transactionAttachmentRepository: TransactionAttachmentRepository,
+    private val transactionDetailRepository: TransactionDetailRepository,
+    private val transactionRepository: TransactionRepository,
 ){
     companion object{
         private val logger = LoggerFactory.getLogger(ExpenseTransactionBl::class.java.name)
     }
     fun createExpenseTransaction(companyId: Long, expenseTransactionDto: ExpenseTransactionDto){
         logger.info("Starting the BL call to create expense transaction")
+        // Validate that no field is null but attachments
+        if (expenseTransactionDto.supplierId == null || expenseTransactionDto.subaccountId == null ||
+            expenseTransactionDto.gloss.isNullOrEmpty() || expenseTransactionDto.description.isNullOrEmpty() ||
+            expenseTransactionDto.expenseTransactionDate == null || expenseTransactionDto.expenseTransactionDetails == null ||
+            expenseTransactionDto.expenseTransactionNumber == null) throw UasException("400-28")
         // Validation of company exists
         companyRepository.findByCompanyIdAndStatusIsTrue(companyId) ?: throw UasException("404-05")
 
@@ -44,22 +49,28 @@ class ExpenseTransactionBl @Autowired constructor(
                 attachmentRepository.findByAttachmentIdAndStatusIsTrue(it.attachmentId) ?: throw UasException("404-11")
             }
         }
+
         // Validation that subaccounts exist
         expenseTransactionDto.expenseTransactionDetails.map {
-            subaccountRepository.findBySubaccountIdAndStatusIsTrue(it.subaccountId) ?: throw UasException("404-10")
+            val subaccountEntities = subaccountRepository.findBySubaccountIdAndStatusIsTrue(it.subaccountId) ?: throw UasException("404-10")
+            // Validation that subaccounts belong to the company
+            if (subaccountEntities.companyId != companyId.toInt()) throw UasException("403-34")
         }
-        subaccountRepository.findBySubaccountIdAndStatusIsTrue(expenseTransactionDto.subaccountId) ?: throw UasException("404-10")
+
+        // Validation subaccount exists
+        val subaccountEntity = subaccountRepository.findBySubaccountIdAndStatusIsTrue(expenseTransactionDto.subaccountId) ?: throw UasException("404-10")
+        // Validation that subaccount belongs to the company
+        if (subaccountEntity.companyId != companyId.toInt()) throw UasException("403-34")
+
         // Validation supplier exists
         supplierRepository.findBySupplierIdAndStatusIsTrue(expenseTransactionDto.supplierId) ?: throw UasException("404-15")
         // Validation that the expense transaction number is unique
-        // TODO: Maybe validate that is sequential
         if (expenseTransactionRepository.findByCompanyIdAndExpenseTransactionNumberAndStatusIsTrue(companyId.toInt(), expenseTransactionDto.expenseTransactionNumber) != null) throw UasException("409-06")
 
         // Validation that the user belongs to the company
         val kcUuid = KeycloakSecurityContextHolder.getSubject()!!
+        kcUserCompanyRepository.findAllByKcUser_KcUuidAndCompany_CompanyIdAndStatusIsTrue(kcUuid, companyId) ?: throw UasException("403-34")
         logger.info("User $kcUuid is registering a new expense transaction")
-        // Validation of user belongs to company
-        kcUserCompanyRepository.findAllByKcUser_KcUuidAndCompany_CompanyIdAndStatusIsTrue(kcUuid, companyId) ?: throw UasException("403-33")
 
         // Creating journal entry
         logger.info("Saving journal entry")
@@ -98,6 +109,7 @@ class ExpenseTransactionBl @Autowired constructor(
             transactionDetailEntity.creditAmountBs = it.amountBs
             transactionDetailRepository.save(transactionDetailEntity)
         }
+
         logger.info("Saving the total of the expense transaction, total credit")
         val transactionDetailEntity = TransactionDetail()
         transactionDetailEntity.transactionId = savedTransaction.transactionId.toInt()
@@ -133,11 +145,12 @@ class ExpenseTransactionBl @Autowired constructor(
         logger.info("Starting the BL call to get subaccounts for expense transaction")
         // Validation of company exists
         companyRepository.findByCompanyIdAndStatusIsTrue(companyId) ?: throw UasException("404-05")
+
         // Validation that the user belongs to the company
         val kcUuid = KeycloakSecurityContextHolder.getSubject()!!
-        logger.info("User $kcUuid is getting subaccounts for expense transaction")
-        // Validation of user belongs to company
         kcUserCompanyRepository.findAllByKcUser_KcUuidAndCompany_CompanyIdAndStatusIsTrue(kcUuid, companyId) ?: throw UasException("403-16")
+        logger.info("User $kcUuid is getting subaccounts for expense transaction")
+
         // Getting subaccounts
         val subaccountEntities = subaccountRepository.findAllByAccountAccountSubgroupAccountGroupAccountCategoryAccountCategoryNameAndCompanyIdAndStatusIsTrue("Egresos", companyId.toInt())
         logger.info("Subaccounts for expense transaction obtained successfully")
@@ -148,11 +161,12 @@ class ExpenseTransactionBl @Autowired constructor(
         logger.info("Starting the BL call to get expense transactions")
         // Validation of company exists
         companyRepository.findByCompanyIdAndStatusIsTrue(companyId) ?: throw UasException("404-05")
+
         // Validation that the user belongs to the company
         val kcUuid = KeycloakSecurityContextHolder.getSubject()!!
+        kcUserCompanyRepository.findAllByKcUser_KcUuidAndCompany_CompanyIdAndStatusIsTrue(kcUuid, companyId) ?: throw UasException("403-36")
         logger.info("User $kcUuid is getting expense transactions")
-        // Validation of user belongs to company
-        kcUserCompanyRepository.findAllByKcUser_KcUuidAndCompany_CompanyIdAndStatusIsTrue(kcUuid, companyId) ?: throw UasException("403-35")
+
         // Getting expense transactions
         val expenseTransactionEntities = expenseTransactionRepository.findAllByCompanyIdAndStatusIsTrue(companyId.toInt())
         logger.info("Expense transactions obtained successfully")
@@ -160,5 +174,23 @@ class ExpenseTransactionBl @Autowired constructor(
             ExpenseTransactionMapper.entityToDto(expenseTransactionEntity,
                 expenseTransactionDetailRepository.findAllByExpenseTransactionIdAndStatusIsTrue(expenseTransactionEntity.expenseTransactionId).sumOf { it.amountBs }
             )
-        }}
+        }
+    }
+
+    fun getLastExpenseTransactionNumber(companyId: Long): Int {
+        logger.info("Starting the BL call to get last expense transaction number")
+        // Validation of company
+        companyRepository.findByCompanyIdAndStatusIsTrue(companyId) ?: throw UasException("404-05")
+
+        // Validation of user belongs to company
+        val kcUuid = KeycloakSecurityContextHolder.getSubject()!!
+        kcUserCompanyRepository.findAllByKcUser_KcUuidAndCompany_CompanyIdAndStatusIsTrue(kcUuid, companyId) ?: throw UasException("403-44")
+        logger.info("User $kcUuid is getting last expense transaction number from company $companyId")
+
+        // Get last expense transaction number
+        val lastExpenseTransactionNumber = expenseTransactionRepository.findFirstByCompanyIdAndStatusIsTrueOrderByExpenseTransactionNumberDesc(companyId.toInt())?.expenseTransactionNumber ?: 0
+        logger.info("Last expense transaction number is $lastExpenseTransactionNumber")
+
+        return lastExpenseTransactionNumber + 1
+    }
 }
