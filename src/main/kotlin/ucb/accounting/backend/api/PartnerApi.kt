@@ -8,7 +8,6 @@ import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 import ucb.accounting.backend.bl.PartnerBl
-import ucb.accounting.backend.dto.DocumentTypeDto
 import ucb.accounting.backend.dto.PartnerDto
 import ucb.accounting.backend.dto.ResponseDto
 import ucb.accounting.backend.util.ResponseCodeUtil

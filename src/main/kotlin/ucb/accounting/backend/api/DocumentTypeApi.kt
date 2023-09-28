@@ -4,11 +4,9 @@ import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping
-import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 import ucb.accounting.backend.bl.DocumentTypeBl
-import ucb.accounting.backend.dto.AccountCategoryDto
 import ucb.accounting.backend.dto.DocumentTypeDto
 import ucb.accounting.backend.dto.ResponseDto
 import ucb.accounting.backend.util.ResponseCodeUtil
@@ -21,7 +19,7 @@ class DocumentTypeApi @Autowired constructor(private val documentTypeBl: Documen
         private val logger = LoggerFactory.getLogger(DocumentTypeApi::class.java.name)
     }
 
-    @GetMapping()
+    @GetMapping
     fun getDocumentTypes(): ResponseEntity<ResponseDto<List<DocumentTypeDto>>> {
         logger.info("Starting the API call to get document types")
         logger.info("GET /api/v1/document-types")

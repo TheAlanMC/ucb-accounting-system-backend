@@ -9,13 +9,12 @@ import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.PutMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import ucb.accounting.backend.bl.CompanyBl
 import ucb.accounting.backend.dto.CompanyDto
+import ucb.accounting.backend.dto.CompanyPartialDto
 import ucb.accounting.backend.dto.ResponseDto
 import ucb.accounting.backend.util.ResponseCodeUtil
-import java.util.logging.Logger
 import javax.validation.constraints.Null
 
 @RestController
@@ -31,7 +30,7 @@ class CompanyApi @Autowired constructor(private val companyBl: CompanyBl){
         @PathVariable("companyId") companyId: Long,
     ) : ResponseEntity<ResponseDto<CompanyDto>>{
         logger.info("Starting the API call to get company info")
-        logger.info("GET /api/v1/companies/{companyId}")
+        logger.info("GET /api/v1/companies/${companyId}")
         val companyInfo = companyBl.getCompanyInfo(companyId)
         val code = "200-05"
         val responseInfo = ResponseCodeUtil.getResponseInfo(code)
@@ -39,13 +38,13 @@ class CompanyApi @Autowired constructor(private val companyBl: CompanyBl){
         return ResponseEntity(ResponseDto(code, responseInfo.message!!, companyInfo), responseInfo.httpStatus)
     }
 
-    @PostMapping()
-    fun postCompanyInfo(
-        @RequestBody companyDto: CompanyDto
+    @PostMapping
+    fun createCompany(
+        @RequestBody companyPartialDto: CompanyPartialDto
     ) : ResponseEntity<ResponseDto<Null>>{
         logger.info("Starting the API call to post company info")
         logger.info("POST /api/v1/companies")
-        companyBl.createCompany(companyDto)
+        companyBl.createCompany(companyPartialDto)
         val code = "201-04"
         val responseInfo = ResponseCodeUtil.getResponseInfo(code)
         logger.info("Code: $code - ${responseInfo.message}")
@@ -53,13 +52,13 @@ class CompanyApi @Autowired constructor(private val companyBl: CompanyBl){
     }
 
     @PutMapping("/{companyId}")
-    fun putCompanyInfo(
-        @RequestParam("companyId") companyId: Long,
-        @RequestBody companyDto: CompanyDto,
+    fun updateCompany(
+        @PathVariable("companyId") companyId: Long,
+        @RequestBody companyPartialDto: CompanyPartialDto
     ) : ResponseEntity<ResponseDto<CompanyDto>>{
         logger.info("Starting the API call to put company info")
-        logger.info("PUT /api/v1/companies/{companyId}")
-        val updatedCompany = companyBl.updateCompany(companyDto, companyId)
+        logger.info("PUT /api/v1/companies/${companyId}")
+        val updatedCompany = companyBl.updateCompany(companyPartialDto, companyId)
         val code = "200-06"
         val responseInfo = ResponseCodeUtil.getResponseInfo(code)
         logger.info("Code: $code - ${responseInfo.message}")

@@ -1,0 +1,186 @@
+{
+  "account_groups": [
+    {
+      "account_category_id": 1,
+      "account_group_code" : 10001,
+      "account_group_name" : "Grupo1",
+      "accounts_subgroups" : [
+        {
+          "account_subgroup_code": 10011,
+          "account_subgroup_name": "Subgrupo1",
+          "accounts": [
+            {
+              "account_code": 10111,
+              "account_name": "Cuenta1",
+              "subaccounts":[
+                {
+                  "subaccount_code": 11111,
+                  "subaccount_name": "Cuenta1-Subcuenta1"
+                },
+                {
+                  "subaccount_code": 12111,
+                  "subaccount_name": "Cuenta1-Subcuenta2"
+                },
+                {
+                  "subaccount_code": 13111,
+                  "subaccount_name": "Cuenta1-Subcuenta3"
+                }
+              ]
+            },
+            {
+              "account_code": 10211,
+              "account_name": "Cuenta2",
+              "subaccounts":[
+                {
+                  "subaccount_code": 11211,
+                  "subaccount_name": "Cuenta2-Subcuenta1"
+                },
+                {
+                  "subaccount_code": 12211,
+                  "subaccount_name": "Cuenta2-Subcuenta2"
+                },
+                {
+                  "subaccount_code": 13211,
+                  "subaccount_name": "Cuenta2-Subcuenta3"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "account_subgroup_code": 10021,
+          "account_subgroup_name": "Subgrupo1",
+          "accounts": [
+            {
+              "account_code": 10121,
+              "account_name": "Cuenta1",
+              "subaccounts":[
+                {
+                  "subaccount_code": 11121,
+                  "subaccount_name": "Cuenta1-Subcuenta1"
+                },
+                {
+                  "subaccount_code": 12121,
+                  "subaccount_name": "Cuenta1-Subcuenta2"
+                },
+                {
+                  "subaccount_code": 13121,
+                  "subaccount_name": "Cuenta1-Subcuenta3"
+                }
+              ]
+            },
+            {
+              "account_code": 10221,
+              "account_name": "Cuenta2",
+              "subaccounts":[
+                {
+                  "subaccount_code": 11221,
+                  "subaccount_name": "Cuenta2-Subcuenta1"
+                },
+                {
+                  "subaccount_code": 12221,
+                  "subaccount_name": "Cuenta2-Subcuenta2"
+                },
+                {
+                  "subaccount_code": 13221,
+                  "subaccount_name": "Cuenta2-Subcuenta3"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "account_category_id": 2,
+      "account_group_code" : 10002,
+      "account_group_name" : "Grupo2",
+      "accounts_subgroups" : [
+        {
+          "account_subgroup_code": 10012,
+          "account_subgroup_name": "Subgrupo1",
+          "accounts": [
+            {
+              "account_code": 10112,
+              "account_name": "Cuenta1",
+              "subaccounts":[
+                {
+                  "subaccount_code": 11112,
+                  "subaccount_name": "Cuenta1-Subcuenta1"
+                },
+                {
+                  "subaccount_code": 12112,
+                  "subaccount_name": "Cuenta1-Subcuenta2"
+                },
+                {
+                  "subaccount_code": 13112,
+                  "subaccount_name": "Cuenta1-Subcuenta3"
+                }
+              ]
+            },
+            {
+              "account_code": 10212,
+              "account_name": "Cuenta2",
+              "subaccounts":[
+                {
+                  "subaccount_code": 11212,
+                  "subaccount_name": "Cuenta2-Subcuenta1"
+                },
+                {
+                  "subaccount_code": 12212,
+                  "subaccount_name": "Cuenta2-Subcuenta2"
+                },
+                {
+                  "subaccount_code": 13212,
+                  "subaccount_name": "Cuenta2-Subcuenta3"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "account_subgroup_code": 10022,
+          "account_subgroup_name": "Subgrupo2",
+          "accounts": [
+            {
+              "account_code": 10122,
+              "account_name": "Cuenta1",
+              "subaccounts":[
+                {
+                  "subaccount_code": 11122,
+                  "subaccount_name": "Cuenta1-Subcuenta1"
+                },
+                {
+                  "subaccount_code": 12122,
+                  "subaccount_name": "Cuenta1-Subcuenta2"
+                },
+                {
+                  "subaccount_code": 13122,
+                  "subaccount_name": "Cuenta1-Subcuenta3"
+                }
+              ]
+            },
+            {
+              "account_code": 10222,
+              "account_name": "Cuenta2",
+              "subaccounts":[
+                {
+                  "subaccount_code": 11222,
+                  "subaccount_name": "Cuenta2-Subcuenta1"
+                },
+                {
+                  "subaccount_code": 12222,
+                  "subaccount_name": "Cuenta2-Subcuenta2"
+                },
+                {
+                  "subaccount_code": 13222,
+                  "subaccount_name": "Cuenta2-Subcuenta3"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

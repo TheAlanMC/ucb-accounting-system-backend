@@ -62,4 +62,18 @@ class SaleTransactionApi @Autowired constructor(private val saleTransactionBl: S
         logger.info("Code: $code - ${responseInfo.message}")
         return ResponseEntity(ResponseDto(code, responseInfo.message!!, saleTransactions), responseInfo.httpStatus)
     }
+
+    @GetMapping("/last-number/companies/{companyId}")
+    fun getLastSaleTransactionNumber(
+        @PathVariable("companyId") companyId: Long
+    ): ResponseEntity<ResponseDto<Int>>{
+        logger.info("Starting the API call to get last sale transaction number")
+        logger.info("GET /api/v1/sale-transactions/last-number/companies/${companyId}")
+        val lastSaleTransactionNumber: Int = saleTransactionBl.getLastSaleTransactionNumber(companyId)
+        logger.info("Sending response")
+        val code = "200-38"
+        val responseInfo = ResponseCodeUtil.getResponseInfo(code)
+        logger.info("Code: $code - ${responseInfo.message}")
+        return ResponseEntity(ResponseDto(code, responseInfo.message!!, lastSaleTransactionNumber), responseInfo.httpStatus)
+    }
 }

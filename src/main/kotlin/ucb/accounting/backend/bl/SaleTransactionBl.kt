@@ -16,24 +16,29 @@ import java.math.BigDecimal
 
 @Service
 class SaleTransactionBl @Autowired constructor(
-    private val journalEntryRepository: JournalEntryRepository,
-    private val companyRepository: CompanyRepository,
-    private val documentTypeRepository: DocumentTypeRepository,
-    private val kcUserCompanyRepository: KcUserCompanyRepository,
-    private val transactionRepository: TransactionRepository,
-    private val transactionAttachmentRepository: TransactionAttachmentRepository,
     private val attachmentRepository: AttachmentRepository,
-    private val transactionDetailRepository: TransactionDetailRepository,
-    private val saleTransactionRepository: SaleTransactionRepository,
+    private val companyRepository: CompanyRepository,
+    private val customerRepository: CustomerRepository,
+    private val documentTypeRepository: DocumentTypeRepository,
+    private val journalEntryRepository: JournalEntryRepository,
+    private val kcUserCompanyRepository: KcUserCompanyRepository,
     private val saleTransactionDetailRepository: SaleTransactionDetailRepository,
+    private val saleTransactionRepository: SaleTransactionRepository,
     private val subaccountRepository: SubaccountRepository,
-    private val customerRepository: CustomerRepository
+    private val transactionAttachmentRepository: TransactionAttachmentRepository,
+    private val transactionDetailRepository: TransactionDetailRepository,
+    private val transactionRepository: TransactionRepository,
 ){
     companion object{
         private val logger = LoggerFactory.getLogger(SaleTransactionBl::class.java.name)
     }
     fun createSaleTransaction(companyId: Long, saleTransactionDto: SaleTransactionDto){
         logger.info("Starting the BL call to create sale transaction")
+        // Validate that no field is null but attachments
+        if (saleTransactionDto.customerId == null || saleTransactionDto.subaccountId == null ||
+            saleTransactionDto.gloss.isNullOrEmpty() || saleTransactionDto.description.isNullOrEmpty() ||
+            saleTransactionDto.saleTransactionDate == null || saleTransactionDto.saleTransactionDetails == null ||
+            saleTransactionDto.saleTransactionNumber == null) throw UasException("400-25")
         // Validation of company exists
         companyRepository.findByCompanyIdAndStatusIsTrue(companyId) ?: throw UasException("404-05")
 
@@ -46,20 +51,25 @@ class SaleTransactionBl @Autowired constructor(
         }
         // Validation that subaccounts exist
         saleTransactionDto.saleTransactionDetails.map {
-            subaccountRepository.findBySubaccountIdAndStatusIsTrue(it.subaccountId) ?: throw UasException("404-10")
+            val subaccountEntities = subaccountRepository.findBySubaccountIdAndStatusIsTrue(it.subaccountId) ?: throw UasException("404-10")
+            // Validation that subaccount belongs to company
+            if (subaccountEntities.companyId != companyId.toInt()) throw UasException("403-33")
         }
-        subaccountRepository.findBySubaccountIdAndStatusIsTrue(saleTransactionDto.subaccountId) ?: throw UasException("404-10")
+
+        // Validation that subaccount exists
+        val subaccountEntity = subaccountRepository.findBySubaccountIdAndStatusIsTrue(saleTransactionDto.subaccountId) ?: throw UasException("404-10")
+        // Validation that subaccount belongs to company
+        if (subaccountEntity.companyId != companyId.toInt()) throw UasException("403-33")
+
         // Validation customer exists
         customerRepository.findByCustomerIdAndStatusIsTrue(saleTransactionDto.customerId) ?: throw UasException("404-14")
         // Validation that the sale transaction number is unique
-        // TODO: Maybe validate that is sequential
         if (saleTransactionRepository.findByCompanyIdAndSaleTransactionNumberAndStatusIsTrue(companyId.toInt(), saleTransactionDto.saleTransactionNumber) != null) throw UasException("409-05")
 
         // Validation that the user belongs to the company
         val kcUuid = KeycloakSecurityContextHolder.getSubject()!!
+        kcUserCompanyRepository.findAllByKcUser_KcUuidAndCompany_CompanyIdAndStatusIsTrue(kcUuid, companyId) ?: throw UasException("403-33")
         logger.info("User $kcUuid is registering a new sale transaction")
-        // Validation of user belongs to company
-        kcUserCompanyRepository.findAllByKcUser_KcUuidAndCompany_CompanyIdAndStatusIsTrue(kcUuid, companyId) ?: throw UasException("403-30")
 
         // Creating journal entry
         logger.info("Saving journal entry")
@@ -153,7 +163,7 @@ class SaleTransactionBl @Autowired constructor(
         val kcUuid = KeycloakSecurityContextHolder.getSubject()!!
         logger.info("User $kcUuid is getting sale transactions")
         // Validation of user belongs to company
-        kcUserCompanyRepository.findAllByKcUser_KcUuidAndCompany_CompanyIdAndStatusIsTrue(kcUuid, companyId) ?: throw UasException("403-34")
+        kcUserCompanyRepository.findAllByKcUser_KcUuidAndCompany_CompanyIdAndStatusIsTrue(kcUuid, companyId) ?: throw UasException("403-35")
         // Getting sale transactions
         val saleTransactionEntities = saleTransactionRepository.findAllByCompanyIdAndStatusIsTrue(companyId.toInt())
         logger.info("Sale transactions obtained successfully")
@@ -161,5 +171,22 @@ class SaleTransactionBl @Autowired constructor(
             SaleTransactionMapper.entityToDto(saleTransactionEntity,
                 saleTransactionDetailRepository.findAllBySaleTransactionIdAndStatusIsTrue(saleTransactionEntity.saleTransactionId).sumOf { it.unitPriceBs.times(it.quantity.toBigDecimal()) }
             )
-        }}
+        }
+    }
+
+    fun getLastSaleTransactionNumber(companyId: Long): Int {
+        logger.info("Starting the BL call to get last sale transaction number")
+        // Validation of company
+        companyRepository.findByCompanyIdAndStatusIsTrue(companyId) ?: throw UasException("404-05")
+
+        // Validation of user belongs to company
+        val kcUuid = KeycloakSecurityContextHolder.getSubject()!!
+        kcUserCompanyRepository.findAllByKcUser_KcUuidAndCompany_CompanyIdAndStatusIsTrue(kcUuid, companyId) ?: throw UasException("403-43")
+        logger.info("User $kcUuid is getting last sale transaction number from company $companyId")
+
+        // Getting last sale transaction number
+        val lastSaleTransactionNumber = saleTransactionRepository.findFirstByCompanyIdAndStatusIsTrueOrderBySaleTransactionNumberDesc(companyId.toInt())?.saleTransactionNumber ?: 0
+        logger.info("Last sale transaction number obtained successfully")
+        return lastSaleTransactionNumber + 1
+    }
 }

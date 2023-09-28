@@ -1,8 +1,6 @@
 package ucb.accounting.backend.mapper
 
-import ucb.accounting.backend.dao.Supplier
 import ucb.accounting.backend.dao.TaxType
-import ucb.accounting.backend.dto.SupplierDto
 import ucb.accounting.backend.dto.TaxTypeDto
 
 class TaxTypeMapper {

@@ -3,7 +3,6 @@ package ucb.accounting.backend.bl
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.stereotype.Controller
 import org.springframework.stereotype.Service
 import org.springframework.web.multipart.MultipartFile
 import ucb.accounting.backend.dao.Attachment
@@ -22,10 +21,10 @@ import ucb.accounting.backend.util.KeycloakSecurityContextHolder
 @Service
 class FilesBl @Autowired constructor(
     private val attachmentRepository: AttachmentRepository,
-    private val s3ObjectRepository: S3ObjectRepository,
     private val companyRepository: CompanyRepository,
     private val kcUserCompanyRepository: KcUserCompanyRepository,
-    private val minioService: MinioService
+    private val minioService: MinioService,
+    private val s3ObjectRepository: S3ObjectRepository,
 ){
     companion object {
         val logger: Logger = LoggerFactory.getLogger(FilesBl::class.java)
