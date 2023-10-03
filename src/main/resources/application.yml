@@ -11,13 +11,17 @@ spring:
     username: ${POSTGRES_USERNAME:postgres}
     password: ${POSTGRES_PASSWORD:mysecretpassword}
     url: ${POSTGRES_URL:jdbc:postgresql://localhost:5432/db_uas}
-    jpa:
-      hibernate:
-        ddl-auto: none
+  jpa:
+    hibernate:
+      ddl-auto: none
   servlet:
     multipart:
       max-file-size: 10MB
       max-request-size: 10MB
+  mvc:
+    path-match:
+      matching-strategy: ant-path-matcher
+
 
 minio:
   url: ${MINIO_SERVER_URI:http://localhost:9000}
@@ -37,25 +41,34 @@ keycloak:
   ssl-required: none
   use-resource-role-mappings: false
   security-constraints:
+# User Api
     - auth-roles:
-        - journal-entry-recorder
+        - accountant-register
       security-collections:
-        - name: Journal Entry POST
+        - name: Registering Accountant User
           patterns:
-            - /api/v1/files/attachments/*
-            - /api/v1/journal-entries/companies/*
+            - /api/v1/users/accountants
           methods:
             - POST
-            - GET
+    - auth-roles:
+        - accounting-management
+      security-collections:
+        - name: Registering Accounting Assistant User or Client User
+          patterns:
+            - /api/v1/users/accounting-assistants/*
+            - /api/v1/users/clients/*
+          methods:
+            - POST
     - auth-roles:
         - common-user
       security-collections:
-        - name: User Profile CRUD
+        - name: User Profile Update
           patterns:
             - /api/v1/users/*
           methods:
             - GET
             - PUT
+# File Picture Api
     - auth-roles:
         - common-user
       security-collections:
@@ -64,19 +77,75 @@ keycloak:
             - /api/v1/files/pictures/*
           methods:
             - POST
+# Company Api
+    - auth-roles:
+        -  common-user
+      security-collections:
+        - name: Company Get Info
+          patterns:
+            - /api/v1/companies/*
+          methods:
+            - GET
+    - auth-roles:
+        - company-owner
+      security-collections:
+        - name: Company CRUD
+          patterns:
+            - /api/v1/companies/*
+          methods:
+            - POST
+            - GET
+            - PUT
+# Accounting Plan, AccountGroup, AccountSubgroup, Account, Subaccount Api
     - auth-roles:
         - accounting-management
       security-collections:
         - name: Getting Account Plan
           patterns:
             - /api/v1/accounting-plans/*
+            - /api/v1/account-groups/*
+            - /api/v1/account-subgroups/*
+            - /api/v1/accounts/*
+            - /api/v1/subaccounts/*
           methods:
             - GET
+            - POST
+            - PUT
+# Customer, Sales, Supplier, Expenses, Tax Api
     - auth-roles:
-        -  common-user
+        - journal-entry-recorder-assistant
       security-collections:
-        - name: Getting Company
+        - name: Customer, Sales, Supplier, Expenses, Tax Management
           patterns:
-            - /api/v1/companies/*
+            - /api/v1/customers/*
+            - /api/v1/suppliers/*
+            - /api/v1/sale-transactions/*
+            - /api/v1/expense-transactions/*
+            - /api/v1/taxes/*
           methods:
             - GET
+            - POST
+            - PUT
+# File Attachment Api
+    - auth-roles:
+        - journal-entry-recorder
+        - journal-entry-recorder-assistant
+      security-collections:
+        - name: Attachment POST
+          patterns:
+            - /api/v1/files/attachments/*
+          methods:
+            - POST
+# Journal Entry Api
+    - auth-roles:
+        - journal-entry-recorder
+      security-collections:
+        - name: Journal Entry POST
+          patterns:
+            - /api/v1/partners/*
+            - /api/v1/document-types
+            - /api/v1/journal-entries/*
+          methods:
+            - POST
+            - GET
+

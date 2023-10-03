@@ -8,7 +8,7 @@ class KeycloakSecurityContextHolder {
 
     companion object {
         private fun getKeycloakSecurityContext(): KeycloakSecurityContext? {
-            val requestAttributes = RequestContextHolder.currentRequestAttributes() as? ServletRequestAttributes
+            val requestAttributes = RequestContextHolder.getRequestAttributes() as? ServletRequestAttributes
             return requestAttributes?.request?.getAttribute(KeycloakSecurityContext::class.java.name) as? KeycloakSecurityContext
         }
 

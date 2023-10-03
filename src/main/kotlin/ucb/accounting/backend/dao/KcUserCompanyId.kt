@@ -1,10 +1,11 @@
 package ucb.accounting.backend.dao
 
+import java.io.Serializable
 import javax.persistence.Column
 import javax.persistence.Embeddable
 
 @Embeddable
-class KcUserCompanyId: java.io.Serializable {
+class KcUserCompanyId: Serializable {
     @Column(name = "kc_uuid")
     var kcUuid: String = ""
 

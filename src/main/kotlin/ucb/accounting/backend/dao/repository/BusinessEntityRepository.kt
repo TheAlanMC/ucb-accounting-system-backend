@@ -6,5 +6,7 @@ import ucb.accounting.backend.dao.BusinessEntity
 
 @Repository
 interface BusinessEntityRepository: JpaRepository<BusinessEntity, Long> {
-    fun findByBusinessEntityIdAndStatusTrue (businessEntityId: Long): BusinessEntity?
+    fun findByBusinessEntityIdAndStatusIsTrue (businessEntityId: Long): BusinessEntity?
+
+    fun findAllByStatusIsTrue(): List<BusinessEntity>
 }

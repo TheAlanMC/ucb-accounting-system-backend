@@ -3,7 +3,6 @@ package ucb.accounting.backend.bl
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.stereotype.Controller
 import org.springframework.stereotype.Service
 import org.springframework.web.multipart.MultipartFile
 import ucb.accounting.backend.dao.Attachment
@@ -22,10 +21,10 @@ import ucb.accounting.backend.util.KeycloakSecurityContextHolder
 @Service
 class FilesBl @Autowired constructor(
     private val attachmentRepository: AttachmentRepository,
-    private val s3ObjectRepository: S3ObjectRepository,
     private val companyRepository: CompanyRepository,
     private val kcUserCompanyRepository: KcUserCompanyRepository,
-    private val minioService: MinioService
+    private val minioService: MinioService,
+    private val s3ObjectRepository: S3ObjectRepository,
 ){
     companion object {
         val logger: Logger = LoggerFactory.getLogger(FilesBl::class.java)
@@ -33,7 +32,7 @@ class FilesBl @Autowired constructor(
 
     fun uploadFile(attachment: MultipartFile, companyId: Long): AttachmentDto {
         // Validation of company
-        companyRepository.findByCompanyIdAndStatusTrue(companyId) ?: throw UasException("404-05")
+        companyRepository.findByCompanyIdAndStatusIsTrue(companyId) ?: throw UasException("404-05")
         // Validation of user belongs to company
         val kcUuid = KeycloakSecurityContextHolder.getSubject()!!
         kcUserCompanyRepository.findAllByKcUser_KcUuidAndCompany_CompanyIdAndStatusIsTrue(kcUuid, companyId) ?: throw UasException("403-18")
@@ -76,9 +75,9 @@ class FilesBl @Autowired constructor(
 
     fun downloadFile(attachmentId: Long, companyId: Long): AttachmentDownloadDto {
         // Validation of company
-        companyRepository.findByCompanyIdAndStatusTrue(companyId) ?: throw UasException("404-05")
+        companyRepository.findByCompanyIdAndStatusIsTrue(companyId) ?: throw UasException("404-05")
         // Validation of attachment
-        val attachmentEntity: Attachment = attachmentRepository.findByAttachmentIdAndStatusTrue(attachmentId) ?: throw UasException("404-11")
+        val attachmentEntity: Attachment = attachmentRepository.findByAttachmentIdAndStatusIsTrue(attachmentId) ?: throw UasException("404-11")
         // Validation of user belongs to company
         val kcUuid = KeycloakSecurityContextHolder.getSubject()!!
         kcUserCompanyRepository.findAllByKcUser_KcUuidAndCompany_CompanyIdAndStatusIsTrue(kcUuid, companyId) ?: throw UasException("403-19")

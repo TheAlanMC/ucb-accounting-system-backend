@@ -4,6 +4,7 @@ import io.minio.GetPresignedObjectUrlArgs
 import io.minio.MinioClient
 import io.minio.PutObjectArgs
 import io.minio.http.Method
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
 import org.springframework.web.multipart.MultipartFile
@@ -11,15 +12,13 @@ import ucb.accounting.backend.dto.NewFileDto
 import java.util.*
 
 @Service
-class MinioService constructor(
+class MinioService @Autowired constructor(
     private val minioClient: MinioClient
 ) {
-    @Value("\${minio.url}")
-    private lateinit var minioUrl: String
 
     fun uploadFile(file: MultipartFile, bucket: String): NewFileDto {
         // file name
-        val filename: String =  "${UUID.randomUUID()}.${file.originalFilename!!.split(".").last()}"
+        val filename =  "${UUID.randomUUID()}.${file.originalFilename!!.split(".").last()}"
         // save object
         minioClient.putObject(
             PutObjectArgs.builder()
@@ -46,7 +45,7 @@ class MinioService constructor(
 
     fun uploadTempFile(fileData: ByteArray, filename: String, contentType: String, bucket: String): NewFileDto {
         // file name
-        val newFilename: String =  "${UUID.randomUUID()}.${filename.split(".").last()}"
+        val newFilename =  "${UUID.randomUUID()}.${filename.split(".").last()}"
         // save object
         minioClient.putObject(
             PutObjectArgs.builder()

@@ -7,6 +7,6 @@ import ucb.accounting.backend.dao.Attachment
 @Repository
 interface AttachmentRepository : JpaRepository<Attachment, Long>{
 
-    fun findByAttachmentIdAndStatusTrue (attachmentId: Long): Attachment?
+    fun findByAttachmentIdAndStatusIsTrue (attachmentId: Long): Attachment?
 }
 

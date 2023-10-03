@@ -3,6 +3,7 @@ package ucb.accounting.backend.api
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.ResponseEntity
+import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
@@ -15,14 +16,14 @@ import ucb.accounting.backend.util.ResponseCodeUtil
 import javax.validation.constraints.Null
 
 @RestController
-@RequestMapping("/api/v1/journal-entries/companies")
+@RequestMapping("/api/v1/journal-entries")
 class JournalEntryApi @Autowired constructor(private val journalEntryBl: JournalEntryBl){
 
     companion object {
-        private val logger = LoggerFactory.getLogger(CompanyApi::class.java.name)
+        private val logger = LoggerFactory.getLogger(JournalEntryApi::class.java.name)
     }
 
-    @PostMapping("/{companyId}")
+    @PostMapping("/companies/{companyId}")
     fun postJournalEntry(
         @PathVariable("companyId") companyId: Long,
         @RequestBody journalEntryDto: JournalEntryDto
@@ -36,4 +37,20 @@ class JournalEntryApi @Autowired constructor(private val journalEntryBl: Journal
         logger.info("Code: $code - ${responseInfo.message}")
         return ResponseEntity(ResponseDto(code, responseInfo.message!!, null), responseInfo.httpStatus)
     }
+
+    @GetMapping("/last-number/companies/{companyId}")
+    fun getLastJournalEntryNumber(
+        @PathVariable("companyId") companyId: Long
+    ): ResponseEntity<ResponseDto<Int>>{
+        logger.info("Starting the API call to get last journal entry number")
+        logger.info("GET /api/v1/journal-entries/last-number/companies/${companyId}")
+        val lastJournalEntryNumber: Int = journalEntryBl.getLastJournalEntryNumber(companyId)
+        logger.info("Sending response")
+        val code = "200-37"
+        val responseInfo = ResponseCodeUtil.getResponseInfo(code)
+        logger.info("Code: $code - ${responseInfo.message}")
+        return ResponseEntity(ResponseDto(code, responseInfo.message!!, lastJournalEntryNumber), responseInfo.httpStatus)
+    }
+
+
 }

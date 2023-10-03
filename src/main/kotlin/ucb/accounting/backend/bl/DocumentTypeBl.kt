@@ -17,7 +17,7 @@ class DocumentTypeBl @Autowired constructor(
 
     fun getDocumentTypes(): List<DocumentTypeDto> {
         logger.info("Starting the BL call to get document types")
-        val documentTypes = documentTypeRepository.findAllByStatusTrue()
+        val documentTypes = documentTypeRepository.findAllByStatusIsTrue()
         logger.info("Found ${documentTypes.size} document types")
         logger.info("Finishing the BL call to get document types")
         return documentTypes.map { DocumentTypeMapper.entityToDto(it) }

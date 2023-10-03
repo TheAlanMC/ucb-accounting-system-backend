@@ -6,5 +6,6 @@ import ucb.accounting.backend.dao.Industry
 
 @Repository
 interface IndustryRepository: JpaRepository<Industry, Long>{
-    fun findByIndustryIdAndStatusTrue (industryId: Long): Industry?
+    fun findByIndustryIdAndStatusIsTrue (industryId: Long): Industry?
+    fun findAllByStatusIsTrue(): List<Industry>
 }
