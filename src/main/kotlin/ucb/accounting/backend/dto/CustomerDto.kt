@@ -2,7 +2,6 @@ package ucb.accounting.backend.dto
 
 data class CustomerDto (
     val customerId: Long?,
-    val subaccountId: Long?,
     val prefix: String?,
     val displayName: String?,
     val firstName: String?,

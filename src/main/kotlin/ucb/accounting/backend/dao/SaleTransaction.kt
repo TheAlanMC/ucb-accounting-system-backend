@@ -14,6 +14,12 @@ class SaleTransaction {
     @Column(name = "sale_transaction_id")
     var saleTransactionId: Long = 0
 
+    @Column(name = "transaction_type_id")
+    var transactionTypeId: Int = 0
+
+    @Column(name = "payment_type_id")
+    var paymentTypeId: Int = 0
+
     @Column(name = "journal_entry_id")
     var journalEntryId: Int = 0
 
@@ -52,6 +58,14 @@ class SaleTransaction {
 
     @Column(name = "tx_host")
     var txHost: String = HttpUtil.getRequestHost() ?: "localhost"
+
+    @ManyToOne
+    @JoinColumn(name = "transaction_type_id", insertable = false, updatable = false)
+    var transactionType: TransactionType? = null
+
+    @ManyToOne
+    @JoinColumn(name = "payment_type_id", insertable = false, updatable = false)
+    var paymentType: PaymentType? = null
 
     @ManyToOne
     @JoinColumn(name = "customer_id", insertable = false, updatable = false)

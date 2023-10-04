@@ -74,7 +74,7 @@ keycloak:
       security-collections:
         - name: Profile Picture Upload
           patterns:
-            - /api/v1/files/pictures/*
+            - /api/v1/files/pictures
           methods:
             - POST
 # Company Api
@@ -131,11 +131,12 @@ keycloak:
         - journal-entry-recorder
         - journal-entry-recorder-assistant
       security-collections:
-        - name: Attachment POST
+        - name: Attachment Upload and Download
           patterns:
             - /api/v1/files/attachments/*
           methods:
             - POST
+            - GET
 # Journal Entry Api
     - auth-roles:
         - journal-entry-recorder

@@ -2,88 +2,429 @@
   "account_groups": [
     {
       "account_category_id": 1,
-      "account_group_code" : 10001,
-      "account_group_name" : "Grupo1",
+      "account_group_code" : 1,
+      "account_group_name" : "ACTIVO CORRIENTE",
       "accounts_subgroups" : [
         {
-          "account_subgroup_code": 10011,
-          "account_subgroup_name": "Subgrupo1",
+          "account_subgroup_code": 1,
+          "account_subgroup_name": "DISPONIBILIDADES",
           "accounts": [
             {
-              "account_code": 10111,
-              "account_name": "Cuenta1",
+              "account_code": 1,
+              "account_name": "CAJA MONEDA NACIONAL",
               "subaccounts":[
                 {
-                  "subaccount_code": 11111,
-                  "subaccount_name": "Cuenta1-Subcuenta1"
+                  "subaccount_code": 1,
+                  "subaccount_name": "Caja M/N"
                 },
                 {
-                  "subaccount_code": 12111,
-                  "subaccount_name": "Cuenta1-Subcuenta2"
-                },
-                {
-                  "subaccount_code": 13111,
-                  "subaccount_name": "Cuenta1-Subcuenta3"
+                  "subaccount_code": 2,
+                  "subaccount_name": "Caja Chica M/N"
                 }
               ]
             },
             {
-              "account_code": 10211,
-              "account_name": "Cuenta2",
+              "account_code": 2,
+              "account_name": "BANCOS MONEDA NACIONAL",
               "subaccounts":[
                 {
-                  "subaccount_code": 11211,
-                  "subaccount_name": "Cuenta2-Subcuenta1"
-                },
-                {
-                  "subaccount_code": 12211,
-                  "subaccount_name": "Cuenta2-Subcuenta2"
-                },
-                {
-                  "subaccount_code": 13211,
-                  "subaccount_name": "Cuenta2-Subcuenta3"
+                  "subaccount_code": 1,
+                  "subaccount_name": "Banco M/N"
                 }
               ]
             }
           ]
         },
         {
-          "account_subgroup_code": 10021,
-          "account_subgroup_name": "Subgrupo1",
+          "account_subgroup_code": 2,
+          "account_subgroup_name": "ACTIVO EXIGIBLE",
           "accounts": [
             {
-              "account_code": 10121,
-              "account_name": "Cuenta1",
+              "account_code": 1,
+              "account_name": "CUENTAS POR COBRAR M/N",
               "subaccounts":[
                 {
-                  "subaccount_code": 11121,
-                  "subaccount_name": "Cuenta1-Subcuenta1"
-                },
-                {
-                  "subaccount_code": 12121,
-                  "subaccount_name": "Cuenta1-Subcuenta2"
-                },
-                {
-                  "subaccount_code": 13121,
-                  "subaccount_name": "Cuenta1-Subcuenta3"
+                  "subaccount_code": 1,
+                  "subaccount_name": "Cuentas por Cobrar M/N"
                 }
               ]
             },
             {
-              "account_code": 10221,
-              "account_name": "Cuenta2",
+              "account_code": 2,
+              "account_name": "CUENTAS POR COBRAR CLIENTES M/N",
               "subaccounts":[
                 {
-                  "subaccount_code": 11221,
-                  "subaccount_name": "Cuenta2-Subcuenta1"
+                  "subaccount_code": 1,
+                  "subaccount_name": "Cuentas por Cobrar Clientes M/N"
+                }
+              ]
+            },
+            {
+              "account_code": 3,
+              "account_name": "CLIENTES INTERIOR POR COBRAR",
+              "subaccounts":[
+                {
+                  "subaccount_code": 1,
+                  "subaccount_name": "Clientes interior por Cobrar"
+                }
+              ]
+            },
+            {
+              "account_code": 4,
+              "account_name": "CLIENTES EXTERIOR POR COBRAR",
+              "subaccounts":[
+                {
+                  "subaccount_code": 1,
+                  "subaccount_name": "Clientes Exterior por Cobrar"
+                }
+              ]
+            },
+            {
+              "account_code": 5,
+              "account_name": "PAGOS ANTICIPADOS",
+              "subaccounts":[
+                {
+                  "subaccount_code": 1,
+                  "subaccount_name": "Anticipo de Servicios"
                 },
                 {
-                  "subaccount_code": 12221,
-                  "subaccount_name": "Cuenta2-Subcuenta2"
+                  "subaccount_code": 2,
+                  "subaccount_name": "Pagos Anticipados"
+                }
+              ]
+            },
+            {
+              "account_code": 6,
+              "account_name": "ANTICIPO PROVEEDORES INTERIOR",
+              "subaccounts":[
+                {
+                  "subaccount_code": 1,
+                  "subaccount_name": "Anticipo Proveedores Interior"
+                }
+              ]
+            },
+            {
+              "account_code": 7,
+              "account_name": "ANTICIPO PROVEEDORES EXTERIOR",
+              "subaccounts":[
+                {
+                  "subaccount_code": 1,
+                  "subaccount_name": "Anticipo Proveedores Exterior"
+                }
+              ]
+            },
+            {
+              "account_code": 8,
+              "account_name": "ENTREGA FONDOS A RENDIR",
+              "subaccounts":[
+                {
+                  "subaccount_code": 1,
+                  "subaccount_name": "Entrega Fondos a Rendir"
+                }
+              ]
+            },
+            {
+              "account_code": 9,
+              "account_name": "ENTREGA FONDOS A RENDIR - OFICINAS",
+              "subaccounts":[
+                {
+                  "subaccount_code": 1,
+                  "subaccount_name": "Entrega Fondos a Rendir - Oficinas"
+                }
+              ]
+            },
+            {
+              "account_code": 10,
+              "account_name": "ANTICIPO AL PERSONAL",
+              "subaccounts":[
+                {
+                  "subaccount_code": 1,
+                  "subaccount_name": "Anticipo al Personal"
+                }
+              ]
+            },
+            {
+              "account_code": 11,
+              "account_name": "PRESTAMOS AL PERSONAL",
+              "subaccounts":[
+                {
+                  "subaccount_code": 1,
+                  "subaccount_name": "Prestamos al Personal"
+                }
+              ]
+            },
+            {
+              "account_code": 12,
+              "account_name": "I.U.E. POR COMPENSAR",
+              "subaccounts":[
+                {
+                  "subaccount_code": 1,
+                  "subaccount_name": "I.U.E. por Compensar"
+                }
+              ]
+            },
+            {
+              "account_code": 13,
+              "account_name": "I.V.A. - CREDITO FISCAL",
+              "subaccounts":[
+                {
+                  "subaccount_code": 1,
+                  "subaccount_name": "I.V.A. - Credito Fiscal"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "account_subgroup_code": 3,
+          "account_subgroup_name": "ACTIVO REALIZABLE",
+          "accounts": [
+            {
+              "account_code": 1,
+              "account_name": "ALMACEN DE MERCADERIAS CATEGORIA A",
+              "subaccounts":[
+                {
+                  "subaccount_code": 1,
+                  "subaccount_name": "Producto 1 de la categoria A"
                 },
                 {
-                  "subaccount_code": 13221,
-                  "subaccount_name": "Cuenta2-Subcuenta3"
+                  "subaccount_code": 2,
+                  "subaccount_name": "Producto 2 de la categoria A"
+                }
+              ]
+            },
+            {
+              "account_code": 2,
+              "account_name": "ALMACEN DE MERCADERIAS CATEGORIA B",
+              "subaccounts":[
+                {
+                  "subaccount_code": 1,
+                  "subaccount_name": "Producto 1 de la categoria B"
+                },
+                {
+                  "subaccount_code": 2,
+                  "subaccount_name": "Producto 2 de la categoria B"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "account_category_id": 1,
+      "account_group_code": 2,
+      "account_group_name": "ACTIVO NO CORRIENTE",
+      "accounts_subgroups": [
+        {
+          "account_subgroup_code": 1,
+          "account_subgroup_name": "INVERSIONES",
+          "accounts": [
+            {
+              "account_code": 1,
+              "account_name": "INVERSIONES - ACCIONES",
+              "subaccounts":[
+                {
+                  "subaccount_code": 1,
+                  "subaccount_name": "Acciones Telefonicas"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "account_subgroup_code": 2,
+          "account_subgroup_name": "ACTIVO FIJO",
+          "accounts": [
+            {
+              "account_code": 1,
+              "account_name": "TERRENOS",
+              "subaccounts":[
+                {
+                  "subaccount_code": 1,
+                  "subaccount_name": "Terrenos"
+                }
+              ]
+            },
+            {
+              "account_code": 2,
+              "account_name": "EDIFICIOS Y CONSTRUCCIONES",
+              "subaccounts":[
+                {
+                  "subaccount_code": 1,
+                  "subaccount_name": "Edificios y Construcciones"
+                }
+              ]
+            },
+            {
+              "account_code": 3,
+              "account_name": "MAQUINARIAS Y EQUIPOS",
+              "subaccounts":[
+                {
+                  "subaccount_code": 1,
+                  "subaccount_name": "Maquinarias y Equipos"
+                }
+              ]
+            },
+            {
+              "account_code": 4,
+              "account_name": "HERRAMIENTAS",
+              "subaccounts":[
+                {
+                  "subaccount_code": 1,
+                  "subaccount_name": "Herramientas"
+                }
+              ]
+            },
+            {
+              "account_code": 5,
+              "account_name": "MUEBLES Y ENSERES",
+              "subaccounts":[
+                {
+                  "subaccount_code": 1,
+                  "subaccount_name": "Muebles y Enseres"
+                }
+              ]
+            },
+            {
+              "account_code": 6,
+              "account_name": "EQUIPOS DE COMPUTACION",
+              "subaccounts":[
+                {
+                  "subaccount_code": 1,
+                  "subaccount_name": "Equipos de Computacion"
+                },
+                {
+                  "subaccount_code": 2,
+                  "subaccount_name": "Software"
+                }
+              ]
+            },
+            {
+              "account_code": 7,
+              "account_name": "INSTALACIONES",
+              "subaccounts":[
+                {
+                  "subaccount_code": 1,
+                  "subaccount_name": "Instalaciones"
+                }
+              ]
+            },
+            {
+              "account_code": 8,
+              "account_name": "VEHICULOS",
+              "subaccounts":[
+                {
+                  "subaccount_code": 1,
+                  "subaccount_name": "Vehiculos"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "account_subgroup_code": 3,
+          "account_subgroup_name": "DEPRECIACION ACUMULADA ACTIVOS FIJOS",
+          "accounts": [
+            {
+              "account_code": 1,
+              "account_name": "DEP. ACUM. EDIFICIOS Y CONSTRUCCIONES",
+              "subaccounts":[
+                {
+                  "subaccount_code": 1,
+                  "subaccount_name": "Dep. Acum. Edificios y Construcciones"
+                }
+              ]
+            },
+            {
+              "account_code": 2,
+              "account_name": "DEP. ACUM. MAQUINARIAS Y EQUIPOS",
+              "subaccounts":[
+                {
+                  "subaccount_code": 1,
+                  "subaccount_name": "Dep. Acum. Maquinarias y Equipos"
+                }
+              ]
+            },
+            {
+              "account_code": 3,
+              "account_name": "DEP. ACUM. HERRAMIENTAS",
+              "subaccounts":[
+                {
+                  "subaccount_code": 1,
+                  "subaccount_name": "Dep. Acum. Herramientas"
+                }
+              ]
+            },
+            {
+              "account_code": 4,
+              "account_name": "DEP. ACUM. MUEBLES Y ENSERES",
+              "subaccounts":[
+                {
+                  "subaccount_code": 1,
+                  "subaccount_name": "Dep. Acum. Muebles y Enseres"
+                }
+              ]
+            },
+            {
+              "account_code": 5,
+              "account_name": "DEP. ACUM. EQUIPOS DE COMPUTACION",
+              "subaccounts":[
+                {
+                  "subaccount_code": 1,
+                  "subaccount_name": "Dep. Acum. Equipos de Computacion"
+                }
+              ]
+            },
+            {
+              "account_code": 6,
+              "account_name": "DEP. ACUM. INSTALACIONES",
+              "subaccounts":[
+                {
+                  "subaccount_code": 1,
+                  "subaccount_name": "Dep. Acum. Instalaciones"
+                }
+              ]
+            },
+            {
+              "account_code": 7,
+              "account_name": "DEP. ACUM. VEHICULOS",
+              "subaccounts":[
+                {
+                  "subaccount_code": 1,
+                  "subaccount_name": "Dep. Acum. Vehiculos"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "account_subgroup_code": 4,
+          "account_subgroup_name": "ACTIVO DIFERIDO",
+          "accounts": [
+            {
+              "account_code": 1,
+              "account_name": "ACTIVO DIFERIDO",
+              "subaccounts": [
+                {
+                  "subaccount_code": 1,
+                  "subaccount_name": "Gastos Pagados por Adelantado"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "account_subgroup_code": 5,
+          "account_subgroup_name": "OTROS ACTIVOS",
+          "accounts": [
+            {
+              "account_code": 1,
+              "account_name": "OTROS ACTIVOS",
+              "subaccounts": [
+                {
+                  "subaccount_code": 1,
+                  "subaccount_name": "Deposito en Garantia"
                 }
               ]
             }
@@ -93,88 +434,1604 @@
     },
     {
       "account_category_id": 2,
-      "account_group_code" : 10002,
-      "account_group_name" : "Grupo2",
-      "accounts_subgroups" : [
+      "account_group_code": 1,
+      "account_group_name": "PASIVO CORRIENTE",
+      "accounts_subgroups": [
         {
-          "account_subgroup_code": 10012,
-          "account_subgroup_name": "Subgrupo1",
+          "account_subgroup_code": 1,
+          "account_subgroup_name": "PASIVO EXIGIBLE",
           "accounts": [
             {
-              "account_code": 10112,
-              "account_name": "Cuenta1",
+              "account_code": 1,
+              "account_name": "CUENTAS POR PAGAR M/N",
               "subaccounts":[
                 {
-                  "subaccount_code": 11112,
-                  "subaccount_name": "Cuenta1-Subcuenta1"
-                },
-                {
-                  "subaccount_code": 12112,
-                  "subaccount_name": "Cuenta1-Subcuenta2"
-                },
-                {
-                  "subaccount_code": 13112,
-                  "subaccount_name": "Cuenta1-Subcuenta3"
+                  "subaccount_code": 1,
+                  "subaccount_name": "Cuentas por Pagar M/N"
                 }
               ]
             },
             {
-              "account_code": 10212,
-              "account_name": "Cuenta2",
+              "account_code": 2,
+              "account_name": "CUENTAS POR PAGAR PROVEEDORES M/N",
               "subaccounts":[
                 {
-                  "subaccount_code": 11212,
-                  "subaccount_name": "Cuenta2-Subcuenta1"
+                  "subaccount_code": 1,
+                  "subaccount_name": "Cuentas por Pagar Proveedores M/N"
+                }
+              ]
+            },
+            {
+              "account_code": 2,
+              "account_name": "CUENTAS POR PAGAR PROVEEDORES M/N",
+              "subaccounts":[
+                {
+                  "subaccount_code": 1,
+                  "subaccount_name": "Cuentas por Pagar Proveedores M/N"
+                }
+              ]
+            },
+            {
+              "account_code": 3,
+              "account_name": "DOCUMENTOS POR COBRAR M/N",
+              "subaccounts":[
+                {
+                  "subaccount_code": 1,
+                  "subaccount_name": "Documentos por Cobrar M/N"
+                }
+              ]
+            },
+            {
+              "account_code": 4,
+              "account_name": "CUENTAS POR PAGAR AL PERSONAL M/N",
+              "subaccounts":[
+                {
+                  "subaccount_code": 1,
+                  "subaccount_name": "Cuentas por Pagar al Personal M/N"
+                }
+              ]
+            },
+            {
+              "account_code": 5,
+              "account_name": "HONORARIOS PROFESIONALES POR PAGAR",
+              "subaccounts":[
+                {
+                  "subaccount_code": 1,
+                  "subaccount_name": "Honorarios Profesionales por Pagar"
+                }
+              ]
+            },
+            {
+              "account_code": 6,
+              "account_name": "SUELDOS POR PAGAR",
+              "subaccounts":[
+                {
+                  "subaccount_code": 1,
+                  "subaccount_name": "Sueldos por Pagar"
+                }
+              ]
+            },
+            {
+              "account_code": 7,
+              "account_name": "AGUINALDOS POR PAGAR",
+              "subaccounts":[
+                {
+                  "subaccount_code": 1,
+                  "subaccount_name": "Aguinaldos por Pagar"
+                }
+              ]
+            },
+            {
+              "account_code": 8,
+              "account_name": "BENEFICIOS SOCIALES POR PAGAR",
+              "subaccounts":[
+                {
+                  "subaccount_code": 1,
+                  "subaccount_name": "Beneficios Sociales por Pagar"
+                }
+              ]
+            },
+            {
+              "account_code": 9,
+              "account_name": "PROVEEDORES LOCALES POR PAGAR M/N",
+              "subaccounts":[
+                {
+                  "subaccount_code": 1,
+                  "subaccount_name": "Proveedores Locales por Pagar M/N"
+                }
+              ]
+            },
+            {
+              "account_code": 10,
+              "account_name": "PROVEEDORES INTERIOR POR PAGAR M/N",
+              "subaccounts":[
+                {
+                  "subaccount_code": 1,
+                  "subaccount_name": "Proveedores Interior por Pagar M/N"
+                }
+              ]
+            },
+            {
+              "account_code": 11,
+              "account_name": "PROVEEDORES EXTERIOR POR PAGAR M/N",
+              "subaccounts":[
+                {
+                  "subaccount_code": 1,
+                  "subaccount_name": "Proveedores Exterior por Pagar M/N"
+                }
+              ]
+            },
+            {
+              "account_code": 12,
+              "account_name": "I.U.E. POR PAGAR",
+              "subaccounts":[
+                {
+                  "subaccount_code": 1,
+                  "subaccount_name": "I.U.E. por Pagar"
+                }
+              ]
+            },
+            {
+              "account_code": 13,
+              "account_name": "I.V.A. - DEBITO FISCAL",
+              "subaccounts":[
+                {
+                  "subaccount_code": 1,
+                  "subaccount_name": "I.V.A. - Debito Fiscal"
+                }
+              ]
+            },
+            {
+              "account_code": 14,
+              "account_name": "I.T. - TRANSACCIONES POR PAGAR",
+              "subaccounts":[
+                {
+                  "subaccount_code": 1,
+                  "subaccount_name": "I.T. - Transacciones por Pagar Retenciones"
+                }
+              ]
+            },
+            {
+              "account_code": 15,
+              "account_name": "R.C. - I.V.A. REGIMEN COMPLEMENTARIO IVA",
+              "subaccounts":[
+                {
+                  "subaccount_code": 1,
+                  "subaccount_name": "R.C. - I.V.A. Regimen Complementario IVA"
+                }
+              ]
+            },
+            {
+              "account_code": 16,
+              "account_name": "I.C.E. - CONSUMO ESPECIFICO FIJO POR PAGAR",
+              "subaccounts":[
+                {
+                  "subaccount_code": 1,
+                  "subaccount_name": "I.C.E. - Consumo Especifico Fijo por Pagar"
+                }
+              ]
+            },
+            {
+              "account_code": 17,
+              "account_name": "I.C.E. - CONSUMO ESPECIFICO VARIABLE POR PAGAR",
+              "subaccounts":[
+                {
+                  "subaccount_code": 1,
+                  "subaccount_name": "I.C.E. - Consumo Especifico Variable por Pagar"
+                }
+              ]
+            },
+            {
+              "account_code": 18,
+              "account_name": "IMPUESTOS Y RETENCIONES POR PAGAR",
+              "subaccounts":[
+                {
+                  "subaccount_code": 1,
+                  "subaccount_name": "I.U.E. Retenciones - Servicios"
                 },
                 {
-                  "subaccount_code": 12212,
-                  "subaccount_name": "Cuenta2-Subcuenta2"
+                  "subaccount_code": 2,
+                  "subaccount_name": "I.T Retenciones - Servicio"
                 },
                 {
-                  "subaccount_code": 13212,
-                  "subaccount_name": "Cuenta2-Subcuenta3"
+                  "subaccount_code": 3,
+                  "subaccount_name": "I.U.E. Retenciones - Compras"
+                },
+                {
+                  "subaccount_code": 4,
+                  "subaccount_name": "I.T. Retenciones - Compras"
+                },
+                {
+                  "subaccount_code": 5,
+                  "subaccount_name": "R.C. - I.V.A. Retenciones"
+                },
+                {
+                  "subaccount_code": 6,
+                  "subaccount_name": "I.U.E. Beneficiario del Exterior"
+                }
+              ]
+            },
+            {
+              "account_code": 19,
+              "account_name": "LIQUIDACION DE IMPUESTOS",
+              "subaccounts":[
+                {
+                  "subaccount_code": 1,
+                  "subaccount_name": "Impuesto I.V.A. por Pagar"
+                },
+                {
+                  "subaccount_code": 2,
+                  "subaccount_name": "Impuesto I.T. por Pagar"
+                },
+                {
+                  "subaccount_code": 3,
+                  "subaccount_name": "Impuesto R.C - I.V.A. por Pagar"
+                },
+                {
+                  "subaccount_code": 4,
+                  "subaccount_name": "Impuesto I.C.E. Fijo por Pagar"
+                },
+                {
+                  "subaccount_code": 5,
+                  "subaccount_name": "Impuesto I.C.E. Variable por Pagar"
+                }
+              ]
+            },
+            {
+              "account_code": 20,
+              "account_name": "PATENTES MUNICIPALES",
+              "subaccounts":[
+                {
+                  "subaccount_code": 1,
+                  "subaccount_name": "Patentes Municipales"
+                }
+              ]
+            },
+            {
+              "account_code": 21,
+              "account_name": "CARGAS SOCIALES POR PAGAR",
+              "subaccounts":[
+                {
+                  "subaccount_code": 1,
+                  "subaccount_name": "Caja Nacional de Salud"
+                },
+                {
+                  "subaccount_code": 2,
+                  "subaccount_name": "AFP Futuro de Bolivia"
+                },
+                {
+                  "subaccount_code": 3,
+                  "subaccount_name": "AFP BBV Prevision"
+                },
+                {
+                  "subaccount_code": 4,
+                  "subaccount_name": "Pro Vivienda Futuro de Bolivia"
+                },
+                {
+                  "subaccount_code": 5,
+                  "subaccount_name": "Pro Vivienda Bbv Prevision"
+                },
+                {
+                  "subaccount_code": 6,
+                  "subaccount_name": "Aporte Solidario Patronal"
+                },
+                {
+                  "subaccount_code": 7,
+                  "subaccount_name": "Aporte Solidario Laboral"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "account_category_id": 2,
+      "account_group_code": 2,
+      "account_group_name": "PASIVO NO CORRIENTE",
+      "accounts_subgroups": [
+        {
+          "account_subgroup_code": 1,
+          "account_subgroup_name": "PASIVO EXIGIBLE A LARGO PLAZO",
+          "accounts": [
+            {
+              "account_code": 1,
+              "account_name": "OBLIGACIONES FINANCIERAS",
+              "subaccounts": [
+                {
+                  "subaccount_code": 1,
+                  "subaccount_name": "Prestamos Hipotecarios"
+                },
+                {
+                  "subaccount_code": 2,
+                  "subaccount_name": "Prestamos Documentarios"
                 }
               ]
             }
           ]
         },
         {
-          "account_subgroup_code": 10022,
-          "account_subgroup_name": "Subgrupo2",
+          "account_subgroup_code": 2,
+          "account_subgroup_name": "PREVISIONES Y PROVISIONES",
           "accounts": [
             {
-              "account_code": 10122,
-              "account_name": "Cuenta1",
-              "subaccounts":[
+              "account_code": 1,
+              "account_name": "BENEFICIOS SOCIALES",
+              "subaccounts": [
                 {
-                  "subaccount_code": 11122,
-                  "subaccount_name": "Cuenta1-Subcuenta1"
-                },
-                {
-                  "subaccount_code": 12122,
-                  "subaccount_name": "Cuenta1-Subcuenta2"
-                },
-                {
-                  "subaccount_code": 13122,
-                  "subaccount_name": "Cuenta1-Subcuenta3"
+                  "subaccount_code": 1,
+                  "subaccount_name": "Prevision Beneficios Sociales"
                 }
               ]
             },
             {
-              "account_code": 10222,
-              "account_name": "Cuenta2",
-              "subaccounts":[
+              "account_code": 2,
+              "account_name": "AGUINALDOS",
+              "subaccounts": [
                 {
-                  "subaccount_code": 11222,
-                  "subaccount_name": "Cuenta2-Subcuenta1"
+                  "subaccount_code": 1,
+                  "subaccount_name": "Provision Aguinaldos"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "account_category_id": 3,
+      "account_group_code": 1,
+      "account_group_name": "PATRIMONIO",
+      "accounts_subgroups": [
+        {
+          "account_subgroup_code": 1,
+          "account_subgroup_name": "CAPITAL SOCIAL",
+          "accounts": [
+            {
+              "account_code": 1,
+              "account_name": "CAPITAL SOCIAL",
+              "subaccounts": [
+                {
+                  "subaccount_code": 1,
+                  "subaccount_name": "Capital Social"
+                }
+              ]
+            },
+            {
+              "account_code": 2,
+              "account_name": "APORTES POR CAPITALIZAR",
+              "subaccounts": [
+                {
+                  "subaccount_code": 1,
+                  "subaccount_name": "Aportes por Capitalizar"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "account_subgroup_code": 2,
+          "account_subgroup_name": "AJUSTES DE CAPITAL",
+          "accounts": [
+            {
+              "account_code": 1,
+              "account_name": "AJUSTES DE CAPITAL",
+              "subaccounts": [
+                {
+                  "subaccount_code": 1,
+                  "subaccount_name": "Ajustes de Capital"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "account_subgroup_code": 3,
+          "account_subgroup_name": "RESERVAS LEGAL",
+          "accounts": [
+            {
+              "account_code": 1,
+              "account_name": "RESERVAS LEGAL",
+              "subaccounts": [
+                {
+                  "subaccount_code": 1,
+                  "subaccount_name": "Reserva Legal"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "account_subgroup_code": 4,
+          "account_subgroup_name": "AJUSTE RESERVAS PATRIMONIALES",
+          "accounts": [
+            {
+              "account_code": 1,
+              "account_name": "AJUSTE RESERVAS PATRIMONIALES",
+              "subaccounts": [
+                {
+                  "subaccount_code": 1,
+                  "subaccount_name": "Ajuste Reservas Patrimoniales"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "account_subgroup_code": 5,
+          "account_subgroup_name": "RESERVA PARA REAVALUO ACTIVOS FIJOS",
+          "accounts": [
+            {
+              "account_code": 1,
+              "account_name": "RESERVA PARA REAVALUO ACTIVOS FIJOS",
+              "subaccounts": [
+                {
+                  "subaccount_code": 1,
+                  "subaccount_name": "Reserva para Reavaluo Activos Fijos"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "account_subgroup_code": 6,
+          "account_subgroup_name": "RESULTADOS ACUMULADOS",
+          "accounts": [
+            {
+              "account_code": 1,
+              "account_name": "RESULTADOS ACUMULADOS",
+              "subaccounts": [
+                {
+                  "subaccount_code": 1,
+                  "subaccount_name": "Resultados Acumulados"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "account_subgroup_code": 7,
+          "account_subgroup_name": "RESULTADOS DE GESTION",
+          "accounts": [
+            {
+              "account_code": 1,
+              "account_name": "RESULTADOS DE GESTION",
+              "subaccounts": [
+                {
+                  "subaccount_code": 1,
+                  "subaccount_name": "Resultados de Gestion"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "account_category_id": 4,
+      "account_group_code": 1,
+      "account_group_name": "INGRESOS OPERATIVOS",
+      "accounts_subgroups": [
+        {
+          "account_subgroup_code": 1,
+          "account_subgroup_name": "INGRESOS OPERATIVOS - VENTAS",
+          "accounts": [
+            {
+              "account_code": 1,
+              "account_name": "VENTAS DE SERVICIOS",
+              "subaccounts": [
+                {
+                  "subaccount_code": 1,
+                  "subaccount_name": "Venta de Servicios"
+                }
+              ]
+            },
+            {
+              "account_code": 2,
+              "account_name": "VENTAS DE MERCADERIAS",
+              "subaccounts": [
+                {
+                  "subaccount_code": 1,
+                  "subaccount_name": "Venta de Mercaderias"
+                }
+              ]
+            },
+            {
+              "account_code": 3,
+              "account_name": "VENTAS DE SERVICIOS Y MERCADERIAS",
+              "subaccounts": [
+                {
+                  "subaccount_code": 1,
+                  "subaccount_name": "Venta de Servicios y Mercaderias"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "account_subgroup_code": 2,
+          "account_subgroup_name": "DEVOLUCION, REBAJAS Y BONIFICACIONES EN COMPRAS",
+          "accounts": [
+            {
+              "account_code": 1,
+              "account_name": "DEVOLUCION, REBAJAS Y BONIFICACIONES EN COMPRAS",
+              "subaccounts": [
+                {
+                  "subaccount_code": 1,
+                  "subaccount_name": "Devolucion, Rebajas y Bonificaciones en Compras"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "account_category_id": 4,
+      "account_group_code": 2,
+      "account_group_name": "INGRESOS NO OPERATIVOS",
+      "accounts_subgroups": [
+        {
+          "account_subgroup_code": 1,
+          "account_subgroup_name": "INGRESOS NO OPERATIVOS",
+          "accounts": [
+            {
+              "account_code": 1,
+              "account_name": "OTROS INGRESOS",
+              "subaccounts": [
+                {
+                  "subaccount_code": 1,
+                  "subaccount_name": "Otros Ingresos"
                 },
                 {
-                  "subaccount_code": 12222,
-                  "subaccount_name": "Cuenta2-Subcuenta2"
+                  "subaccount_code": 2,
+                  "subaccount_name": "Utilidad en Venta De Activos Fijos"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "account_category_id": 4,
+      "account_group_code": 3,
+      "account_group_name": "INGRESOS FINANCIEROS",
+      "accounts_subgroups": [
+        {
+          "account_subgroup_code": 1,
+          "account_subgroup_name": "INGRESOS FINANCIEROS",
+          "accounts": [
+            {
+              "account_code": 1,
+              "account_name": "INGRESOS FINANCIEROS",
+              "subaccounts": [
+                {
+                  "subaccount_code": 1,
+                  "subaccount_name": "Intereses Ganados"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "account_category_id": 4,
+      "account_group_code": 4,
+      "account_group_name": "INGRESOS NO MONETARIOS",
+      "accounts_subgroups": [
+        {
+          "account_subgroup_code": 1,
+          "account_subgroup_name": "INGRESOS NO MONETARIOS",
+          "accounts": [
+            {
+              "account_code": 1,
+              "account_name": "INGRESOS NO MONETARIOS",
+              "subaccounts": [
+                {
+                  "subaccount_code": 1,
+                  "subaccount_name": "Ajuste por Inflacion y Tenencia de Bienes"
                 },
                 {
-                  "subaccount_code": 13222,
-                  "subaccount_name": "Cuenta2-Subcuenta3"
+                  "subaccount_code": 2,
+                  "subaccount_name": "Ajuste por Diferencia de Cambio"
+                },
+                {
+                  "subaccount_code": 3,
+                  "subaccount_name": "Ajuste por Exposicion a la Inflacion"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "account_category_id": 5,
+      "account_group_code": 1,
+      "account_group_name": "COSTOS DE VENTAS",
+      "accounts_subgroups": [
+        {
+          "account_subgroup_code": 1,
+          "account_subgroup_name": "COSTOS DE VENTAS",
+          "accounts": [
+            {
+              "account_code": 1,
+              "account_name": "COSTOS DE VENTAS",
+              "subaccounts": [
+                {
+                  "subaccount_code": 1,
+                  "subaccount_name": "Costo de Venta de Servicios"
+                },
+                {
+                  "subaccount_code": 2,
+                  "subaccount_name": "Costo de Venta de Mercaderias"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "account_subgroup_code": 2,
+          "account_subgroup_name": "COSTOS DE COMERCIALIZACION",
+          "accounts": [
+            {
+              "account_code": 1,
+              "account_name": "COSTOS DE PROMOCIONES Y OTROS",
+              "subaccounts": [
+                {
+                  "subaccount_code": 1,
+                  "subaccount_name": "Costo Muestras Varias"
+                },
+                {
+                  "subaccount_code": 2,
+                  "subaccount_name": "Costo Presentes - Otros"
+                },
+                {
+                  "subaccount_code": 3,
+                  "subaccount_name": "Publicidad y Propaganda"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "account_subgroup_code": 3,
+          "account_subgroup_name": "DEVOLUCION, REBAJAS Y BONIFICACIONES EN VENTAS",
+          "accounts": [
+            {
+              "account_code": 1,
+              "account_name": "DEVOLUCION, REBAJAS Y BONIFICACIONES EN VENTAS",
+              "subaccounts": [
+                {
+                  "subaccount_code": 1,
+                  "subaccount_name": "Devolucion, Rebajas y Bonificaciones en Ventas"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "account_category_id": 5,
+      "account_group_code": 2,
+      "account_group_name": "GASTOS DE ADMINSTRACION",
+      "accounts_subgroups": [
+        {
+          "account_subgroup_code": 1,
+          "account_subgroup_name": "GASTOS DE ADMINSTRACION",
+          "accounts": [
+            {
+              "account_code": 1,
+              "account_name": "GASTOS DE ADMINSTRACION",
+              "subaccounts": [
+                {
+                  "subaccount_code": 1,
+                  "subaccount_name": "Sueldos y Salarios"
+                },
+                {
+                  "subaccount_code": 2,
+                  "subaccount_name": "Bono de Antigüedad"
+                },
+                {
+                  "subaccount_code": 3,
+                  "subaccount_name": "Remuneración a Directores"
+                },
+                {
+                  "subaccount_code": 4,
+                  "subaccount_name": "Horas Extras"
+                },
+                {
+                  "subaccount_code": 5,
+                  "subaccount_name": "Horas Dominicales"
+                },
+                {
+                  "subaccount_code": 6,
+                  "subaccount_name": "Indemnizaciones"
+                },
+                {
+                  "subaccount_code": 7,
+                  "subaccount_name": "Asignaciones Familiares"
+                },
+                {
+                  "subaccount_code": 8,
+                  "subaccount_name": "Incentivos"
+                },
+                {
+                  "subaccount_code": 9,
+                  "subaccount_name": "Otras Retribuciones"
+                },
+                {
+                  "subaccount_code": 10,
+                  "subaccount_name": "Bonos Varios"
+                },
+                {
+                  "subaccount_code": 11,
+                  "subaccount_name": "Subsidios"
+                },
+                {
+                  "subaccount_code": 12,
+                  "subaccount_name": "Aguinaldos"
+                },
+                {
+                  "subaccount_code": 13,
+                  "subaccount_name": "Beneficios Sociales"
+                },
+                {
+                  "subaccount_code": 14,
+                  "subaccount_name": "Primas"
+                },
+                {
+                  "subaccount_code": 15,
+                  "subaccount_name": "Desahucios"
+                },
+                {
+                  "subaccount_code": 16,
+                  "subaccount_name": "Vacaciones"
+                },
+                {
+                  "subaccount_code": 17,
+                  "subaccount_name": "Aportes de Cargas Sociales"
+                },
+                {
+                  "subaccount_code": 18,
+                  "subaccount_name": "Refrigerios"
+                },
+                {
+                  "subaccount_code": 19,
+                  "subaccount_name": "Capacitaciones"
+                },
+                {
+                  "subaccount_code": 20,
+                  "subaccount_name": "Honorarios Profesionales"
+                }
+              ]
+            },
+            {
+              "account_code": 2,
+              "account_name": "IMPUESTOS Y PATENTES",
+              "subaccounts": [
+                {
+                  "subaccount_code": 1,
+                  "subaccount_name": "Impuesto a las Utilidades"
+                },
+                {
+                  "subaccount_code": 2,
+                  "subaccount_name": "Impuesto a las Transacciones"
+                },
+                {
+                  "subaccount_code": 3,
+                  "subaccount_name": "Impuesto al Consumo Especifico Fijo"
+                },
+                {
+                  "subaccount_code": 4,
+                  "subaccount_name": "Impuesto al Consumo Especifico Variable"
+                },
+                {
+                  "subaccount_code": 5,
+                  "subaccount_name": "Impuesto a las Transferencias"
+                },
+                {
+                  "subaccount_code": 6,
+                  "subaccount_name": "Impuesto Bienes e Inmuebles"
+                },
+                {
+                  "subaccount_code": 7,
+                  "subaccount_name": "Personal Contratado"
+                },
+                {
+                  "subaccount_code": 8,
+                  "subaccount_name": "Intereses y recargos por Impuestos"
+                },
+                {
+                  "subaccount_code": 9,
+                  "subaccount_name": "Patentes Municipales"
+                }
+              ]
+            },
+            {
+              "account_code": 3,
+              "account_name": "ALQUILERES OFICINAS Y OTROS",
+              "subaccounts": [
+                {
+                  "subaccount_code": 1,
+                  "subaccount_name": "Alquiler de oficinas"
+                },
+                {
+                  "subaccount_code": 2,
+                  "subaccount_name": "Alquiler de vehículos"
+                },
+                {
+                  "subaccount_code": 3,
+                  "subaccount_name": "Alquiler de equipos de oficina"
+                }
+              ]
+            },
+            {
+              "account_code": 4,
+              "account_name": "MANTENIMIENTO OFICINAS Y OTROS",
+              "subaccounts": [
+                {
+                  "subaccount_code": 1,
+                  "subaccount_name": "Mantenimiento de Oficinas"
+                },
+                {
+                  "subaccount_code": 2,
+                  "subaccount_name": "Mantenimiento de Vehiculos"
+                },
+                {
+                  "subaccount_code": 3,
+                  "subaccount_name": "Mantenimiento de Equipos"
+                },
+                {
+                  "subaccount_code": 4,
+                  "subaccount_name": "Instalaciones"
+                },
+                {
+                  "subaccount_code": 5,
+                  "subaccount_name": "Otros Mantenimientos y Reparaciones"
+                }
+              ]
+            },
+            {
+              "account_code": 5,
+              "account_name": "SEGUROS Y REASEGUROS",
+              "subaccounts": [
+                {
+                  "subaccount_code": 1,
+                  "subaccount_name": "Seguro de Bienes Inmuebles"
+                },
+                {
+                  "subaccount_code": 2,
+                  "subaccount_name": "Seguro de Vehiculos"
+                },
+                {
+                  "subaccount_code": 3,
+                  "subaccount_name": "Seguro de Bienes Muebles"
+                },
+                {
+                  "subaccount_code": 4,
+                  "subaccount_name": "Seguro de Personas"
+                },
+                {
+                  "subaccount_code": 5,
+                  "subaccount_name": "Otros Seguros"
+                }
+              ]
+            },
+            {
+              "account_code": 5,
+              "account_name": "VIAJES, HOSPEDALES Y VIATICOS",
+              "subaccounts": [
+                {
+                  "subaccount_code": 1,
+                  "subaccount_name": "Pasajes Aereos"
+                },
+                {
+                  "subaccount_code": 2,
+                  "subaccount_name": "Pasajes Terrestres"
+                },
+                {
+                  "subaccount_code": 3,
+                  "subaccount_name": "Hoteles y Hospedajes"
+                },
+                {
+                  "subaccount_code": 4,
+                  "subaccount_name": "Viaticos"
+                },
+                {
+                  "subaccount_code": 5,
+                  "subaccount_name": "Parqueos"
+                },
+                {
+                  "subaccount_code": 6,
+                  "subaccount_name": "Peajes"
+                }
+              ]
+            },
+            {
+              "account_code": 6,
+              "account_name": "SERVICIOS BASICOS",
+              "subaccounts": [
+                {
+                  "subaccount_code": 1,
+                  "subaccount_name": "Energia Electrica"
+                },
+                {
+                  "subaccount_code": 2,
+                  "subaccount_name": "Agua Potable"
+                },
+                {
+                  "subaccount_code": 3,
+                  "subaccount_name": "Combustible- Gas"
+                },
+                {
+                  "subaccount_code": 4,
+                  "subaccount_name": "Internet y Cable"
+                },
+                {
+                  "subaccount_code": 5,
+                  "subaccount_name": "Telefonia - Cotel"
+                },
+                {
+                  "subaccount_code": 6,
+                  "subaccount_name": "Telefonia - Entel"
+                },
+                {
+                  "subaccount_code": 7,
+                  "subaccount_name": "Telefonia - Tigo"
+                },
+                {
+                  "subaccount_code": 8,
+                  "subaccount_name": "Telefonia - Axs"
+                }
+              ]
+            },
+            {
+              "account_code": 7,
+              "account_name": "SERVICIOS CONTRATADOS",
+              "subaccounts": [
+                {
+                  "subaccount_code": 1,
+                  "subaccount_name": "Servicio de Seguridad"
+                },
+                {
+                  "subaccount_code": 2,
+                  "subaccount_name": "Servicio de Limpieza"
+                },
+                {
+                  "subaccount_code": 3,
+                  "subaccount_name": "Servicio de Imprenta y Diseño"
+                },
+                {
+                  "subaccount_code": 4,
+                  "subaccount_name": "Servicio de Courier y Correos"
+                },
+                {
+                  "subaccount_code": 5,
+                  "subaccount_name": "Servicio de Fotocopias y Anillados"
+                },
+                {
+                  "subaccount_code": 6,
+                  "subaccount_name": "Servicio de Refrigerio"
+                },
+                {
+                  "subaccount_code": 7,
+                  "subaccount_name": "Servicio de Computación"
+                },
+                {
+                  "subaccount_code": 8,
+                  "subaccount_name": "Auditoria Externa"
+                },
+                {
+                  "subaccount_code": 9,
+                  "subaccount_name": "Asesoria legal externa"
+                },
+                {
+                  "subaccount_code": 10,
+                  "subaccount_name": "Otros Servicios contratados"
+                }
+              ]
+            },
+            {
+              "account_code": 8,
+              "account_name": "MATERIALES DE OFICINAS",
+              "subaccounts": [
+                {
+                  "subaccount_code": 1,
+                  "subaccount_name": "Material de Escritorio"
+                }
+              ]
+            },
+            {
+              "account_code": 9,
+              "account_name": "COMBUSTIBLES E INSUMOS",
+              "subaccounts": [
+                {
+                  "subaccount_code": 1,
+                  "subaccount_name": "Combustibles - Gasolina"
+                }
+              ]
+            },
+            {
+              "account_code": 10,
+              "account_name": "OTROS GASTOS DE ADMINISTRACION",
+              "subaccounts": [
+                {
+                  "subaccount_code": 1,
+                  "subaccount_name": "Tramites Legales"
+                },
+                {
+                  "subaccount_code": 2,
+                  "subaccount_name": "Tramites Ministerio de Trabajo"
+                },
+                {
+                  "subaccount_code": 3,
+                  "subaccount_name": "Tramites Fundempresa"
+                },
+                {
+                  "subaccount_code": 4,
+                  "subaccount_name": "Cuotas Institucionales - Camaras"
+                },
+                {
+                  "subaccount_code": 5,
+                  "subaccount_name": "Donaciones"
+                },
+                {
+                  "subaccount_code": 6,
+                  "subaccount_name": "Suscripciones y Afiliaciones"
+                },
+                {
+                  "subaccount_code": 7,
+                  "subaccount_name": "Gastos de Representacion"
+                },
+                {
+                  "subaccount_code": 8,
+                  "subaccount_name": "Gastos de Otras Gestiones"
+                },
+                {
+                  "subaccount_code": 9,
+                  "subaccount_name": "Gastos de Directores"
+                },
+                {
+                  "subaccount_code": 10,
+                  "subaccount_name": "Diversos"
+                }
+              ]
+            },
+            {
+              "account_code": 11,
+              "account_name": "GASTOS FINANCIEROS",
+              "subaccounts": [
+                {
+                  "subaccount_code": 1,
+                  "subaccount_name": "Intereses prestamos bancarios"
+                },
+                {
+                  "subaccount_code": 2,
+                  "subaccount_name": "Intereses sobre otras Obligaciones Financieras"
+                },
+                {
+                  "subaccount_code": 3,
+                  "subaccount_name": "Otros Intereses"
+                },
+                {
+                  "subaccount_code": 4,
+                  "subaccount_name": "Comisiones bancarias"
+                },
+                {
+                  "subaccount_code": 5,
+                  "subaccount_name": "Otros Gastos Financieros"
+                }
+              ]
+            },
+            {
+              "account_code": 12,
+              "account_name": "DEPRECIACION ACTIVOS FIJOS",
+              "subaccounts": [
+                {
+                  "subaccount_code": 1,
+                  "subaccount_name": "Depreciacion Edificios y Construcciones"
+                },
+                {
+                  "subaccount_code": 2,
+                  "subaccount_name": "Depreciacion Muebles y Enseres"
+                },
+                {
+                  "subaccount_code": 3,
+                  "subaccount_name": "Depreciacion Equipos de Computacion"
+                },
+                {
+                  "subaccount_code": 4,
+                  "subaccount_name": "Depreciacion Instalaciones"
+                },
+                {
+                  "subaccount_code": 5,
+                  "subaccount_name": "Depreciacion Vehiculos"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "account_category_id": 5,
+      "account_group_code": 3,
+      "account_group_name": "GASTOS OPERATIVOS",
+      "accounts_subgroups": [
+        {
+          "account_subgroup_code": 1,
+          "account_subgroup_name": "GASTOS OPERATIVOS",
+          "accounts": [
+            {
+              "account_code": 1,
+              "account_name": "GASTOS OPERATIVOS",
+              "subaccounts": [
+                {
+                  "subaccount_code": 1,
+                  "subaccount_name": "Sueldos y Salarios"
+                },
+                {
+                  "subaccount_code": 2,
+                  "subaccount_name": "Bono de Antigüedad"
+                },
+                {
+                  "subaccount_code": 3,
+                  "subaccount_name": "Horas Extras"
+                },
+                {
+                  "subaccount_code": 4,
+                  "subaccount_name": "Horas Dominicales"
+                },
+                {
+                  "subaccount_code": 5,
+                  "subaccount_name": "Bonos Varios"
+                },
+                {
+                  "subaccount_code": 6,
+                  "subaccount_name": "Subsidios"
+                },
+                {
+                  "subaccount_code": 7,
+                  "subaccount_name": "Aguinaldos"
+                },
+                {
+                  "subaccount_code": 8,
+                  "subaccount_name": "Beneficios Socialess"
+                },
+                {
+                  "subaccount_code": 9,
+                  "subaccount_name": "Vacaciones"
+                },
+                {
+                  "subaccount_code": 10,
+                  "subaccount_name": "Cargas Sociales"
+                },
+                {
+                  "subaccount_code": 11,
+                  "subaccount_name": "Refrigerios"
+                },
+                {
+                  "subaccount_code": 12,
+                  "subaccount_name": "Honorarios Profesionales"
+                }
+              ]
+            },
+            {
+              "account_code": 2,
+              "account_name": "IMPUESTOS Y PATENTES",
+              "subaccounts": [
+                {
+                  "subaccount_code": 1,
+                  "subaccount_name": "Impuesto a las Utilidades"
+                },
+                {
+                  "subaccount_code": 2,
+                  "subaccount_name": "Impuesto a las Transacciones"
+                },
+                {
+                  "subaccount_code": 3,
+                  "subaccount_name": "Impuesto al Consumo Especifico Fijo"
+                },
+                {
+                  "subaccount_code": 4,
+                  "subaccount_name": "Impuesto al Consumo Especifico Variable"
+                },
+                {
+                  "subaccount_code": 5,
+                  "subaccount_name": "Impuesto a las Transferencias"
+                },
+                {
+                  "subaccount_code": 6,
+                  "subaccount_name": "Impuesto Bienes e Inmuebles"
+                },
+                {
+                  "subaccount_code": 7,
+                  "subaccount_name": "Patentes Municipales"
+                }
+              ]
+            },
+            {
+              "account_code": 3,
+              "account_name": "ALQUILERES OFICINAS Y OTROS",
+              "subaccounts": [
+                {
+                  "subaccount_code": 1,
+                  "subaccount_name": "Alquiler de oficinas"
+                },
+                {
+                  "subaccount_code": 2,
+                  "subaccount_name": "Alquiler de vehículos"
+                },
+                {
+                  "subaccount_code": 3,
+                  "subaccount_name": "Alquiler de Equipos"
+                },
+                {
+                  "subaccount_code": 4,
+                  "subaccount_name": "Alquiler de Gruas"
+                },
+                {
+                  "subaccount_code": 5,
+                  "subaccount_name": "Alquiler de garaje"
+                },
+                {
+                  "subaccount_code": 6,
+                  "subaccount_name": "Alquiler equipo de construccion"
+                }
+              ]
+            },
+            {
+              "account_code": 4,
+              "account_name": "MANTENIMIENTO OFICINAS Y OTROS",
+              "subaccounts": [
+                {
+                  "subaccount_code": 1,
+                  "subaccount_name": "Mantenimiento de Oficinas"
+                },
+                {
+                  "subaccount_code": 2,
+                  "subaccount_name": "Mantenimiento de Vehiculos"
+                },
+                {
+                  "subaccount_code": 3,
+                  "subaccount_name": "Mantenimiento de Equipos de Oficinas"
+                }
+              ]
+            },
+            {
+              "account_code": 5,
+              "account_name": "SEGUROS Y REASEGUROS",
+              "subaccounts": [
+                {
+                  "subaccount_code": 1,
+                  "subaccount_name": "Seguro de Bienes Inmuebles"
+                },
+                {
+                  "subaccount_code": 2,
+                  "subaccount_name": "Seguro de Vehiculos"
+                },
+                {
+                  "subaccount_code": 3,
+                  "subaccount_name": "Seguro de Bienes Muebles"
+                },
+                {
+                  "subaccount_code": 4,
+                  "subaccount_name": "Seguro de Personas"
+                }
+              ]
+            },
+            {
+              "account_code": 5,
+              "account_name": "VIAJES, HOSPEDALES Y VIATICOS",
+              "subaccounts": [
+                {
+                  "subaccount_code": 1,
+                  "subaccount_name": "Pasajes Aereos"
+                },
+                {
+                  "subaccount_code": 2,
+                  "subaccount_name": "Pasajes Terrestres"
+                },
+                {
+                  "subaccount_code": 3,
+                  "subaccount_name": "Hoteles y Hospedajes"
+                },
+                {
+                  "subaccount_code": 4,
+                  "subaccount_name": "Viaticos"
+                },
+                {
+                  "subaccount_code": 5,
+                  "subaccount_name": "Peajes"
+                },
+                {
+                  "subaccount_code": 6,
+                  "subaccount_name": "Parqueos"
+                }
+              ]
+            },
+            {
+              "account_code": 6,
+              "account_name": "SERVICIOS BASICOS",
+              "subaccounts": [
+                {
+                  "subaccount_code": 1,
+                  "subaccount_name": "Servicio de Energia Electrica"
+                },
+                {
+                  "subaccount_code": 2,
+                  "subaccount_name": "Servicio de Agua Potable"
+                },
+                {
+                  "subaccount_code": 3,
+                  "subaccount_name": "Servico de Combustible- Gas"
+                },
+                {
+                  "subaccount_code": 4,
+                  "subaccount_name": "Servico de Internet y Cable"
+                },
+                {
+                  "subaccount_code": 5,
+                  "subaccount_name": "Servico de Telefonia - Cotel"
+                },
+                {
+                  "subaccount_code": 6,
+                  "subaccount_name": "Servico de Telefonia - Entel"
+                },
+                {
+                  "subaccount_code": 7,
+                  "subaccount_name": "Servico de Telefonia - Tigo"
+                },
+                {
+                  "subaccount_code": 8,
+                  "subaccount_name": "Servico de Telefonia - Axs"
+                }
+              ]
+            },
+            {
+              "account_code": 7,
+              "account_name": "SERVICIOS CONTRATADOS",
+              "subaccounts": [
+                {
+                  "subaccount_code": 1,
+                  "subaccount_name": "Servicio de Seguridad"
+                },
+                {
+                  "subaccount_code": 2,
+                  "subaccount_name": "Servicio de Limpieza"
+                },
+                {
+                  "subaccount_code": 3,
+                  "subaccount_name": "Servicio de Imprenta y Diseño"
+                },
+                {
+                  "subaccount_code": 4,
+                  "subaccount_name": "Servicio de Courier y Correos"
+                },
+                {
+                  "subaccount_code": 5,
+                  "subaccount_name": "Servicio de Fotocopias y Anillados"
+                },
+                {
+                  "subaccount_code": 6,
+                  "subaccount_name": "Servicio de Refrigerio"
+                },
+                {
+                  "subaccount_code": 7,
+                  "subaccount_name": "Serv. de Construc.Media y Baja Tensión"
+                },
+                {
+                  "subaccount_code": 8,
+                  "subaccount_name": "Servicios de Construcción"
+                }
+              ]
+            },
+            {
+              "account_code": 8,
+              "account_name": "MATERIALES",
+              "subaccounts": [
+                {
+                  "subaccount_code": 1,
+                  "subaccount_name": "Materiales"
+                },
+                {
+                  "subaccount_code": 2,
+                  "subaccount_name": "Material de construccion"
+                },
+                {
+                  "subaccount_code": 3,
+                  "subaccount_name": "Ferreteria"
+                },
+                {
+                  "subaccount_code": 4,
+                  "subaccount_name": "Vidrieria"
+                },
+                {
+                  "subaccount_code": 5,
+                  "subaccount_name": "Material electrico"
+                }
+              ]
+            },
+            {
+              "account_code": 9,
+              "account_name": "COMBUSTIBLES E INSUMOS",
+              "subaccounts": [
+                {
+                  "subaccount_code": 1,
+                  "subaccount_name": "Combustibles - Gasolina"
+                }
+              ]
+            },
+            {
+              "account_code": 10,
+              "account_name": "OTROS GASTOS OPERATIVOS",
+              "subaccounts": [
+                {
+                  "subaccount_code": 1,
+                  "subaccount_name": "Tramites Legales"
+                },
+                {
+                  "subaccount_code": 2,
+                  "subaccount_name": "Tramites Ministerio de Trabajo"
+                },
+                {
+                  "subaccount_code": 3,
+                  "subaccount_name": "Tramites Fundempresa"
+                },
+                {
+                  "subaccount_code": 4,
+                  "subaccount_name": "Cuotas Institucionales - Camaras"
+                },
+                {
+                  "subaccount_code": 5,
+                  "subaccount_name": "Gastos de Representación"
+                },
+                {
+                  "subaccount_code": 6,
+                  "subaccount_name": "Gastos de otras Gestiones"
+                },
+                {
+                  "subaccount_code": 7,
+                  "subaccount_name": "Diversos"
+                },
+                {
+                  "subaccount_code": 8,
+                  "subaccount_name": "Donaciones"
+                },
+                {
+                  "subaccount_code": 9,
+                  "subaccount_name": "Herramientas"
+                }
+              ]
+            },
+            {
+              "account_code": 11,
+              "account_name": "DEPRECIACION ACTIVOS FIJOS",
+              "subaccounts": [
+                {
+                  "subaccount_code": 1,
+                  "subaccount_name": "Depreciacion Edificios y Construcciones"
+                },
+                {
+                  "subaccount_code": 2,
+                  "subaccount_name": "Depreciacion Muebles y Enseres"
+                },
+                {
+                  "subaccount_code": 3,
+                  "subaccount_name": "Depreciacion Equipos de Computacion"
+                },
+                {
+                  "subaccount_code": 4,
+                  "subaccount_name": "Depreciacion Instalaciones"
+                },
+                {
+                  "subaccount_code": 5,
+                  "subaccount_name": "Depreciacion Vehiculos"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "account_category_id": 5,
+      "account_group_code": 4,
+      "account_group_name": "GASTOS FINANCIEROS",
+      "accounts_subgroups": [
+        {
+          "account_subgroup_code": 1,
+          "account_subgroup_name": "GASTOS FINANCIEROS",
+          "accounts": [
+            {
+              "account_code": 1,
+              "account_name": "GASTOS FINANCIEROS",
+              "subaccounts": [
+                {
+                  "subaccount_code": 1,
+                  "subaccount_name": "Intereses y Comisiones Bancarias"
+                },
+                {
+                  "subaccount_code": 2,
+                  "subaccount_name": "Intereses y Comisiones Sobre Prestamos"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "account_category_id": 5,
+      "account_group_code": 5,
+      "account_group_name": "GASTOS NO DEDUCIBLES",
+      "accounts_subgroups": [
+        {
+          "account_subgroup_code": 1,
+          "account_subgroup_name": "GASTOS NO DEDUCIBLES",
+          "accounts": [
+            {
+              "account_code": 1,
+              "account_name": "GASTOS NO DEDUCIBLES",
+              "subaccounts": [
+                {
+                  "subaccount_code": 1,
+                  "subaccount_name": "I.V.A. Credito Fiscal no Deducible"
+                },
+                {
+                  "subaccount_code": 2,
+                  "subaccount_name": "Intereses, Multas y Accesorios S/impuestos Nacionales"
+                },
+                {
+                  "subaccount_code": 3,
+                  "subaccount_name": "Intereses, Multas y Accesorios S/impuestos Municipales"
+                },
+                {
+                  "subaccount_code": 4,
+                  "subaccount_name": "Intereses, Multas y Accesorios S/impuestos Laborales"
+                },
+                {
+                  "subaccount_code": 5,
+                  "subaccount_name": "Intereses, Multas y Accesorios S/comisiones Bancarias"
+                },
+                {
+                  "subaccount_code": 6,
+                  "subaccount_name": "Impuesto a las Transacciones Financieras"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "account_category_id": 5,
+      "account_group_code": 6,
+      "account_group_name": "GASTOS NO MONETARIOS",
+      "accounts_subgroups": [
+        {
+          "account_subgroup_code": 1,
+          "account_subgroup_name": "GASTOS NO MONETARIOS",
+          "accounts": [
+            {
+              "account_code": 1,
+              "account_name": "GASTOS NO MONETARIOS",
+              "subaccounts": [
+                {
+                  "subaccount_code": 1,
+                  "subaccount_name": "Ajuste por Inflacion y Tenencia de Bienes"
+                },
+                {
+                  "subaccount_code": 2,
+                  "subaccount_name": "Ajuste por Diferencia de Cambio"
+                },
+                {
+                  "subaccount_code": 3,
+                  "subaccount_name": "Ajuste por Exposicion a la Inflacion"
                 }
               ]
             }
