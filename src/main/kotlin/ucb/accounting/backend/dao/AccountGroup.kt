@@ -25,6 +25,9 @@ class AccountGroup {
     @Column(name = "account_group_name")
     var accountGroupName: String = ""
 
+    @Column(name = "is_editable")
+    var isEditable: Boolean = true
+
     @Column(name = "status")
     var status: Boolean = true
 

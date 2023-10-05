@@ -9,7 +9,6 @@ class CustomerMapper {
         fun entityToDto(customer: Customer): CustomerDto {
             return CustomerDto(
                 customerId = customer.customerId,
-                subaccountId = customer.subaccountId.toLong(),
                 prefix = customer.prefix,
                 displayName = customer.displayName,
                 firstName = customer.firstName,

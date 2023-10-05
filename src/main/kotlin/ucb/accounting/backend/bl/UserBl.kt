@@ -323,7 +323,7 @@ class UserBl @Autowired constructor(
         val kcUserCompany = KcUserCompany()
         kcUserCompany.kcUser = kcUserEntity
         kcUserCompany.company = companyEntity
-        kcUserCompany.kcGroupId = kcGroupRepository.findByGroupNameAndStatusIsTrue("Asistente contable")!!.kcGroupId
+        kcUserCompany.kcGroupId = kcGroupRepository.findByGroupNameAndStatusIsTrue("Cliente")!!.kcGroupId
         kcUserCompanyRepository.save(kcUserCompany)
     }
 
