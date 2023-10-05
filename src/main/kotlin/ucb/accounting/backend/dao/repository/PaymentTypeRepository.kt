@@ -6,4 +6,6 @@ import ucb.accounting.backend.dao.PaymentType
 interface PaymentTypeRepository : JpaRepository<PaymentType, Long> {
     fun findByPaymentTypeIdAndStatusIsTrue(paymentTypeId: Long): PaymentType?
 
+    fun findAllByStatusIsTrue(): List<PaymentType>
+
 }

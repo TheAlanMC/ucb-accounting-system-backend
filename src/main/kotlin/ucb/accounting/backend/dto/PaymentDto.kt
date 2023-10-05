@@ -3,9 +3,9 @@ package ucb.accounting.backend.dto
 import java.sql.Date
 
 data class PaymentDto (
-    val expenseTransactionNumber: Int?,
+    val paymentNumber: Int?,
+    val referenceNumber: String?,
     val clientId: Int?,
-    val transactionTypeId: Int?,
     val paymentTypeId: Int?,
     val subaccountId: Int?,
     val gloss: String?,

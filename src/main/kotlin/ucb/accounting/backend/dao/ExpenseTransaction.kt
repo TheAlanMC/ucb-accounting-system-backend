@@ -35,6 +35,9 @@ class ExpenseTransaction {
     @Column(name = "expense_transaction_number")
     var expenseTransactionNumber: Int = 0
 
+    @Column(name = "expense_transaction_reference")
+    var expenseTransactionReference: String = ""
+
     @Column(name = "expense_transaction_date")
     var expenseTransactionDate: Date = Date(System.currentTimeMillis())
 

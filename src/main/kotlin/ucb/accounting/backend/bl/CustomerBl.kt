@@ -43,12 +43,20 @@ class CustomerBl @Autowired constructor(
         // Get account for "CUENTAS POR COBRAR CLIENTES M/N" account
         val accountEntity = accountRepository.findByAccountNameAndCompanyIdAndStatusIsTrue("CUENTAS POR COBRAR CLIENTES M/N", companyId.toInt()) ?: throw UasException("404-09")
 
+        // Get subaccount code, which is the last subaccount code + 1
+        val subaccountCode =
+            subaccountRepository.findFirstByAccountIdAndCompanyIdAndStatusIsTrueOrderBySubaccountCodeDesc(
+                accountEntity.accountId.toInt(),
+                companyId.toInt()
+            )?.subaccountCode ?: (0 + 1)
+
         // Creat a subaccount for the customer
         logger.info("Creating subaccount for customer")
         val subaccountEntity = Subaccount()
         subaccountEntity.accountId = accountEntity.accountId.toInt()
         subaccountEntity.companyId = companyId.toInt()
         subaccountEntity.subaccountName = customerDto.displayName
+        subaccountEntity.subaccountCode = subaccountCode
         val savedSubaccountEntity = subaccountRepository.save(subaccountEntity)
 
         logger.info("User $kcUuid is creating a new customer")

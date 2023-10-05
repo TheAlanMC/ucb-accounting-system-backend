@@ -43,12 +43,20 @@ class SupplierBl @Autowired constructor(
         // Get account for "CUENTAS POR PAGAR PROVEEDORES M/N" account
         val accountEntity = accountRepository.findByAccountNameAndCompanyIdAndStatusIsTrue("CUENTAS POR PAGAR PROVEEDORES M/N", companyId.toInt()) ?: throw UasException("404-09")
 
+        // Get subaccount code, which is the last subaccount code + 1
+        val subaccountCode =
+            subaccountRepository.findFirstByAccountIdAndCompanyIdAndStatusIsTrueOrderBySubaccountCodeDesc(
+                accountEntity.accountId.toInt(),
+                companyId.toInt()
+            )?.subaccountCode ?: (0 + 1)
+
         // Creat a subaccount for the supplier
         logger.info("Creating subaccount for supplier")
         val subaccountEntity = Subaccount()
         subaccountEntity.accountId = accountEntity.accountId.toInt()
         subaccountEntity.companyId = companyId.toInt()
         subaccountEntity.subaccountName = supplierDto.displayName
+        subaccountEntity.subaccountCode = subaccountCode
         val savedSubaccountEntity = subaccountRepository.save(subaccountEntity)
 
         logger.info("User $kcUuid is creating a new supplier")

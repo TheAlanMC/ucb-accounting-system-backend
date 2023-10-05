@@ -35,6 +35,9 @@ class SaleTransaction {
     @Column(name = "sale_transaction_number")
     var saleTransactionNumber: Int = 0
 
+    @Column(name = "sale_transaction_reference")
+    var saleTransactionReference: String = ""
+
     @Column(name = "sale_transaction_date")
     var saleTransactionDate: Date = Date(System.currentTimeMillis())
 

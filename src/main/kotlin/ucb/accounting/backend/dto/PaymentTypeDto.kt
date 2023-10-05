@@ -1,6 +1,6 @@
 package ucb.accounting.backend.dto
 
 data class PaymentTypeDto (
-    val paymentTypeId: Int,
+    val paymentTypeId: Long,
     val paymentTypeName: String,
 )

@@ -462,16 +462,6 @@
               ]
             },
             {
-              "account_code": 2,
-              "account_name": "CUENTAS POR PAGAR PROVEEDORES M/N",
-              "subaccounts":[
-                {
-                  "subaccount_code": 1,
-                  "subaccount_name": "Cuentas por Pagar Proveedores M/N"
-                }
-              ]
-            },
-            {
               "account_code": 3,
               "account_name": "DOCUMENTOS POR COBRAR M/N",
               "subaccounts":[

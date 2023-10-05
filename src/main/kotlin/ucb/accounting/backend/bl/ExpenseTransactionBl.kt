@@ -126,10 +126,13 @@ class ExpenseTransactionBl @Autowired constructor(
         logger.info("Saving expense transaction")
         val expenseTransactionEntity = ExpenseTransaction()
         expenseTransactionEntity.journalEntryId = savedJournalEntry.journalEntryId.toInt()
+        expenseTransactionEntity.transactionTypeId = transactionTypeEntity.transactionTypeId.toInt()
+        expenseTransactionEntity.paymentTypeId = invoiceDto.paymentTypeId.toInt()
         expenseTransactionEntity.companyId = companyId.toInt()
         expenseTransactionEntity.supplierId = invoiceDto.clientId.toInt()
         expenseTransactionEntity.subaccountId = supplierEntity.subaccountId
         expenseTransactionEntity.expenseTransactionNumber = invoiceDto.invoiceNumber
+        expenseTransactionEntity.expenseTransactionReference = invoiceDto.reference ?: invoiceDto.invoiceNumber.toString()
         expenseTransactionEntity.expenseTransactionDate = invoiceDto.invoiceDate
         expenseTransactionEntity.description = invoiceDto.description
         expenseTransactionEntity.gloss = invoiceDto.gloss

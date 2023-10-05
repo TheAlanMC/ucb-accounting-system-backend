@@ -4,6 +4,7 @@ import java.sql.Date
 
 data class InvoiceDto (
     val invoiceNumber: Int?,
+    val reference: String?,
     val clientId: Int?,
     val paymentTypeId: Int?,
     val gloss: String?,

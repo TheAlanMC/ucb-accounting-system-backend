@@ -125,10 +125,13 @@ class SaleTransactionBl @Autowired constructor(
         logger.info("Saving sale transaction")
         val saleTransactionEntity = SaleTransaction()
         saleTransactionEntity.journalEntryId = savedJournalEntry.journalEntryId.toInt()
+        saleTransactionEntity.transactionTypeId = transactionTypeEntity.transactionTypeId.toInt()
+        saleTransactionEntity.paymentTypeId = invoiceDto.paymentTypeId.toInt()
         saleTransactionEntity.companyId = companyId.toInt()
         saleTransactionEntity.customerId = invoiceDto.clientId.toInt()
         saleTransactionEntity.subaccountId = customerEntity.subaccountId
         saleTransactionEntity.saleTransactionNumber = invoiceDto.invoiceNumber
+        saleTransactionEntity.saleTransactionReference = invoiceDto.reference ?: invoiceDto.invoiceNumber.toString()
         saleTransactionEntity.saleTransactionDate = invoiceDto.invoiceDate
         saleTransactionEntity.description = invoiceDto.description
         saleTransactionEntity.gloss = invoiceDto.gloss
