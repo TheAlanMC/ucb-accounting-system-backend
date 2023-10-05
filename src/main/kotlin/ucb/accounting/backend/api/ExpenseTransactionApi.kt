@@ -60,6 +60,49 @@ class ExpenseTransactionApi @Autowired constructor(private val expenseTransactio
         return ResponseEntity(ResponseDto(code, responseInfo.message!!, lastExpenseTransactionNumber), responseInfo.httpStatus)
     }
 
+    @PostMapping("/payments/companies/{companyId}")
+    fun createPaymentExpenseTransaction(
+        @PathVariable("companyId") companyId: Long,
+        @RequestBody paymentDto: PaymentDto
+    ): ResponseEntity<ResponseDto<Null>> {
+        logger.info("Starting the API call to post sale transaction")
+        logger.info("POST /api/v1/sale-transactions/payments/companies/${companyId}")
+        expenseTransactionBl.createPaymentExpenseTransaction(companyId, paymentDto)
+        logger.info("Sending response")
+        val code = "201-13"
+        val responseInfo = ResponseCodeUtil.getResponseInfo(code)
+        logger.info("Code: $code - ${responseInfo.message}")
+        return ResponseEntity(ResponseDto(code, responseInfo.message!!, null), responseInfo.httpStatus)
+    }
+
+    @GetMapping("/payments/companies/{companyId}/subaccounts")
+    fun getSubaccountsForPaymentExpenseTransaction (
+        @PathVariable("companyId") companyId: Long
+    ): ResponseEntity<ResponseDto<List<SubaccountDto>>>{
+        logger.info("Starting the API call to get subaccounts for sale transaction")
+        logger.info("GET /api/v1/sale-transactions/payments/companies/${companyId}/subaccounts")
+        val subaccounts: List<SubaccountDto> = expenseTransactionBl.getSubaccountsForPaymentExpenseTransaction(companyId)
+        logger.info("Sending response")
+        val code = "200-14"
+        val responseInfo = ResponseCodeUtil.getResponseInfo(code)
+        logger.info("Code: $code - ${responseInfo.message}")
+        return ResponseEntity(ResponseDto(code, responseInfo.message!!, subaccounts), responseInfo.httpStatus)
+    }
+
+    @GetMapping("/payments/last-numbers/companies/{companyId}")
+    fun getLastPaymentExpenseTransactionNumber(
+        @PathVariable("companyId") companyId: Long
+    ): ResponseEntity<ResponseDto<Int>>{
+        logger.info("Starting the API call to get last sale transaction number")
+        logger.info("GET /api/v1/sale-transactions/payments/last-numbers/companies/${companyId}")
+        val lastExpenseTransactionNumber: Int = expenseTransactionBl.getLastPaymentExpenseTransactionNumber(companyId)
+        logger.info("Sending response")
+        val code = "200-39"
+        val responseInfo = ResponseCodeUtil.getResponseInfo(code)
+        logger.info("Code: $code - ${responseInfo.message}")
+        return ResponseEntity(ResponseDto(code, responseInfo.message!!, lastExpenseTransactionNumber), responseInfo.httpStatus)
+    }
+    
     @GetMapping("/companies/{companyId}")
     fun getExpenseTransactions (
         @PathVariable("companyId") companyId: Long
