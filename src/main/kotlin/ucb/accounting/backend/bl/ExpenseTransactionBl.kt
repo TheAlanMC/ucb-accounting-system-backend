@@ -162,7 +162,7 @@ class ExpenseTransactionBl @Autowired constructor(
         logger.info("User $kcUuid is getting subaccounts for expense transaction")
 
         // Getting subaccounts
-        val subaccountEntities = subaccountRepository.findAllByAccountAccountSubgroupAccountGroupAccountCategoryAccountCategoryNameAndCompanyIdAndStatusIsTrue("EGRESOS", companyId.toInt())
+        val subaccountEntities = subaccountRepository.findAllByAccountAccountSubgroupAccountGroupAccountCategoryAccountCategoryNameAndCompanyIdAndStatusIsTrueOrderBySubaccountIdAsc("EGRESOS", companyId.toInt())
         logger.info("Subaccounts for expense transaction obtained successfully")
         return subaccountEntities.map { SubaccountMapper.entityToDto(it) }
     }
@@ -307,7 +307,7 @@ class ExpenseTransactionBl @Autowired constructor(
         kcUserCompanyRepository.findAllByKcUser_KcUuidAndCompany_CompanyIdAndStatusIsTrue(kcUuid, companyId) ?: throw UasException("403-16")
 
         // Getting subaccounts
-        val subaccountEntities = subaccountRepository.findAllByAccountAccountSubgroupAccountSubgroupNameAndCompanyIdAndStatusIsTrue("DISPONIBILIDADES", companyId.toInt())
+        val subaccountEntities = subaccountRepository.findAllByAccountAccountSubgroupAccountSubgroupNameAndCompanyIdAndStatusIsTrueOrderBySubaccountIdAsc("DISPONIBILIDADES", companyId.toInt())
         logger.info("Subaccounts for expense transaction obtained successfully")
         return subaccountEntities.map { SubaccountMapper.entityToDto(it) }
     }

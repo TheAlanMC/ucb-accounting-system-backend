@@ -163,7 +163,7 @@ class SaleTransactionBl @Autowired constructor(
         kcUserCompanyRepository.findAllByKcUser_KcUuidAndCompany_CompanyIdAndStatusIsTrue(kcUuid, companyId) ?: throw UasException("403-16")
 
         // Getting subaccounts
-        val subaccountEntities = subaccountRepository.findAllByAccountAccountSubgroupAccountGroupAccountCategoryAccountCategoryNameAndCompanyIdAndStatusIsTrue("INGRESOS", companyId.toInt())
+        val subaccountEntities = subaccountRepository.findAllByAccountAccountSubgroupAccountGroupAccountCategoryAccountCategoryNameAndCompanyIdAndStatusIsTrueOrderBySubaccountIdAsc("INGRESOS", companyId.toInt())
         logger.info("Subaccounts for sale transaction obtained successfully")
         return subaccountEntities.map { SubaccountMapper.entityToDto(it) }
     }
@@ -307,7 +307,7 @@ class SaleTransactionBl @Autowired constructor(
         kcUserCompanyRepository.findAllByKcUser_KcUuidAndCompany_CompanyIdAndStatusIsTrue(kcUuid, companyId) ?: throw UasException("403-16")
 
         // Getting subaccounts
-        val subaccountEntities = subaccountRepository.findAllByAccountAccountSubgroupAccountSubgroupNameAndCompanyIdAndStatusIsTrue("DISPONIBILIDADES", companyId.toInt())
+        val subaccountEntities = subaccountRepository.findAllByAccountAccountSubgroupAccountSubgroupNameAndCompanyIdAndStatusIsTrueOrderBySubaccountIdAsc("DISPONIBILIDADES", companyId.toInt())
         logger.info("Subaccounts for sale transaction obtained successfully")
         return subaccountEntities.map { SubaccountMapper.entityToDto(it) }
     }

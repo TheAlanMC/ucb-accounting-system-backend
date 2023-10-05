@@ -69,7 +69,7 @@ class SubaccountBl @Autowired constructor(
         logger.info("User $kcUuid is getting subaccounts")
 
         // Get subaccounts
-        val subaccountEntities = subaccountRepository.findAllByCompanyIdAndStatusIsTrue(companyId.toInt())
+        val subaccountEntities = subaccountRepository.findAllByCompanyIdAndStatusIsTrueOrderBySubaccountIdAsc(companyId.toInt())
         val subaccountsDto = subaccountEntities.map { SubaccountPartialMapper.entityToDto(it) }
         logger.info("Finishing the business logic to get company subaccounts")
         return subaccountsDto

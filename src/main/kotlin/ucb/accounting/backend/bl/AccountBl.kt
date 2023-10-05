@@ -66,7 +66,7 @@ class AccountBl @Autowired constructor(
         logger.info("User $kcUuid is getting accounts")
 
         // Get accounts from the company
-        val accountsEntities = accountRepository.findAllByCompanyIdAndStatusIsTrue(companyId.toInt())
+        val accountsEntities = accountRepository.findAllByCompanyIdAndStatusIsTrueOrderByAccountIdAsc(companyId.toInt())
         val accountsDto = accountsEntities.map { AccountPartialMapper.entityToDto(it) }
         logger.info("Finishing the business logic to get company accounts")
         return accountsDto
