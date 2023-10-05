@@ -8,5 +8,5 @@ interface SaleTransactionRepository: JpaRepository<SaleTransaction, Long> {
 
     fun findAllByCompanyIdAndStatusIsTrue (companyId: Int): List<SaleTransaction>
 
-    fun findFirstByCompanyIdAndStatusIsTrueOrderBySaleTransactionNumberDesc (companyId: Int): SaleTransaction?
+    fun findFirstByCompanyIdAndTransactionTypeIdAndStatusIsTrueOrderBySaleTransactionNumberDesc (companyId: Int, transactionTypeId: Int): SaleTransaction?
 }

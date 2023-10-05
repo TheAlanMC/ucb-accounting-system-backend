@@ -4,13 +4,12 @@ import java.sql.Date
 
 data class PaymentDto (
     val paymentNumber: Int?,
-    val referenceNumber: String?,
+    val reference: String?,
     val clientId: Int?,
     val paymentTypeId: Int?,
-    val subaccountId: Int?,
     val gloss: String?,
     val description: String?,
-    val expenseTransactionDate: Date?,
+    val paymentDate: Date?,
     val attachments: List<AttachmentDto>?,
-    val expenseTransactionDetails: List<PaymentDetailDto>?
+    val paymentDetail: PaymentDetailDto?
 )

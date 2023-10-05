@@ -161,7 +161,7 @@ class ExpenseTransactionBl @Autowired constructor(
         logger.info("User $kcUuid is getting subaccounts for expense transaction")
 
         // Getting subaccounts
-        val subaccountEntities = subaccountRepository.findAllByAccountAccountSubgroupAccountGroupAccountCategoryAccountCategoryNameAndCompanyIdAndStatusIsTrue("Egresos", companyId.toInt())
+        val subaccountEntities = subaccountRepository.findAllByAccountAccountSubgroupAccountGroupAccountCategoryAccountCategoryNameAndCompanyIdAndStatusIsTrue("EGRESOS", companyId.toInt())
         logger.info("Subaccounts for expense transaction obtained successfully")
         return subaccountEntities.map { SubaccountMapper.entityToDto(it) }
     }
@@ -197,7 +197,8 @@ class ExpenseTransactionBl @Autowired constructor(
         logger.info("User $kcUuid is getting last expense transaction number from company $companyId")
 
         // Get last expense transaction number
-        val lastExpenseTransactionNumber = expenseTransactionRepository.findFirstByCompanyIdAndStatusIsTrueOrderByExpenseTransactionNumberDesc(companyId.toInt())?.expenseTransactionNumber ?: 0
+        val transactionTypeEntity = transactionTypeRepository.findByTransactionTypeNameAndStatusIsTrue("Factura") ?: throw UasException("404-17")
+        val lastExpenseTransactionNumber = expenseTransactionRepository.findFirstByCompanyIdAndTransactionTypeIdAndStatusIsTrueOrderByExpenseTransactionNumberDesc(companyId.toInt(), transactionTypeEntity.transactionTypeId.toInt())?.expenseTransactionNumber ?: 0
         logger.info("Last expense transaction number is $lastExpenseTransactionNumber")
 
         return lastExpenseTransactionNumber + 1
