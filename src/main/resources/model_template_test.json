@@ -1,0 +1,23 @@
+{
+  "reportTitle": "Financial Transactions Report",
+  "transactions": [
+    {
+      "date": "2023-01-15",
+      "description": "Sale of Product A",
+      "debit": 0,
+      "credit": 500.00
+    },
+    {
+      "date": "2023-01-20",
+      "description": "Purchase of Supplies",
+      "debit": 200.00,
+      "credit": 0
+    },
+    {
+      "date": "2023-02-05",
+      "description": "Salary Payment",
+      "debit": 1000.00,
+      "credit": 0
+    }
+  ]
+}
