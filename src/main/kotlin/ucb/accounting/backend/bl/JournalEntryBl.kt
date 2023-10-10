@@ -150,11 +150,11 @@ class JournalEntryBl @Autowired constructor(
             gloss = journalEntryEntity.gloss,
             description = journalEntryEntity.transaction!!.description,
             transactionDate = journalEntryEntity.transaction!!.transactionDate,
-            attachments = journalEntryEntity.company!!.attachments!!.map {
+            attachments = journalEntryEntity.transaction!!.transactionAttachments!!.map {
                 AttachmentDto(
-                    attachmentId = it.attachmentId,
-                    contentType = it.contentType,
-                    filename = it.filename) },
+                    attachmentId = it.attachment!!.attachmentId,
+                    contentType = it.attachment!!.contentType,
+                    filename = it.attachment!!.filename) },
             transactionDetails = journalEntryEntity.transaction!!.transactionDetails!!.map {transactionDetail ->
                 ucb.accounting.backend.dto.TransactionDetailDto(
                     subaccountId = transactionDetail.subaccountId.toLong(),
