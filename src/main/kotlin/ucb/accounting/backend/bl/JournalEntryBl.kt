@@ -8,6 +8,7 @@ import ucb.accounting.backend.dao.Transaction
 import ucb.accounting.backend.dao.TransactionAttachment
 import ucb.accounting.backend.dao.TransactionDetail
 import ucb.accounting.backend.dao.repository.*
+import ucb.accounting.backend.dto.AttachmentDto
 import ucb.accounting.backend.dto.JournalEntryDto
 import ucb.accounting.backend.exception.UasException
 import ucb.accounting.backend.util.KeycloakSecurityContextHolder
@@ -121,4 +122,47 @@ class JournalEntryBl @Autowired constructor(
 
         return lastJournalEntryNumber + 1
     }
+
+    fun getJournalEntry(companyId: Long, journalEntryId: Long): JournalEntryDto {
+        logger.info("Starting the BL call to get journal entry")
+        // Validation of company
+        companyRepository.findByCompanyIdAndStatusIsTrue(companyId) ?: throw UasException("403-05")
+
+        // Validation of user belongs to company
+        val kcUuid = KeycloakSecurityContextHolder.getSubject()!!
+        kcUserCompanyRepository.findAllByKcUser_KcUuidAndCompany_CompanyIdAndStatusIsTrue(kcUuid, companyId)
+            ?: throw UasException("403-45")
+        logger.info("User $kcUuid is getting journal entry $journalEntryId from company $companyId")
+
+        // Validation of journal entry exists
+        val journalEntryEntity =
+            journalEntryRepository.findByJournalEntryIdAndStatusIsTrue(journalEntryId) ?: throw UasException("404-17")
+
+        // Validation of journal entry belongs to company
+        //TODO verify if this validation is necessary
+        //if (journalEntryEntity.companyId != companyId.toInt()) throw UasException("403-4")
+
+        // Get journal entry
+        val journalEntryDto = JournalEntryDto(
+            documentTypeId = journalEntryEntity.documentTypeId.toLong(),
+            journalEntryNumber = journalEntryEntity.journalEntryNumber,
+            gloss = journalEntryEntity.gloss,
+            description = journalEntryEntity.transaction!!.description,
+            transactionDate = journalEntryEntity.transaction!!.transactionDate,
+            attachments = journalEntryEntity.company!!.attachments!!.map {
+                AttachmentDto(
+                    attachmentId = it.attachmentId,
+                    contentType = it.contentType,
+                    filename = it.filename) },
+            transactionDetails = journalEntryEntity.transaction!!.transactionDetails!!.map {transactionDetail ->
+                ucb.accounting.backend.dto.TransactionDetailDto(
+                    subaccountId = transactionDetail.subaccountId.toLong(),
+                    debitAmountBs = transactionDetail.debitAmountBs,
+                    creditAmountBs = transactionDetail.creditAmountBs
+                )
+            }
+        )
+        return journalEntryDto
+    }
+
 }
