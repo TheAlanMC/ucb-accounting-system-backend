@@ -8,5 +8,6 @@ import ucb.accounting.backend.dao.JournalEntry
 interface JournalEntryRepository: JpaRepository<JournalEntry, Long> {
     fun findByCompanyIdAndJournalEntryNumberAndStatusIsTrue (companyId: Int, journalEntryNumber: Int): JournalEntry?
     fun findFirstByCompanyIdAndStatusIsTrueOrderByJournalEntryNumberDesc (companyId: Int): JournalEntry?
+    fun findByJournalEntryIdAndStatusIsTrue(journalEntryId: Long): JournalEntry?
 
 }

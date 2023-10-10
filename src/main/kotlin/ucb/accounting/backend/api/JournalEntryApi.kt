@@ -52,5 +52,19 @@ class JournalEntryApi @Autowired constructor(private val journalEntryBl: Journal
         return ResponseEntity(ResponseDto(code, responseInfo.message!!, lastJournalEntryNumber), responseInfo.httpStatus)
     }
 
+    @GetMapping("/{journalEntryId}/companies/{companyId}")
+    fun getJournalEntry(
+        @PathVariable("companyId") companyId: Long,
+        @PathVariable("journalEntryId") journalEntryId: Long
+    ): ResponseEntity<ResponseDto<JournalEntryDto>>{
+        logger.info("Starting the API call to get journal entry")
+        logger.info("GET /api/v1/journal-entries/${journalEntryId}/companies/${companyId}")
+        val journalEntryDto: JournalEntryDto = journalEntryBl.getJournalEntry(companyId, journalEntryId)
+        logger.info("Sending response")
+        val code = "200-40"
+        val responseInfo = ResponseCodeUtil.getResponseInfo(code)
+        logger.info("Code: $code - ${responseInfo.message}")
+        return ResponseEntity(ResponseDto(code, responseInfo.message!!, journalEntryDto), responseInfo.httpStatus)
+    }
 
 }
