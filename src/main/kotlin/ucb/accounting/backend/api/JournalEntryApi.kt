@@ -38,12 +38,12 @@ class JournalEntryApi @Autowired constructor(private val journalEntryBl: Journal
         return ResponseEntity(ResponseDto(code, responseInfo.message!!, null), responseInfo.httpStatus)
     }
 
-    @GetMapping("/last-number/companies/{companyId}")
+    @GetMapping("/last-numbers/companies/{companyId}")
     fun getLastJournalEntryNumber(
         @PathVariable("companyId") companyId: Long
     ): ResponseEntity<ResponseDto<Int>>{
         logger.info("Starting the API call to get last journal entry number")
-        logger.info("GET /api/v1/journal-entries/last-number/companies/${companyId}")
+        logger.info("GET /api/v1/journal-entries/last-numbers/companies/${companyId}")
         val lastJournalEntryNumber: Int = journalEntryBl.getLastJournalEntryNumber(companyId)
         logger.info("Sending response")
         val code = "200-37"

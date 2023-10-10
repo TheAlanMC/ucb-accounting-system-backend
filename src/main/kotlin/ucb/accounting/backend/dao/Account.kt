@@ -25,6 +25,9 @@ class Account {
     @Column(name = "account_name")
     var accountName: String = ""
 
+    @Column(name = "is_editable")
+    var isEditable: Boolean = true
+
     @Column(name = "status")
     var status: Boolean = true
 

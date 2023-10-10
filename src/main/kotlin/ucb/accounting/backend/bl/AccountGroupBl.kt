@@ -64,7 +64,7 @@ class AccountGroupBl @Autowired constructor(
         logger.info("User $kcUuid is getting account groups from company $companyId")
 
         // Get all the account groups from the company
-        val accountGroupEntities = accountGroupRepository.findAllByCompanyIdAndStatusIsTrue(companyId.toInt())
+        val accountGroupEntities = accountGroupRepository.findAllByCompanyIdAndStatusIsTrueOrderByAccountGroupIdAsc(companyId.toInt())
         val accountGroups = accountGroupEntities.map {AccountGroupPartialMapper.entityToDto(it)}
         logger.info("Account groups retrieved")
         return accountGroups
