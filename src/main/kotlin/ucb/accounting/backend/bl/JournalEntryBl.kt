@@ -131,15 +131,16 @@ class JournalEntryBl @Autowired constructor(
         // Validation of user belongs to company
         val kcUuid = KeycloakSecurityContextHolder.getSubject()!!
         kcUserCompanyRepository.findAllByKcUser_KcUuidAndCompany_CompanyIdAndStatusIsTrue(kcUuid, companyId)
-            ?: throw UasException("403-42")
+            ?: throw UasException("403-45")
         logger.info("User $kcUuid is getting journal entry $journalEntryId from company $companyId")
 
         // Validation of journal entry exists
         val journalEntryEntity =
-            journalEntryRepository.findByJournalEntryIdAndStatusIsTrue(journalEntryId) ?: throw UasException("404-06")
+            journalEntryRepository.findByJournalEntryIdAndStatusIsTrue(journalEntryId) ?: throw UasException("404-17")
 
         // Validation of journal entry belongs to company
-        if (journalEntryEntity.companyId != companyId.toInt()) throw UasException("403-20")
+        //TODO verify if this validation is necessary
+        //if (journalEntryEntity.companyId != companyId.toInt()) throw UasException("403-4")
 
         // Get journal entry
         val journalEntryDto = JournalEntryDto(
