@@ -10,7 +10,9 @@ import ucb.accounting.backend.dao.TransactionDetail
 import ucb.accounting.backend.dao.repository.*
 import ucb.accounting.backend.dto.AttachmentDto
 import ucb.accounting.backend.dto.JournalEntryDto
+import ucb.accounting.backend.dto.JournalEntryPartialDto
 import ucb.accounting.backend.exception.UasException
+import ucb.accounting.backend.mapper.DocumentTypeMapper
 import ucb.accounting.backend.util.KeycloakSecurityContextHolder
 
 @Service
@@ -123,7 +125,7 @@ class JournalEntryBl @Autowired constructor(
         return lastJournalEntryNumber + 1
     }
 
-    fun getJournalEntry(companyId: Long, journalEntryId: Long): JournalEntryDto {
+    fun getJournalEntry(companyId: Long, journalEntryId: Long): JournalEntryPartialDto {
         logger.info("Starting the BL call to get journal entry")
         // Validation of company
         companyRepository.findByCompanyIdAndStatusIsTrue(companyId) ?: throw UasException("403-05")
@@ -136,15 +138,14 @@ class JournalEntryBl @Autowired constructor(
 
         // Validation of journal entry exists
         val journalEntryEntity =
-            journalEntryRepository.findByJournalEntryIdAndStatusIsTrue(journalEntryId) ?: throw UasException("404-17")
+            journalEntryRepository.findByJournalEntryIdAndStatusIsTrue(journalEntryId) ?: throw UasException("404-19")
 
         // Validation of journal entry belongs to company
-        //TODO verify if this validation is necessary
-        //if (journalEntryEntity.companyId != companyId.toInt()) throw UasException("403-4")
+        if (journalEntryEntity.companyId != companyId.toInt()) throw UasException("403-45")
 
         // Get journal entry
-        val journalEntryDto = JournalEntryDto(
-            documentTypeId = journalEntryEntity.documentTypeId.toLong(),
+        val journalEntryPartialDto = JournalEntryPartialDto(
+            documentType = DocumentTypeMapper.entityToDto(journalEntryEntity.documentType!!),
             journalEntryNumber = journalEntryEntity.journalEntryNumber,
             gloss = journalEntryEntity.gloss,
             description = journalEntryEntity.transaction!!.description,
@@ -162,7 +163,7 @@ class JournalEntryBl @Autowired constructor(
                 )
             }
         )
-        return journalEntryDto
+        return journalEntryPartialDto
     }
 
 }
