@@ -136,6 +136,7 @@ class ResponseCodeUtil (var httpStatus: HttpStatus, message: String, messageTran
                 "403-43" -> ResponseCodeUtil(HttpStatus.FORBIDDEN, "You don't have the necessary permissions to view the last sale transaction number.")
                 "403-44" -> ResponseCodeUtil(HttpStatus.FORBIDDEN, "You don't have the necessary permissions to view the last expense transaction number.")
                 "403-45" -> ResponseCodeUtil(HttpStatus.FORBIDDEN, "You don't have the necessary permissions to view the journal entry.")
+                "403-46" -> ResponseCodeUtil(HttpStatus.FORBIDDEN, "You don't have the necessary permissions to view the list of transactions.")
                 "404-01" -> ResponseCodeUtil(HttpStatus.NOT_FOUND, "User not found.")
                 "404-02" -> ResponseCodeUtil(HttpStatus.NOT_FOUND, "Accountant user not found.")
                 "404-03" -> ResponseCodeUtil(HttpStatus.NOT_FOUND, "Industry not found.")

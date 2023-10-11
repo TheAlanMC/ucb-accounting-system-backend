@@ -7,9 +7,8 @@ import ucb.accounting.backend.dao.JournalEntry
 import ucb.accounting.backend.dao.Transaction
 import ucb.accounting.backend.dao.TransactionAttachment
 import ucb.accounting.backend.dao.TransactionDetail
-import ucb.accounting.backend.dto.AttachmentDto
-import ucb.accounting.backend.dto.JournalEntryDto
-import ucb.accounting.backend.dto.JournalEntryPartialDto
+import ucb.accounting.backend.dao.repository.*
+import ucb.accounting.backend.dto.*
 import ucb.accounting.backend.exception.UasException
 import ucb.accounting.backend.mapper.DocumentTypeMapper
 import ucb.accounting.backend.util.KeycloakSecurityContextHolder
@@ -137,28 +136,40 @@ class JournalEntryBl @Autowired constructor(
 
         // Validation of user belongs to company
         val kcUuid = KeycloakSecurityContextHolder.getSubject()!!
-        kcUserCompanyRepository.findAllByKcUser_KcUuidAndCompany_CompanyIdAndStatusIsTrue(kcUuid, companyId) ?: throw UasException("403-42")
+        kcUserCompanyRepository.findAllByKcUser_KcUuidAndCompany_CompanyIdAndStatusIsTrue(kcUuid, companyId)
+            ?: throw UasException("403-46")
         logger.info("User $kcUuid is getting list of transactions from company $companyId")
         val journalEntries = journalEntryRepository.findAllByCompanyIdAndStatusIsTrue(companyId.toInt())
+
         // Get list of transactions
         val transactionsList = mutableListOf<TransactionDto>()
         for (journalEntry in journalEntries) {
-            val sales = saleTransactionRepository.findAllByCompanyIdAndJournalEntryIdAndStatusIsTrue(companyId.toInt(), journalEntry.journalEntryId.toInt())
-            val expenses = expenseTransactionRepository.findAllByCompanyIdAndJournalEntryIdAndStatusIsTrue(companyId.toInt(), journalEntry.journalEntryId.toInt())
+            val sales = saleTransactionRepository.findAllByCompanyIdAndJournalEntryIdAndStatusIsTrue(
+                companyId.toInt(),
+                journalEntry.journalEntryId.toInt()
+            )
+            val expenses = expenseTransactionRepository.findAllByCompanyIdAndJournalEntryIdAndStatusIsTrue(
+                companyId.toInt(),
+                journalEntry.journalEntryId.toInt()
+            )
             var salesDto: List<SaleTransactionDto> = emptyList()
             var expensesDto: List<ExpenseTransactionDto> = emptyList()
             if (sales.isNotEmpty()) {
-                salesDto = sales.map {
-                    sale -> SaleTransactionMapper.entityToDto(sale,
-                        saleTransactionDetailRepository.findAllBySaleTransactionIdAndStatusIsTrue(sale.saleTransactionId).sumOf { it.amountBs },
-                        )
+                salesDto = sales.map { sale ->
+                    SaleTransactionMapper.entityToDto(
+                        sale,
+                        saleTransactionDetailRepository.findAllBySaleTransactionIdAndStatusIsTrue(sale.saleTransactionId)
+                            .sumOf { it.unitPriceBs.times(it.quantity.toBigDecimal()) + it.amountBs }
+                    )
                 }
             }
-            if (expenses.isNotEmpty()){
-                expensesDto = expenses.map {
-                    expense -> ExpenseTransactionMapper.entityToDto(expense,
-                        expenseTransactionDetailRepository.findAllByExpenseTransactionIdAndStatusIsTrue(expense.expenseTransactionId).sumOf { it.amountBs },
-                        )
+            if (expenses.isNotEmpty()) {
+                expensesDto = expenses.map { expense ->
+                    ExpenseTransactionMapper.entityToDto(
+                        expense,
+                        expenseTransactionDetailRepository.findAllByExpenseTransactionIdAndStatusIsTrue(expense.expenseTransactionId)
+                            .sumOf { it.unitPriceBs.times(it.quantity.toBigDecimal()) + it.amountBs }
+                    )
                 }
             }
             for (sale in salesDto) {
@@ -174,16 +185,16 @@ class JournalEntryBl @Autowired constructor(
                     journalEntry.documentType!!.documentTypeName,
                 )
                 val transactionDto = TransactionDto(
+                    journalEntry.journalEntryId.toInt(),
                     sale.saleTransactionId,
                     sale.transactionType,
+                    documentType,
                     sale.saleTransactionNumber,
                     sale.saleTransactionDate,
                     client,
                     sale.gloss,
                     sale.totalAmountBs,
                     sale.saleTransactionAccepted,
-                    documentType,
-                    journalEntry.journalEntryId.toInt()
                 )
                 transactionsList.add(transactionDto)
             }
@@ -201,16 +212,16 @@ class JournalEntryBl @Autowired constructor(
                     journalEntry.documentType!!.documentTypeName,
                 )
                 val transactionDto = TransactionDto(
+                    journalEntry.journalEntryId.toInt(),
                     expense.expenseTransactionId,
                     expense.transactionType,
+                    documentType,
                     expense.expenseTransactionNumber,
                     expense.expenseTransactionDate,
                     client,
                     expense.gloss,
                     expense.totalAmountBs,
                     expense.expenseTransactionAccepted,
-                    documentType,
-                    journalEntry.journalEntryId.toInt()
                 )
                 transactionsList.add(transactionDto)
             }
@@ -218,6 +229,7 @@ class JournalEntryBl @Autowired constructor(
         }
         logger.info("List of transactions retrieved successfully")
         return transactionsList
+    }
 
       
     fun getJournalEntry(companyId: Long, journalEntryId: Long): JournalEntryPartialDto {
@@ -251,7 +263,7 @@ class JournalEntryBl @Autowired constructor(
                     contentType = it.attachment!!.contentType,
                     filename = it.attachment!!.filename) },
             transactionDetails = journalEntryEntity.transaction!!.transactionDetails!!.map {transactionDetail ->
-                ucb.accounting.backend.dto.TransactionDetailDto(
+                TransactionDetailDto(
                     subaccountId = transactionDetail.subaccountId.toLong(),
                     debitAmountBs = transactionDetail.debitAmountBs,
                     creditAmountBs = transactionDetail.creditAmountBs

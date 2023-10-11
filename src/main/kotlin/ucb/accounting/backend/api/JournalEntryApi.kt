@@ -57,7 +57,7 @@ class JournalEntryApi @Autowired constructor(private val journalEntryBl: Journal
     @GetMapping("/companies/{companyId}/transactions")
     fun getListOfTransactions(
         @PathVariable("companyId") companyId: Long
-    ): ResponseEntity<ResponseDto<List<TransactionDto>>>{
+    ): ResponseEntity<ResponseDto<List<TransactionDto>>> {
         logger.info("Starting the API call to get list of transactions")
         logger.info("GET /api/v1/journal-entries/companies/${companyId}")
         val journalEntries: List<TransactionDto> = journalEntryBl.getListOfTransactions(companyId)
@@ -66,6 +66,7 @@ class JournalEntryApi @Autowired constructor(private val journalEntryBl: Journal
         val responseInfo = ResponseCodeUtil.getResponseInfo(code)
         logger.info("Code: $code - ${responseInfo.message}")
         return ResponseEntity(ResponseDto(code, responseInfo.message!!, journalEntries), responseInfo.httpStatus)
+    }
 
     @GetMapping("/{journalEntryId}/companies/{companyId}")
     fun getJournalEntry(
