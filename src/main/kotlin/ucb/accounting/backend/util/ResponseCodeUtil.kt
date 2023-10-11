@@ -46,6 +46,7 @@ class ResponseCodeUtil (var httpStatus: HttpStatus, message: String, messageTran
                 "200-38" -> ResponseCodeUtil(HttpStatus.OK, "Sale transaction last number retrieved successfully.")
                 "200-39" -> ResponseCodeUtil(HttpStatus.OK, "Expense transaction last number retrieved successfully.")
                 "200-40" -> ResponseCodeUtil(HttpStatus.OK, "Payment types retrieved successfully.")
+                "200-41" -> ResponseCodeUtil(HttpStatus.OK, "Transactions retrieved successfully.")
                 "201-01" -> ResponseCodeUtil(HttpStatus.CREATED, "The new accountant user has been successfully created.")
                 "201-02" -> ResponseCodeUtil(HttpStatus.CREATED, "The new accounting assistant user has been successfully created.")
                 "201-03" -> ResponseCodeUtil(HttpStatus.CREATED, "The new client user has been successfully created.")
