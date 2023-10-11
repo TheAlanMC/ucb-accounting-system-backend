@@ -145,7 +145,7 @@ keycloak:
     - auth-roles:
         - journal-entry-recorder
       security-collections:
-        - name: Journal Entry POST
+        - name: Journal Entry CRUD
           patterns:
             - /api/v1/partners/*
             - /api/v1/document-types

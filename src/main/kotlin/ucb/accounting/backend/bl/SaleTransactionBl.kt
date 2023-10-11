@@ -344,7 +344,7 @@ class SaleTransactionBl @Autowired constructor(
         logger.info("Sale transactions obtained successfully")
         return saleTransactionEntities.map { saleTransactionEntity ->
             SaleTransactionMapper.entityToDto(saleTransactionEntity,
-                saleTransactionDetailRepository.findAllBySaleTransactionIdAndStatusIsTrue(saleTransactionEntity.saleTransactionId).sumOf { it.unitPriceBs.times(it.quantity.toBigDecimal()) }
+                saleTransactionDetailRepository.findAllBySaleTransactionIdAndStatusIsTrue(saleTransactionEntity.saleTransactionId).sumOf { it.unitPriceBs.times(it.quantity.toBigDecimal()) + it.amountBs }
             )
         }
     }

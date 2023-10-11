@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 import ucb.accounting.backend.bl.JournalEntryBl
 import ucb.accounting.backend.dto.JournalEntryDto
+import ucb.accounting.backend.dto.JournalEntryPartialDto
 import ucb.accounting.backend.dto.ResponseDto
 import ucb.accounting.backend.dto.TransactionDto
 import ucb.accounting.backend.util.ResponseCodeUtil
@@ -65,6 +66,20 @@ class JournalEntryApi @Autowired constructor(private val journalEntryBl: Journal
         val responseInfo = ResponseCodeUtil.getResponseInfo(code)
         logger.info("Code: $code - ${responseInfo.message}")
         return ResponseEntity(ResponseDto(code, responseInfo.message!!, journalEntries), responseInfo.httpStatus)
+
+    @GetMapping("/{journalEntryId}/companies/{companyId}")
+    fun getJournalEntry(
+        @PathVariable("companyId") companyId: Long,
+        @PathVariable("journalEntryId") journalEntryId: Long
+    ): ResponseEntity<ResponseDto<JournalEntryPartialDto>>{
+        logger.info("Starting the API call to get journal entry")
+        logger.info("GET /api/v1/journal-entries/${journalEntryId}/companies/${companyId}")
+        val journalEntryPartialDto: JournalEntryPartialDto = journalEntryBl.getJournalEntry(companyId, journalEntryId)
+        logger.info("Sending response")
+        val code = "200-42"
+        val responseInfo = ResponseCodeUtil.getResponseInfo(code)
+        logger.info("Code: $code - ${responseInfo.message}")
+        return ResponseEntity(ResponseDto(code, responseInfo.message!!, journalEntryPartialDto), responseInfo.httpStatus)
     }
 
 }

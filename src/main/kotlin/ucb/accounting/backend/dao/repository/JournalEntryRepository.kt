@@ -9,4 +9,6 @@ interface JournalEntryRepository: JpaRepository<JournalEntry, Long> {
     fun findByCompanyIdAndJournalEntryNumberAndStatusIsTrue (companyId: Int, journalEntryNumber: Int): JournalEntry?
     fun findFirstByCompanyIdAndStatusIsTrueOrderByJournalEntryNumberDesc (companyId: Int): JournalEntry?
     fun findAllByCompanyIdAndStatusIsTrue (companyId: Int): List<JournalEntry>
+    fun findByJournalEntryIdAndStatusIsTrue(journalEntryId: Long): JournalEntry?
+
 }

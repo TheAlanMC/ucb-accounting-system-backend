@@ -344,7 +344,7 @@ class ExpenseTransactionBl @Autowired constructor(
         logger.info("Expense transactions obtained successfully")
         return expenseTransactionEntities.map { expenseTransactionEntity ->
             ExpenseTransactionMapper.entityToDto(expenseTransactionEntity,
-                expenseTransactionDetailRepository.findAllByExpenseTransactionIdAndStatusIsTrue(expenseTransactionEntity.expenseTransactionId).sumOf { it.amountBs }
+                expenseTransactionDetailRepository.findAllByExpenseTransactionIdAndStatusIsTrue(expenseTransactionEntity.expenseTransactionId).sumOf { it.unitPriceBs.times(it.quantity.toBigDecimal()) + it.amountBs }
             )
         }
     }
