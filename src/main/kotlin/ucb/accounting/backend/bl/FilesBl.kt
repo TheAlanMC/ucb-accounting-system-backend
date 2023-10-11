@@ -53,6 +53,30 @@ class FilesBl @Autowired constructor(
         )
     }
 
+    fun uploadFile(attachment: ByteArray, companyId: Long) : AttachmentDto{
+        // Validation of company
+        companyRepository.findByCompanyIdAndStatusIsTrue(companyId) ?: throw UasException("404-05")
+        // Validation of user belongs to company
+        /*val kcUuid = KeycloakSecurityContextHolder.getSubject()!!
+        kcUserCompanyRepository.findAllByKcUser_KcUuidAndCompany_CompanyIdAndStatusIsTrue(kcUuid, companyId) ?: throw UasException("403-18")
+        logger.info("User $kcUuid is uploading file to company $companyId")*/
+        // Upload to database as blob
+        val attachmentEntity = Attachment()
+        attachmentEntity.companyId = companyId.toInt()
+        attachmentEntity.fileData = attachment
+        attachmentEntity.filename = "report.pdf"
+        attachmentEntity.contentType = "application/pdf"
+        logger.info("Uploading file to database")
+        val savedAttachment = attachmentRepository.save(attachmentEntity)
+        logger.info("File uploaded to database")
+        return AttachmentDto(
+            attachmentId = savedAttachment.attachmentId,
+            filename = savedAttachment.filename,
+            contentType = savedAttachment.contentType
+        )
+    }
+
+
     fun uploadPicture (picture: MultipartFile): FileDto {
         val kcUuid = KeycloakSecurityContextHolder.getSubject()!!
         logger.info("User $kcUuid is uploading picture")

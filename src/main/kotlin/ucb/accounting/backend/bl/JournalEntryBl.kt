@@ -7,13 +7,14 @@ import ucb.accounting.backend.dao.JournalEntry
 import ucb.accounting.backend.dao.Transaction
 import ucb.accounting.backend.dao.TransactionAttachment
 import ucb.accounting.backend.dao.TransactionDetail
-import ucb.accounting.backend.dao.repository.*
 import ucb.accounting.backend.dto.AttachmentDto
 import ucb.accounting.backend.dto.JournalEntryDto
 import ucb.accounting.backend.dto.JournalEntryPartialDto
 import ucb.accounting.backend.exception.UasException
 import ucb.accounting.backend.mapper.DocumentTypeMapper
 import ucb.accounting.backend.util.KeycloakSecurityContextHolder
+import ucb.accounting.backend.mapper.ExpenseTransactionMapper
+import ucb.accounting.backend.mapper.SaleTransactionMapper
 
 @Service
 class JournalEntryBl @Autowired constructor(
@@ -26,6 +27,10 @@ class JournalEntryBl @Autowired constructor(
     private val transactionAttachmentRepository: TransactionAttachmentRepository,
     private val transactionDetailRepository: TransactionDetailRepository,
     private val transactionRepository: TransactionRepository,
+    private val expenseTransactionRepository: ExpenseTransactionRepository,
+    private val saleTransactionRepository: SaleTransactionRepository,
+    private val saleTransactionDetailRepository: SaleTransactionDetailRepository,
+    private val expenseTransactionDetailRepository: ExpenseTransactionDetailRepository
     ) {
     companion object{
         private val logger = LoggerFactory.getLogger(JournalEntryBl::class.java.name)
@@ -125,6 +130,96 @@ class JournalEntryBl @Autowired constructor(
         return lastJournalEntryNumber + 1
     }
 
+    fun getListOfTransactions(companyId: Long): List<TransactionDto> {
+        logger.info("Starting the BL call to get list of transactions")
+        // Validation of company
+        companyRepository.findByCompanyIdAndStatusIsTrue(companyId) ?: throw UasException("404-05")
+
+        // Validation of user belongs to company
+        val kcUuid = KeycloakSecurityContextHolder.getSubject()!!
+        kcUserCompanyRepository.findAllByKcUser_KcUuidAndCompany_CompanyIdAndStatusIsTrue(kcUuid, companyId) ?: throw UasException("403-42")
+        logger.info("User $kcUuid is getting list of transactions from company $companyId")
+        val journalEntries = journalEntryRepository.findAllByCompanyIdAndStatusIsTrue(companyId.toInt())
+        // Get list of transactions
+        val transactionsList = mutableListOf<TransactionDto>()
+        for (journalEntry in journalEntries) {
+            val sales = saleTransactionRepository.findAllByCompanyIdAndJournalEntryIdAndStatusIsTrue(companyId.toInt(), journalEntry.journalEntryId.toInt())
+            val expenses = expenseTransactionRepository.findAllByCompanyIdAndJournalEntryIdAndStatusIsTrue(companyId.toInt(), journalEntry.journalEntryId.toInt())
+            var salesDto: List<SaleTransactionDto> = emptyList()
+            var expensesDto: List<ExpenseTransactionDto> = emptyList()
+            if (sales.isNotEmpty()) {
+                salesDto = sales.map {
+                    sale -> SaleTransactionMapper.entityToDto(sale,
+                        saleTransactionDetailRepository.findAllBySaleTransactionIdAndStatusIsTrue(sale.saleTransactionId).sumOf { it.amountBs },
+                        )
+                }
+            }
+            if (expenses.isNotEmpty()){
+                expensesDto = expenses.map {
+                    expense -> ExpenseTransactionMapper.entityToDto(expense,
+                        expenseTransactionDetailRepository.findAllByExpenseTransactionIdAndStatusIsTrue(expense.expenseTransactionId).sumOf { it.amountBs },
+                        )
+                }
+            }
+            for (sale in salesDto) {
+                val client = ClientPartialDto(
+                    sale.customer.customerId,
+                    sale.customer.displayName,
+                    sale.customer.companyName,
+                    sale.customer.companyPhoneNumber,
+                    sale.customer.creationDate
+                )
+                val documentType = DocumentTypeDto(
+                    journalEntry.documentType!!.documentTypeId,
+                    journalEntry.documentType!!.documentTypeName,
+                )
+                val transactionDto = TransactionDto(
+                    sale.saleTransactionId,
+                    sale.transactionType,
+                    sale.saleTransactionNumber,
+                    sale.saleTransactionDate,
+                    client,
+                    sale.gloss,
+                    sale.totalAmountBs,
+                    sale.saleTransactionAccepted,
+                    documentType,
+                    journalEntry.journalEntryId.toInt()
+                )
+                transactionsList.add(transactionDto)
+            }
+
+            for (expense in expensesDto) {
+                val client = ClientPartialDto(
+                    expense.supplier.supplierId,
+                    expense.supplier.displayName,
+                    expense.supplier.companyName,
+                    expense.supplier.companyPhoneNumber,
+                    expense.supplier.creationDate
+                )
+                val documentType = DocumentTypeDto(
+                    journalEntry.documentType!!.documentTypeId,
+                    journalEntry.documentType!!.documentTypeName,
+                )
+                val transactionDto = TransactionDto(
+                    expense.expenseTransactionId,
+                    expense.transactionType,
+                    expense.expenseTransactionNumber,
+                    expense.expenseTransactionDate,
+                    client,
+                    expense.gloss,
+                    expense.totalAmountBs,
+                    expense.expenseTransactionAccepted,
+                    documentType,
+                    journalEntry.journalEntryId.toInt()
+                )
+                transactionsList.add(transactionDto)
+            }
+
+        }
+        logger.info("List of transactions retrieved successfully")
+        return transactionsList
+
+      
     fun getJournalEntry(companyId: Long, journalEntryId: Long): JournalEntryPartialDto {
         logger.info("Starting the BL call to get journal entry")
         // Validation of company

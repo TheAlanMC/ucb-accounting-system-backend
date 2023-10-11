@@ -13,6 +13,7 @@ import ucb.accounting.backend.bl.JournalEntryBl
 import ucb.accounting.backend.dto.JournalEntryDto
 import ucb.accounting.backend.dto.JournalEntryPartialDto
 import ucb.accounting.backend.dto.ResponseDto
+import ucb.accounting.backend.dto.TransactionDto
 import ucb.accounting.backend.util.ResponseCodeUtil
 import javax.validation.constraints.Null
 
@@ -52,6 +53,19 @@ class JournalEntryApi @Autowired constructor(private val journalEntryBl: Journal
         logger.info("Code: $code - ${responseInfo.message}")
         return ResponseEntity(ResponseDto(code, responseInfo.message!!, lastJournalEntryNumber), responseInfo.httpStatus)
     }
+
+    @GetMapping("/companies/{companyId}/transactions")
+    fun getListOfTransactions(
+        @PathVariable("companyId") companyId: Long
+    ): ResponseEntity<ResponseDto<List<TransactionDto>>>{
+        logger.info("Starting the API call to get list of transactions")
+        logger.info("GET /api/v1/journal-entries/companies/${companyId}")
+        val journalEntries: List<TransactionDto> = journalEntryBl.getListOfTransactions(companyId)
+        logger.info("Sending response")
+        val code = "200-41"
+        val responseInfo = ResponseCodeUtil.getResponseInfo(code)
+        logger.info("Code: $code - ${responseInfo.message}")
+        return ResponseEntity(ResponseDto(code, responseInfo.message!!, journalEntries), responseInfo.httpStatus)
 
     @GetMapping("/{journalEntryId}/companies/{companyId}")
     fun getJournalEntry(

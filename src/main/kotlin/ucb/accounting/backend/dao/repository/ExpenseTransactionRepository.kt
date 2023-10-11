@@ -9,4 +9,6 @@ interface ExpenseTransactionRepository: JpaRepository<ExpenseTransaction, Long> 
     fun findAllByCompanyIdAndStatusIsTrue (companyId: Int): List<ExpenseTransaction>
 
     fun findFirstByCompanyIdAndTransactionTypeIdAndStatusIsTrueOrderByExpenseTransactionNumberDesc (companyId: Int, transactionTypeId: Int): ExpenseTransaction?
+
+    fun findAllByCompanyIdAndJournalEntryIdAndStatusIsTrue (companyId: Int, journalEntryId: Int): List<ExpenseTransaction>
 }
