@@ -2,6 +2,7 @@ package ucb.accounting.backend.api
 
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.data.domain.Page
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 import ucb.accounting.backend.bl.ExpenseTransactionBl
@@ -105,16 +106,20 @@ class ExpenseTransactionApi @Autowired constructor(private val expenseTransactio
     
     @GetMapping("/companies/{companyId}")
     fun getExpenseTransactions (
+        @RequestParam(defaultValue = "expenseTransactionId") sortBy: String,
+        @RequestParam(defaultValue = "asc") sortType: String,
+        @RequestParam(defaultValue = "0") page: Int,
+        @RequestParam(defaultValue = "10") size: Int,
         @PathVariable("companyId") companyId: Long
     ): ResponseEntity<ResponseDto<List<ExpenseTransactionDto>>>{
         logger.info("Starting the API call to get expense transactions")
         logger.info("GET /api/v1/expense-transactions/companies/${companyId}")
-        val expenseTransactions: List<ExpenseTransactionDto> = expenseTransactionBl.getExpenseTransactions(companyId)
+        val expenseTransactionsPage: Page<ExpenseTransactionDto> = expenseTransactionBl.getExpenseTransactions(companyId, sortBy, sortType, page, size)
         logger.info("Sending response")
         val code = "200-33"
         val responseInfo = ResponseCodeUtil.getResponseInfo(code)
         logger.info("Code: $code - ${responseInfo.message}")
-        return ResponseEntity(ResponseDto(code, responseInfo.message!!, expenseTransactions), responseInfo.httpStatus)
+        return ResponseEntity(ResponseDto(code, responseInfo.message!!, expenseTransactionsPage.content, expenseTransactionsPage.totalElements), responseInfo.httpStatus)
     }
 
 }

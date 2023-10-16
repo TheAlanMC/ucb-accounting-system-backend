@@ -2,6 +2,10 @@ package ucb.accounting.backend.bl
 
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.data.domain.Page
+import org.springframework.data.domain.PageRequest
+import org.springframework.data.domain.Pageable
+import org.springframework.data.domain.Sort
 import org.springframework.stereotype.Service
 import ucb.accounting.backend.dao.*
 import ucb.accounting.backend.dao.repository.*
@@ -329,7 +333,13 @@ class ExpenseTransactionBl @Autowired constructor(
         return lastExpenseTransactionNumber + 1
     }
 
-    fun getExpenseTransactions(companyId: Long): List<ExpenseTransactionDto>{
+    fun getExpenseTransactions(
+        companyId: Long,
+        sortBy: String,
+        sortType: String,
+        page: Int,
+        size: Int
+        ): Page<ExpenseTransactionDto> {
         logger.info("Starting the BL call to get expense transactions")
         // Validation of company exists
         companyRepository.findByCompanyIdAndStatusIsTrue(companyId) ?: throw UasException("404-05")
@@ -339,8 +349,10 @@ class ExpenseTransactionBl @Autowired constructor(
         kcUserCompanyRepository.findAllByKcUser_KcUuidAndCompany_CompanyIdAndStatusIsTrue(kcUuid, companyId) ?: throw UasException("403-36")
         logger.info("User $kcUuid is getting expense transactions")
 
+        val pageable: Pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.fromString(sortType), sortBy))
+
         // Getting expense transactions
-        val expenseTransactionEntities = expenseTransactionRepository.findAllByCompanyIdAndStatusIsTrue(companyId.toInt())
+        val expenseTransactionEntities = expenseTransactionRepository.findAllByCompanyIdAndStatusIsTrue(companyId.toInt(),pageable)
         logger.info("Expense transactions obtained successfully")
         return expenseTransactionEntities.map { expenseTransactionEntity ->
             ExpenseTransactionMapper.entityToDto(expenseTransactionEntity,
