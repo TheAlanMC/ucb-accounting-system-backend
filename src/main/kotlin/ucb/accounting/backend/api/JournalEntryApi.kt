@@ -2,13 +2,9 @@ package ucb.accounting.backend.api
 
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.data.domain.Page
 import org.springframework.http.ResponseEntity
-import org.springframework.web.bind.annotation.GetMapping
-import org.springframework.web.bind.annotation.PathVariable
-import org.springframework.web.bind.annotation.PostMapping
-import org.springframework.web.bind.annotation.RequestBody
-import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.bind.annotation.*
 import ucb.accounting.backend.bl.JournalEntryBl
 import ucb.accounting.backend.dto.JournalEntryDto
 import ucb.accounting.backend.dto.JournalEntryPartialDto
@@ -56,16 +52,20 @@ class JournalEntryApi @Autowired constructor(private val journalEntryBl: Journal
 
     @GetMapping("/companies/{companyId}/transactions")
     fun getListOfTransactions(
-        @PathVariable("companyId") companyId: Long
+        @PathVariable("companyId") companyId: Long,
+        @RequestParam(defaultValue = "journalEntryId") sortBy: String,
+        @RequestParam(defaultValue = "asc") sortType: String,
+        @RequestParam(defaultValue = "0") page: Int,
+        @RequestParam(defaultValue = "10") size: Int
     ): ResponseEntity<ResponseDto<List<TransactionDto>>> {
         logger.info("Starting the API call to get list of transactions")
         logger.info("GET /api/v1/journal-entries/companies/${companyId}")
-        val journalEntries: List<TransactionDto> = journalEntryBl.getListOfTransactions(companyId)
+        val journalEntriesPage: Page<TransactionDto> = journalEntryBl.getListOfTransactions(companyId, sortBy, sortType, page, size)
         logger.info("Sending response")
         val code = "200-41"
         val responseInfo = ResponseCodeUtil.getResponseInfo(code)
         logger.info("Code: $code - ${responseInfo.message}")
-        return ResponseEntity(ResponseDto(code, responseInfo.message!!, journalEntries), responseInfo.httpStatus)
+        return ResponseEntity(ResponseDto(code, responseInfo.message!!, journalEntriesPage.content, journalEntriesPage.totalElements), responseInfo.httpStatus)
     }
 
     @GetMapping("/{journalEntryId}/companies/{companyId}")
