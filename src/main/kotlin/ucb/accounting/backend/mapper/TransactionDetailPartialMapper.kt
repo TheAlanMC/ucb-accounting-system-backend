@@ -1,7 +1,6 @@
 package ucb.accounting.backend.mapper
 
 import ucb.accounting.backend.dao.TransactionDetail
-import ucb.accounting.backend.dto.TransactionDetailDto
 import ucb.accounting.backend.dto.TransactionDetailPartialDto
 
 class TransactionDetailPartialMapper {

@@ -18,7 +18,6 @@ import ucb.accounting.backend.mapper.SaleTransactionMapper
 import ucb.accounting.backend.mapper.SubaccountMapper
 import ucb.accounting.backend.util.KeycloakSecurityContextHolder
 import java.math.BigDecimal
-import java.util.*
 
 @Service
 class SaleTransactionBl @Autowired constructor(

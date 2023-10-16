@@ -171,12 +171,12 @@ class JournalEntryBl @Autowired constructor(
                 pageable
             )
 
-        val transactionsList: List<TransactionDto> = journalEntriesPage.content.map { it ->
+        val transactionsList: List<TransactionDto> = journalEntriesPage.content.map {
             val saleTransaction =
                 saleTransactionRepository.findByJournalEntryIdAndStatusIsTrue(it.journalEntryId.toInt())
             val expenseTransaction =
                 expenseTransactionRepository.findByJournalEntryIdAndStatusIsTrue(it.journalEntryId.toInt())
-            val transaction: TransactionDto = TransactionDto(
+            val transaction = TransactionDto(
                 it.journalEntryId.toInt(),
                 saleTransaction?.saleTransactionNumber ?: expenseTransaction?.expenseTransactionNumber,
                 ClientPartialDto(

@@ -3,6 +3,10 @@ package ucb.accounting.backend.bl
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import org.slf4j.LoggerFactory
+import org.springframework.data.domain.Page
+import org.springframework.data.domain.PageRequest
+import org.springframework.data.domain.Pageable
+import org.springframework.data.domain.Sort
 import ucb.accounting.backend.dao.Customer
 import ucb.accounting.backend.dao.Subaccount
 import ucb.accounting.backend.dao.repository.*
@@ -77,7 +81,13 @@ class CustomerBl @Autowired constructor(
         logger.info("Customer saved")
     }
 
-    fun getCustomers(companyId: Long): List<CustomerPartialDto> {
+    fun getCustomers(
+        companyId: Long,
+        sortBy: String,
+        sortType: String,
+        page: Int,
+        size: Int
+    ): Page<CustomerPartialDto> {
         logger.info("Starting the BL call to get customers")
         // Validation of company
         companyRepository.findByCompanyIdAndStatusIsTrue(companyId) ?: throw UasException("404-05")
@@ -87,8 +97,10 @@ class CustomerBl @Autowired constructor(
         kcUserCompanyRepository.findAllByKcUser_KcUuidAndCompany_CompanyIdAndStatusIsTrue(kcUuid, companyId) ?: throw UasException("403-28")
         logger.info("User $kcUuid is getting customers from company $companyId")
 
+        val pageable: Pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.fromString(sortType), sortBy))
+
         // Get customers
-        val customers = customerRepository.findAllByCompanyIdAndStatusIsTrue(companyId.toInt())
+        val customers = customerRepository.findAllByCompanyIdAndStatusIsTrue(companyId.toInt(), pageable)
         logger.info("${customers.size} customers found")
         return customers.map { CustomerPartialMapper.entityToDto(it) }
     }

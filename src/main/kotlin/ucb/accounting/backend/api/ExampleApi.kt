@@ -9,7 +9,6 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 import ucb.accounting.backend.bl.FilesBl
 import ucb.accounting.backend.dto.AttachmentDto
-import ucb.accounting.backend.dto.FileDto
 import ucb.accounting.backend.dto.ResponseDto
 import ucb.accounting.backend.dto.pdf_turtle.Margins
 import ucb.accounting.backend.dto.pdf_turtle.PageSize

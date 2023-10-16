@@ -82,5 +82,8 @@ class JournalEntryApi @Autowired constructor(private val journalEntryBl: Journal
         logger.info("Code: $code - ${responseInfo.message}")
         return ResponseEntity(ResponseDto(code, responseInfo.message!!, journalEntryPartialDto), responseInfo.httpStatus)
     }
+//    TODO: ACCEPT JOURNAL ENTRY
+//  @PutMapping("/{journalEntryId}/companies/{companyId}/accept")
+
 
 }

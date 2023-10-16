@@ -3,6 +3,10 @@ package ucb.accounting.backend.bl
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import org.slf4j.LoggerFactory
+import org.springframework.data.domain.Page
+import org.springframework.data.domain.PageRequest
+import org.springframework.data.domain.Pageable
+import org.springframework.data.domain.Sort
 import ucb.accounting.backend.dao.Subaccount
 import ucb.accounting.backend.dao.Supplier
 import ucb.accounting.backend.dao.repository.*
@@ -78,7 +82,13 @@ class SupplierBl @Autowired constructor(
         logger.info("Supplier saved")
     }
 
-    fun getSuppliers(companyId: Long): List<SupplierPartialDto> {
+    fun getSuppliers(
+        companyId: Long,
+        sortBy: String,
+        sortType: String,
+        page: Int,
+        size: Int
+    ): Page<SupplierPartialDto> {
         logger.info("Starting the BL call to get suppliers")
         // Validation of company
         companyRepository.findByCompanyIdAndStatusIsTrue(companyId) ?: throw UasException("404-05")
@@ -88,8 +98,10 @@ class SupplierBl @Autowired constructor(
         kcUserCompanyRepository.findAllByKcUser_KcUuidAndCompany_CompanyIdAndStatusIsTrue(kcUuid, companyId) ?: throw UasException("403-31")
         logger.info("User $kcUuid is getting suppliers from company $companyId")
 
+        val pageable: Pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.fromString(sortType), sortBy))
+
         // Get suppliers
-        val suppliers = supplierRepository.findAllByCompanyIdAndStatusIsTrue(companyId.toInt())
+        val suppliers = supplierRepository.findAllByCompanyIdAndStatusIsTrue(companyId.toInt(), pageable)
         logger.info("${suppliers.size} suppliers found")
         return suppliers.map { SupplierPartialMapper.entityToDto(it) }
     }

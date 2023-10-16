@@ -1,24 +1,19 @@
 package ucb.accounting.backend.service
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import jakarta.json.Json
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
-import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
-import ucb.accounting.backend.bl.FilesBl
 import ucb.accounting.backend.dto.pdf_turtle.ReportOptions
 
 @Service
 class PdfTurtleService {
 
-    /*@Value("\${pdf-turtle.url}")
-    private lateinit var pdfTurtleUrl: String*/
-
-    private var pdfTurtleUrl = "http://68.183.126.58:8000"
+    @Value("\${pdf-turtle.url}")
+    private lateinit var pdfTurtleUrl: String
 
     private val client = OkHttpClient()
     private val objectMapper = ObjectMapper()
@@ -44,13 +39,13 @@ class PdfTurtleService {
         val requestBody = jsonRequest.toRequestBody(mediaType)
 
         val request = Request.Builder()
-            .url(pdfTurtleUrl+"/api/pdf/from/html-template/render")
+            .url("$pdfTurtleUrl/api/pdf/from/html-template/render")
             .post(requestBody)
             .build()
 
         val response = client.newCall(request).execute()
 
-        return response.body!!.bytes() ?: ByteArray(0)
+        return response.body!!.bytes()
     }
 
     private fun generateJsonRequest(
