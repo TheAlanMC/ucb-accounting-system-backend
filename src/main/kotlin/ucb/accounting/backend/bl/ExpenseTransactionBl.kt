@@ -343,8 +343,8 @@ class ExpenseTransactionBl @Autowired constructor(
         page: Int,
         size: Int,
         creationDate: String?,
-        transactionTypeId: Long?,
-        supplierIds: List<Long>?,
+        transactionType: String?,
+        suppliers: List<String>?
     ): Page<ExpenseTransactionDto> {
         logger.info("Starting the BL call to get expense transactions")
         // Validation of company exists
@@ -369,11 +369,11 @@ class ExpenseTransactionBl @Autowired constructor(
             val newDateTo: Date = calendar.time
             specification = specification.and(specification.and(ExpenseTransactionSpecification.dateBetween(newDateFrom, newDateTo)))
         }
-        if (transactionTypeId != null) {
-            specification = specification.and(specification.and(ExpenseTransactionSpecification.transactionTypeId(transactionTypeId)))
+        if (transactionType != null) {
+            specification = specification.and(specification.and(ExpenseTransactionSpecification.transactionType(transactionType)))
         }
-        if (!supplierIds.isNullOrEmpty()) {
-            specification = specification.and(specification.and(ExpenseTransactionSpecification.customerIds(supplierIds)))
+        if (!suppliers.isNullOrEmpty()) {
+            specification = specification.and(specification.and(ExpenseTransactionSpecification.customerIds(suppliers)))
         }
         // Getting expense transactions
         val expenseTransactionEntities = expenseTransactionRepository.findAll(specification, pageable)

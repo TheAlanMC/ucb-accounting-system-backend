@@ -394,8 +394,8 @@ class SaleTransactionBl @Autowired constructor(
         page: Int,
         size: Int,
         creationDate: String?,
-        transactionTypeId: Long?,
-        customerIds: List<Long>?,
+        transactionType: String?,
+        customers: List<String>?
     ): Page<SaleTransactionDto> {
         logger.info("Starting the BL call to get sale transactions")
         // Validation of company exists
@@ -420,11 +420,11 @@ class SaleTransactionBl @Autowired constructor(
             val newDateTo: Date = calendar.time
             specification = specification.and(specification.and(SaleTransactionSpecification.dateBetween(newDateFrom, newDateTo)))
         }
-        if (transactionTypeId != null) {
-            specification = specification.and(specification.and(SaleTransactionSpecification.transactionTypeId(transactionTypeId)))
+        if (transactionType != null) {
+            specification = specification.and(specification.and(SaleTransactionSpecification.transactionTypeId(transactionType)))
         }
-        if (!customerIds.isNullOrEmpty()) {
-            specification = specification.and(specification.and(SaleTransactionSpecification.customerIds(customerIds)))
+        if (!customers.isNullOrEmpty()) {
+            specification = specification.and(specification.and(SaleTransactionSpecification.customers(customers)))
         }
         // Getting sale transactions
         val saleTransactionEntities = saleTransactionRepository.findAll(specification, pageable)

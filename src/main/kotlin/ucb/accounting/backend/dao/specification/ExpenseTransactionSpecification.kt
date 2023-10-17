@@ -12,15 +12,15 @@ class ExpenseTransactionSpecification {
             }
         }
 
-        fun transactionTypeId(transactionTypeId: Long): Specification<ExpenseTransaction> {
+        fun transactionType(transactionType: String): Specification<ExpenseTransaction> {
             return Specification { root, _, cb ->
-                cb.equal(root.get<ExpenseTransaction>("transactionTypeId"), transactionTypeId)
+                cb.equal(root.get<Any>("transactionType").get<Any>("transactionTypeName"), transactionType)
             }
         }
 
-        fun customerIds(customerIds: List<Long>): Specification<ExpenseTransaction> {
+        fun customerIds(suppliers: List<String>): Specification<ExpenseTransaction> {
             return Specification { root, _, cb ->
-                cb.`in`(root.get<Any>("customer").get<Any>("customerId")).value(customerIds)
+                cb.`in`(root.get<Any>("supplier").get<Any>("displayName")).value(suppliers)
             }
         }
 
