@@ -8,4 +8,6 @@ interface TransactionTypeRepository : JpaRepository<TransactionType, Long> {
 
     fun findByTransactionTypeNameAndStatusIsTrue(transactionTypeName: String): TransactionType?
 
+    fun findAllByStatusIsTrue(): List<TransactionType>
+
 }

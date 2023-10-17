@@ -126,6 +126,7 @@ keycloak:
             - /api/v1/expense-transactions/*
             - /api/v1/taxes/*
             - /api/v1/payment-types
+            - /api/v1/transaction-types
           methods:
             - GET
             - POST
@@ -153,4 +154,5 @@ keycloak:
           methods:
             - POST
             - GET
+            - PUT
 

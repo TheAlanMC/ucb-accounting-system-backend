@@ -82,8 +82,20 @@ class JournalEntryApi @Autowired constructor(private val journalEntryBl: Journal
         logger.info("Code: $code - ${responseInfo.message}")
         return ResponseEntity(ResponseDto(code, responseInfo.message!!, journalEntryPartialDto), responseInfo.httpStatus)
     }
-//    TODO: ACCEPT JOURNAL ENTRY
-//  @PutMapping("/{journalEntryId}/companies/{companyId}/accept")
+    @PutMapping("/{journalEntryId}/companies/{companyId}/accept")
+    fun acceptJournalEntry(
+        @PathVariable("companyId") companyId: Long,
+        @PathVariable("journalEntryId") journalEntryId: Long
+    ): ResponseEntity<ResponseDto<Null>>{
+        logger.info("Starting the API call to accept journal entry")
+        logger.info("PUT /api/v1/journal-entries/${journalEntryId}/companies/${companyId}/accept")
+        journalEntryBl.acceptJournalEntry(companyId, journalEntryId)
+        logger.info("Sending response")
+        val code = "200-44"
+        val responseInfo = ResponseCodeUtil.getResponseInfo(code)
+        logger.info("Code: $code - ${responseInfo.message}")
+        return ResponseEntity(ResponseDto(code, responseInfo.message!!, null), responseInfo.httpStatus)
+    }
 
 
 }

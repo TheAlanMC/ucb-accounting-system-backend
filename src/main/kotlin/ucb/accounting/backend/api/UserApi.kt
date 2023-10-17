@@ -69,7 +69,7 @@ class UserApi @Autowired constructor(private val userBl: UserBl) {
     @GetMapping("/companies/{companyId}")
     fun findAllUsersByCompanyId(
         @PathVariable companyId: Long,
-        @RequestParam(defaultValue = "kcUuid") sortBy: String, // TODO CHECK IF THIS IS CORRECT
+        @RequestParam(defaultValue = "id") sortBy: String,
         @RequestParam(defaultValue = "asc") sortType: String,
         @RequestParam(defaultValue = "0") page: Int,
         @RequestParam(defaultValue = "10") size: Int
