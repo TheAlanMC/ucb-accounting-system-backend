@@ -18,7 +18,7 @@ class ExpenseTransactionSpecification {
             }
         }
 
-        fun customerIds(suppliers: List<String>): Specification<ExpenseTransaction> {
+        fun suppliers(suppliers: List<String>): Specification<ExpenseTransaction> {
             return Specification { root, _, cb ->
                 cb.`in`(root.get<Any>("supplier").get<Any>("displayName")).value(suppliers)
             }

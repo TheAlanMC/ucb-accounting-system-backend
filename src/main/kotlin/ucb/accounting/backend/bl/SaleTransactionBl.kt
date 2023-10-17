@@ -420,7 +420,7 @@ class SaleTransactionBl @Autowired constructor(
             val newDateTo: Date = calendar.time
             specification = specification.and(specification.and(SaleTransactionSpecification.dateBetween(newDateFrom, newDateTo)))
         }
-        if (transactionType != null) {
+        if (!transactionType.isNullOrEmpty()) {
             specification = specification.and(specification.and(SaleTransactionSpecification.transactionTypeId(transactionType)))
         }
         if (!customers.isNullOrEmpty()) {

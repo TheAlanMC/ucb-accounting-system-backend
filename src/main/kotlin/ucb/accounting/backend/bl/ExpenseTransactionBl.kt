@@ -369,11 +369,11 @@ class ExpenseTransactionBl @Autowired constructor(
             val newDateTo: Date = calendar.time
             specification = specification.and(specification.and(ExpenseTransactionSpecification.dateBetween(newDateFrom, newDateTo)))
         }
-        if (transactionType != null) {
+        if (!transactionType.isNullOrEmpty()) {
             specification = specification.and(specification.and(ExpenseTransactionSpecification.transactionType(transactionType)))
         }
         if (!suppliers.isNullOrEmpty()) {
-            specification = specification.and(specification.and(ExpenseTransactionSpecification.customerIds(suppliers)))
+            specification = specification.and(specification.and(ExpenseTransactionSpecification.suppliers(suppliers)))
         }
         // Getting expense transactions
         val expenseTransactionEntities = expenseTransactionRepository.findAll(specification, pageable)
