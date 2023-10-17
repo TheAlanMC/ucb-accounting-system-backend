@@ -110,11 +110,14 @@ class ExpenseTransactionApi @Autowired constructor(private val expenseTransactio
         @RequestParam(defaultValue = "asc") sortType: String,
         @RequestParam(defaultValue = "0") page: Int,
         @RequestParam(defaultValue = "10") size: Int,
-        @PathVariable("companyId") companyId: Long
+        @PathVariable("companyId") companyId: Long,
+        @RequestParam(required = false) creationDate: String?,
+        @RequestParam(required = false) transactionTypeId: Long?,
+        @RequestParam(required = false) supplierIds: List<Long>?,
     ): ResponseEntity<ResponseDto<List<ExpenseTransactionDto>>>{
         logger.info("Starting the API call to get expense transactions")
         logger.info("GET /api/v1/expense-transactions/companies/${companyId}")
-        val expenseTransactionsPage: Page<ExpenseTransactionDto> = expenseTransactionBl.getExpenseTransactions(companyId, sortBy, sortType, page, size)
+        val expenseTransactionsPage: Page<ExpenseTransactionDto> = expenseTransactionBl.getExpenseTransactions(companyId, sortBy, sortType, page, size, creationDate, transactionTypeId, supplierIds)
         logger.info("Sending response")
         val code = "200-33"
         val responseInfo = ResponseCodeUtil.getResponseInfo(code)

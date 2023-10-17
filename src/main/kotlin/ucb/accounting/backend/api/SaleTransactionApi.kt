@@ -110,11 +110,14 @@ class SaleTransactionApi @Autowired constructor(private val saleTransactionBl: S
         @RequestParam(defaultValue = "saleTransactionId") sortBy: String,
         @RequestParam(defaultValue = "asc") sortType: String,
         @RequestParam(defaultValue = "0") page: Int,
-        @RequestParam(defaultValue = "10") size: Int
+        @RequestParam(defaultValue = "10") size: Int,
+        @RequestParam(required = false) creationDate: String?,
+        @RequestParam(required = false) transactionTypeId: Long?,
+        @RequestParam(required = false) customerIds: List<Long>?,
     ): ResponseEntity<ResponseDto<List<SaleTransactionDto>>>{
         logger.info("Starting the API call to get sale transactions")
         logger.info("GET /api/v1/sale-transactions/companies/${companyId}")
-        val saleTransactionsPage: Page<SaleTransactionDto> = saleTransactionBl.getSaleTransactions(companyId, sortBy, sortType, page, size)
+        val saleTransactionsPage: Page<SaleTransactionDto> = saleTransactionBl.getSaleTransactions(companyId, sortBy, sortType, page, size, creationDate, transactionTypeId, customerIds)
         logger.info("Sending response")
         val code = "200-32"
         val responseInfo = ResponseCodeUtil.getResponseInfo(code)

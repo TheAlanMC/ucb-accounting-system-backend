@@ -6,9 +6,11 @@ import org.springframework.data.domain.Page
 import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Pageable
 import org.springframework.data.domain.Sort
+import org.springframework.data.jpa.domain.Specification
 import org.springframework.stereotype.Service
 import ucb.accounting.backend.dao.*
 import ucb.accounting.backend.dao.repository.*
+import ucb.accounting.backend.dao.specification.SaleTransactionSpecification
 import ucb.accounting.backend.dto.InvoiceDto
 import ucb.accounting.backend.dto.PaymentDto
 import ucb.accounting.backend.dto.SaleTransactionDto
@@ -18,6 +20,7 @@ import ucb.accounting.backend.mapper.SaleTransactionMapper
 import ucb.accounting.backend.mapper.SubaccountMapper
 import ucb.accounting.backend.util.KeycloakSecurityContextHolder
 import java.math.BigDecimal
+import java.util.*
 
 @Service
 class SaleTransactionBl @Autowired constructor(
@@ -389,12 +392,14 @@ class SaleTransactionBl @Autowired constructor(
         sortBy: String,
         sortType: String,
         page: Int,
-        size: Int
+        size: Int,
+        creationDate: String?,
+        transactionTypeId: Long?,
+        customerIds: List<Long>?,
     ): Page<SaleTransactionDto> {
         logger.info("Starting the BL call to get sale transactions")
         // Validation of company exists
         companyRepository.findByCompanyIdAndStatusIsTrue(companyId) ?: throw UasException("404-05")
-
         // Validation that the user belongs to the company
         val kcUuid = KeycloakSecurityContextHolder.getSubject()!!
         kcUserCompanyRepository.findAllByKcUser_KcUuidAndCompany_CompanyIdAndStatusIsTrue(kcUuid, companyId)
@@ -402,9 +407,27 @@ class SaleTransactionBl @Autowired constructor(
         logger.info("User $kcUuid is getting sale transactions")
 
         val pageable: Pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.fromString(sortType), sortBy))
+        var specification: Specification<SaleTransaction> = Specification.where(null)
+        specification = specification.and(specification.and(SaleTransactionSpecification.companyId(companyId.toInt())))
+        specification = specification.and(specification.and(SaleTransactionSpecification.statusIsTrue()))
 
+        if (!creationDate.isNullOrEmpty()) {
+            val format: java.text.DateFormat = java.text.SimpleDateFormat("yyyy-MM-dd")
+            val newDateFrom: Date = format.parse(creationDate)
+            val calendar: Calendar = Calendar.getInstance()
+            calendar.time = format.parse(creationDate)
+            calendar.add(Calendar.DATE, 1)
+            val newDateTo: Date = calendar.time
+            specification = specification.and(specification.and(SaleTransactionSpecification.dateBetween(newDateFrom, newDateTo)))
+        }
+        if (transactionTypeId != null) {
+            specification = specification.and(specification.and(SaleTransactionSpecification.transactionTypeId(transactionTypeId)))
+        }
+        if (!customerIds.isNullOrEmpty()) {
+            specification = specification.and(specification.and(SaleTransactionSpecification.customerIds(customerIds)))
+        }
         // Getting sale transactions
-        val saleTransactionEntities = saleTransactionRepository.findAllByCompanyIdAndStatusIsTrue(companyId.toInt(), pageable)
+        val saleTransactionEntities = saleTransactionRepository.findAll(specification, pageable)
         logger.info("Sale transactions obtained successfully")
 
         return saleTransactionEntities.map { saleTransactionEntity ->

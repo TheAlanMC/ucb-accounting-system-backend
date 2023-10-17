@@ -6,9 +6,11 @@ import org.springframework.data.domain.Page
 import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Pageable
 import org.springframework.data.domain.Sort
+import org.springframework.data.jpa.domain.Specification
 import org.springframework.stereotype.Service
 import ucb.accounting.backend.dao.*
 import ucb.accounting.backend.dao.repository.*
+import ucb.accounting.backend.dao.specification.ExpenseTransactionSpecification
 import ucb.accounting.backend.dto.ExpenseTransactionDto
 import ucb.accounting.backend.dto.InvoiceDto
 import ucb.accounting.backend.dto.PaymentDto
@@ -18,6 +20,7 @@ import ucb.accounting.backend.mapper.ExpenseTransactionMapper
 import ucb.accounting.backend.mapper.SubaccountMapper
 import ucb.accounting.backend.util.KeycloakSecurityContextHolder
 import java.math.BigDecimal
+import java.util.*
 
 @Service
 class ExpenseTransactionBl @Autowired constructor(
@@ -295,7 +298,7 @@ class ExpenseTransactionBl @Autowired constructor(
         expenseTransactionDetailEntity.subaccountId = paymentDto.paymentDetail.subaccountId
         expenseTransactionDetailEntity.amountBs = paymentDto.paymentDetail.amountBs
         expenseTransactionDetailRepository.save(expenseTransactionDetailEntity)
-        logger.info("Sale transaction created successfully")
+        logger.info("Expense transaction created successfully")
     }
 
     fun getSubaccountsForPaymentExpenseTransaction(companyId: Long):List<SubaccountDto>{
@@ -338,8 +341,11 @@ class ExpenseTransactionBl @Autowired constructor(
         sortBy: String,
         sortType: String,
         page: Int,
-        size: Int
-        ): Page<ExpenseTransactionDto> {
+        size: Int,
+        creationDate: String?,
+        transactionTypeId: Long?,
+        supplierIds: List<Long>?,
+    ): Page<ExpenseTransactionDto> {
         logger.info("Starting the BL call to get expense transactions")
         // Validation of company exists
         companyRepository.findByCompanyIdAndStatusIsTrue(companyId) ?: throw UasException("404-05")
@@ -350,9 +356,27 @@ class ExpenseTransactionBl @Autowired constructor(
         logger.info("User $kcUuid is getting expense transactions")
 
         val pageable: Pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.fromString(sortType), sortBy))
+        var specification: Specification<ExpenseTransaction> = Specification.where(null)
+        specification = specification.and(specification.and(ExpenseTransactionSpecification.companyId(companyId.toInt())))
+        specification = specification.and(specification.and(ExpenseTransactionSpecification.statusIsTrue()))
 
+        if (!creationDate.isNullOrEmpty()) {
+            val format: java.text.DateFormat = java.text.SimpleDateFormat("yyyy-MM-dd")
+            val newDateFrom: Date = format.parse(creationDate)
+            val calendar: Calendar = Calendar.getInstance()
+            calendar.time = format.parse(creationDate)
+            calendar.add(Calendar.DATE, 1)
+            val newDateTo: Date = calendar.time
+            specification = specification.and(specification.and(ExpenseTransactionSpecification.dateBetween(newDateFrom, newDateTo)))
+        }
+        if (transactionTypeId != null) {
+            specification = specification.and(specification.and(ExpenseTransactionSpecification.transactionTypeId(transactionTypeId)))
+        }
+        if (!supplierIds.isNullOrEmpty()) {
+            specification = specification.and(specification.and(ExpenseTransactionSpecification.customerIds(supplierIds)))
+        }
         // Getting expense transactions
-        val expenseTransactionEntities = expenseTransactionRepository.findAllByCompanyIdAndStatusIsTrue(companyId.toInt(),pageable)
+        val expenseTransactionEntities = expenseTransactionRepository.findAll(specification, pageable)
         logger.info("Expense transactions obtained successfully")
         return expenseTransactionEntities.map { expenseTransactionEntity ->
             ExpenseTransactionMapper.entityToDto(expenseTransactionEntity,

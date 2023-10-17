@@ -2,6 +2,7 @@ package ucb.accounting.backend.dao.repository
 
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
+import org.springframework.data.jpa.domain.Specification
 import org.springframework.data.jpa.repository.Query
 import org.springframework.data.repository.PagingAndSortingRepository
 import ucb.accounting.backend.dao.SaleTransaction
@@ -9,7 +10,7 @@ import ucb.accounting.backend.dao.SaleTransaction
 interface SaleTransactionRepository: PagingAndSortingRepository<SaleTransaction, Long> {
     fun findByCompanyIdAndTransactionTypeIdAndSaleTransactionNumberAndStatusIsTrue (companyId: Int, transactionTypeId: Int, saleTransactionNumber: Int): SaleTransaction?
 
-    fun findAllByCompanyIdAndStatusIsTrue (companyId: Int, pageable: Pageable): Page<SaleTransaction>
+    fun findAll (specification: Specification<SaleTransaction>, pageable: Pageable): Page<SaleTransaction>
 
     fun findFirstByCompanyIdAndTransactionTypeIdAndStatusIsTrueOrderBySaleTransactionNumberDesc (companyId: Int, transactionTypeId: Int): SaleTransaction?
 
