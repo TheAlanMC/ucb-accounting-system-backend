@@ -38,8 +38,9 @@ class JournalEntryBl @Autowired constructor(
     fun createJournalEntry(companyId: Long, journalEntryDto: JournalEntryDto) {
         logger.info("Starting the BL call to create journal entry")
         // Validate that all the fields are not null
-        if (journalEntryDto.documentTypeId == null || journalEntryDto.journalEntryNumber == null || journalEntryDto.gloss == null ||
-            journalEntryDto.description.isNullOrEmpty() || journalEntryDto.transactionDate == null || journalEntryDto.transactionDetails.isNullOrEmpty()
+        if (journalEntryDto.documentTypeId == null || journalEntryDto.journalEntryNumber == null ||
+            journalEntryDto.gloss.isNullOrEmpty() || journalEntryDto.description.isNullOrEmpty() || journalEntryDto.transactionDate == null || journalEntryDto.transactionDetails.isNullOrEmpty() ||
+            journalEntryDto.gloss.trim().isEmpty() || journalEntryDto.description.trim().isEmpty() || journalEntryDto.transactionDetails.isEmpty()
         ) throw UasException("400-22")
 
         // Validation of company exists

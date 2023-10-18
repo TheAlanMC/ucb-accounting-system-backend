@@ -48,6 +48,7 @@ class SaleTransactionBl @Autowired constructor(
         // Validate that no field is null but attachments
         if (invoiceDto.clientId == null || invoiceDto.paymentTypeId == null ||
             invoiceDto.gloss.isNullOrEmpty() || invoiceDto.description.isNullOrEmpty() ||
+            invoiceDto.gloss.trim().isEmpty() || invoiceDto.description.trim().isEmpty() ||
             invoiceDto.invoiceDate == null || invoiceDto.invoiceDetails == null ||
             invoiceDto.invoiceNumber == null
         ) throw UasException("400-25")
@@ -223,6 +224,7 @@ class SaleTransactionBl @Autowired constructor(
         // Validate that no field is null but attachments
         if (paymentDto.clientId == null || paymentDto.paymentTypeId == null ||
             paymentDto.gloss.isNullOrEmpty() || paymentDto.description.isNullOrEmpty() ||
+            paymentDto.gloss.trim().isEmpty() || paymentDto.description.trim().isEmpty() ||
             paymentDto.paymentDate == null || paymentDto.paymentDetail == null ||
             paymentDto.paymentNumber == null
         ) throw UasException("400-25")
