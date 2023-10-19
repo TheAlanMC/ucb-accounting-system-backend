@@ -10,5 +10,11 @@ interface SubaccountRepository: JpaRepository<Subaccount, Long>{
 
     fun findAllByCompanyIdAndAccountIdAndStatusIsTrue(companyId: Int, accountId: Int): List<Subaccount>
 
-    fun findAllByAccountAccountSubgroupAccountGroupAccountCategoryAccountCategoryNameAndCompanyIdAndStatusIsTrue(accountCategoryName: String, companyId: Int): List<Subaccount>
+    fun findAllByAccountAccountSubgroupAccountGroupAccountCategoryAccountCategoryNameAndCompanyIdAndStatusIsTrueOrderBySubaccountIdAsc(accountCategoryName: String, companyId: Int): List<Subaccount>
+    fun findByCompanyId(companyId: Long): List<Subaccount>
+    fun findAllByCompanyIdAndAccountIdAndStatusIsTrueOrderBySubaccountIdAsc(companyId: Int, toInt: Int): List<Subaccount>
+    fun findFirstByAccountIdAndCompanyIdAndStatusIsTrueOrderBySubaccountCodeDesc(toInt: Int, toInt1: Int): Subaccount?
+
+    fun findAllByAccountAccountSubgroupAccountSubgroupNameAndCompanyIdAndStatusIsTrueOrderBySubaccountIdAsc(accountSubgroupName: String, companyId: Int): List<Subaccount>
+    fun findAllByCompanyIdAndStatusIsTrueOrderBySubaccountIdAsc(toInt: Int): List<Subaccount>
 }
