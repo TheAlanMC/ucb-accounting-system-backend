@@ -2,12 +2,14 @@ package ucb.accounting.backend.bl
 
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
-import ucb.accounting.backend.dao.repository.CustomerRepository
 import org.slf4j.LoggerFactory
+import org.springframework.data.domain.Page
+import org.springframework.data.domain.PageRequest
+import org.springframework.data.domain.Pageable
+import org.springframework.data.domain.Sort
 import ucb.accounting.backend.dao.Customer
-import ucb.accounting.backend.dao.repository.CompanyRepository
-import ucb.accounting.backend.dao.repository.KcUserCompanyRepository
-import ucb.accounting.backend.dao.repository.SubaccountRepository
+import ucb.accounting.backend.dao.Subaccount
+import ucb.accounting.backend.dao.repository.*
 import ucb.accounting.backend.dto.CustomerDto
 import ucb.accounting.backend.dto.CustomerPartialDto
 import ucb.accounting.backend.exception.UasException
@@ -17,6 +19,7 @@ import ucb.accounting.backend.util.KeycloakSecurityContextHolder
 
 @Service
 class CustomerBl @Autowired constructor(
+    private val accountRepository: AccountRepository,
     private val companyRepository: CompanyRepository,
     private val customerRepository: CustomerRepository,
     private val kcUserCompanyRepository: KcUserCompanyRepository,
@@ -29,29 +32,41 @@ class CustomerBl @Autowired constructor(
     fun createCustomer(companyId: Long, customerDto: CustomerDto) {
         logger.info("Starting the BL call to create customer")
         // Validation that all fields are sent
-        if (customerDto.subaccountId == null || customerDto.prefix == null || customerDto.firstName == null || customerDto.lastName == null ||
+        if (customerDto.prefix == null || customerDto.firstName == null || customerDto.lastName == null ||
             customerDto.displayName == null || customerDto.companyName == null || customerDto.companyAddress == null || customerDto.companyPhoneNumber == null ||
             customerDto.companyEmail== null) throw UasException("400-23")
 
         // Validation of company
         companyRepository.findByCompanyIdAndStatusIsTrue(companyId) ?: throw UasException("404-05")
 
-        // Validation that subaccount exists
-        val subaccountEntity = subaccountRepository.findBySubaccountIdAndStatusIsTrue(customerDto.subaccountId) ?: throw UasException("404-10")
-
         // Validation of user belongs to company
         val kcUuid = KeycloakSecurityContextHolder.getSubject()!!
         kcUserCompanyRepository.findAllByKcUser_KcUuidAndCompany_CompanyIdAndStatusIsTrue(kcUuid, companyId) ?: throw UasException("403-27")
         logger.info("User $kcUuid is uploading file to company $companyId")
 
-        // Validation that subaccount belongs to company
-        if (subaccountEntity.companyId != companyId.toInt()) throw UasException("403-27")
+        // Get account for "CUENTAS POR COBRAR CLIENTES M/N" account
+        val accountEntity = accountRepository.findByAccountNameAndCompanyIdAndStatusIsTrue("CUENTAS POR COBRAR CLIENTES M/N", companyId.toInt()) ?: throw UasException("404-09")
+
+        // Get subaccount code, which is the last subaccount code + 1
+        val subaccountCode =
+            subaccountRepository.findFirstByAccountIdAndCompanyIdAndStatusIsTrueOrderBySubaccountCodeDesc(
+                accountEntity.accountId.toInt(),
+                companyId.toInt()
+            )?.subaccountCode ?: (0 + 1)
+
+        // Creat a subaccount for the customer
+        logger.info("Creating subaccount for customer")
+        val subaccountEntity = Subaccount()
+        subaccountEntity.accountId = accountEntity.accountId.toInt()
+        subaccountEntity.companyId = companyId.toInt()
+        subaccountEntity.subaccountName = customerDto.displayName
+        subaccountEntity.subaccountCode = subaccountCode
+        val savedSubaccountEntity = subaccountRepository.save(subaccountEntity)
 
         logger.info("User $kcUuid is creating a new customer")
-
         val customerEntity = Customer()
         customerEntity.companyId = companyId.toInt()
-        customerEntity.subaccountId = customerDto.subaccountId.toInt()
+        customerEntity.subaccountId = savedSubaccountEntity.subaccountId.toInt()
         customerEntity.prefix = customerDto.prefix
         customerEntity.displayName = customerDto.displayName
         customerEntity.firstName = customerDto.firstName
@@ -66,7 +81,13 @@ class CustomerBl @Autowired constructor(
         logger.info("Customer saved")
     }
 
-    fun getCustomers(companyId: Long): List<CustomerPartialDto> {
+    fun getCustomers(
+        companyId: Long,
+        sortBy: String,
+        sortType: String,
+        page: Int,
+        size: Int
+    ): Page<CustomerPartialDto> {
         logger.info("Starting the BL call to get customers")
         // Validation of company
         companyRepository.findByCompanyIdAndStatusIsTrue(companyId) ?: throw UasException("404-05")
@@ -76,8 +97,10 @@ class CustomerBl @Autowired constructor(
         kcUserCompanyRepository.findAllByKcUser_KcUuidAndCompany_CompanyIdAndStatusIsTrue(kcUuid, companyId) ?: throw UasException("403-28")
         logger.info("User $kcUuid is getting customers from company $companyId")
 
+        val pageable: Pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.fromString(sortType), sortBy))
+
         // Get customers
-        val customers = customerRepository.findAllByCompanyIdAndStatusIsTrue(companyId.toInt())
+        val customers = customerRepository.findAllByCompanyIdAndStatusIsTrue(companyId.toInt(), pageable)
         logger.info("${customers.size} customers found")
         return customers.map { CustomerPartialMapper.entityToDto(it) }
     }
@@ -105,7 +128,7 @@ class CustomerBl @Autowired constructor(
     fun updateCustomer(customerId: Long, companyId:Long, customerDto: CustomerDto): CustomerDto{
         logger.info("Starting the BL call to update customer")
         // Validation that at least one field is sent to update
-        if (customerDto.subaccountId == null && customerDto.prefix == null && customerDto.firstName == null && customerDto.lastName == null &&
+        if (customerDto.prefix == null && customerDto.firstName == null && customerDto.lastName == null &&
             customerDto.displayName == null && customerDto.companyName == null && customerDto.companyAddress == null && customerDto.companyPhoneNumber == null &&
             customerDto.companyEmail== null) throw UasException("400-24")
 
@@ -123,16 +146,15 @@ class CustomerBl @Autowired constructor(
         // Validation that customer belongs to company
         if (customerEntity.companyId != companyId.toInt()) throw UasException("403-29")
 
-        // Validation that subaccount exists
-        if (customerDto.subaccountId != null) {
-            val subaccountEntity = subaccountRepository.findBySubaccountIdAndStatusIsTrue(customerDto.subaccountId) ?: throw UasException("404-10")
-            // Validation that subaccount belongs to company
-            if (subaccountEntity.companyId != companyId.toInt()) throw UasException("403-29")
+        // Validation that if the displayName is updated, the subaccount name is updated too
+        if (customerDto.displayName != null) {
+            val subaccountEntity = subaccountRepository.findBySubaccountIdAndStatusIsTrue(customerEntity.subaccountId.toLong()) ?: throw UasException("404-10")
+            subaccountEntity.subaccountName = customerDto.displayName
+            subaccountRepository.save(subaccountEntity)
         }
 
         logger.info("User $kcUuid is updating customer $customerId from company $companyId")
 
-        customerEntity.subaccountId = (customerDto.subaccountId ?: customerEntity.subaccountId).toInt()
         customerEntity.prefix = customerDto.prefix ?: customerEntity.prefix
         customerEntity.displayName = customerDto.displayName ?: customerEntity.displayName
         customerEntity.firstName = customerDto.firstName ?: customerEntity.firstName

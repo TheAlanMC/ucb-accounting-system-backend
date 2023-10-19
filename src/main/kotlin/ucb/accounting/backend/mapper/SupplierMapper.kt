@@ -9,7 +9,6 @@ class SupplierMapper {
         fun entityToDto(supplier: Supplier): SupplierDto {
             return SupplierDto(
                 supplierId = supplier.supplierId,
-                subaccountId = supplier.subaccountId.toLong(),
                 prefix = supplier.prefix,
                 displayName = supplier.displayName,
                 firstName = supplier.firstName,

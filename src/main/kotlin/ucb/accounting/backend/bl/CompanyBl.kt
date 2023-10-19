@@ -138,7 +138,7 @@ class CompanyBl @Autowired constructor(
         return CompanyMapper.entityToDto(updatedCompany, preSignedUrl)
     }
 
-    fun createAccountingPlan(copmanyId: Long){
+    fun createAccountingPlan(companyId: Long){
 
         logger.info("Starting the BL call to create accounting plan for a new company")
 
@@ -148,37 +148,37 @@ class CompanyBl @Autowired constructor(
 
         val accountGroups = jsonNode.get("account_groups")
         for (group in accountGroups){
-            logger.info("Creating account group ${group.get("account_group_name")} for company $copmanyId")
+            logger.info("Creating account group ${group.get("account_group_name")} for company $companyId")
             val accountGroup = AccountGroup()
-            accountGroup.companyId = copmanyId.toInt()
+            accountGroup.companyId = companyId.toInt()
             accountGroup.accountCategoryId = group.get("account_category_id").toString().toInt()
             accountGroup.accountGroupCode = group.get("account_group_code").toString().toInt()
             accountGroup.accountGroupName = group.get("account_group_name").toString().replace("\"", "")
             val savedAccountGroup = accountGroupRepository.save(accountGroup)
             val accountSubGroups = group.get("accounts_subgroups")
             for (subgroup in accountSubGroups){
-                logger.info("Creating account subgroup ${subgroup.get("account_subgroup_name")} for company $copmanyId")
+                logger.info("Creating account subgroup ${subgroup.get("account_subgroup_name")} for company $companyId")
                 val accountSubGroup = AccountSubgroup()
                 accountSubGroup.accountGroupId = savedAccountGroup.accountGroupId.toInt()
-                accountSubGroup.companyId = copmanyId.toInt()
+                accountSubGroup.companyId = companyId.toInt()
                 accountSubGroup.accountSubgroupCode = subgroup.get("account_subgroup_code").toString().toInt()
                 accountSubGroup.accountSubgroupName = subgroup.get("account_subgroup_name").toString().replace("\"", "")
                 val savedAccountSubGroup = accountSubgroupRepository.save(accountSubGroup)
                 val accounts = subgroup.get("accounts")
                 for(account in accounts){
-                    logger.info("Creating account ${account.get("account_name")} for company $copmanyId")
+                    logger.info("Creating account ${account.get("account_name")} for company $companyId")
                     val accountEntity = Account()
                     accountEntity.accountSubgroupId = savedAccountSubGroup.accountSubgroupId.toInt()
-                    accountEntity.companyId = copmanyId.toInt()
+                    accountEntity.companyId = companyId.toInt()
                     accountEntity.accountCode = account.get("account_code").toString().toInt()
                     accountEntity.accountName = account.get("account_name").toString().replace("\"", "")
                     val savedAccount = accountRepository.save(accountEntity)
                     val subAccounts = account.get("subaccounts")
                     for (subAccount in subAccounts){
-                        logger.info("Creating subaccount ${subAccount.get("subaccount_name")} for company $copmanyId")
+                        logger.info("Creating subaccount ${subAccount.get("subaccount_name")} for company $companyId")
                         val subAccountEntity = Subaccount()
                         subAccountEntity.accountId = savedAccount.accountId.toInt()
-                        subAccountEntity.companyId = copmanyId.toInt()
+                        subAccountEntity.companyId = companyId.toInt()
                         subAccountEntity.subaccountCode = subAccount.get("subaccount_code").toString().toInt()
                         subAccountEntity.subaccountName = subAccount.get("subaccount_name").toString().replace("\"", "")
                         subaccountRepository.save(subAccountEntity)

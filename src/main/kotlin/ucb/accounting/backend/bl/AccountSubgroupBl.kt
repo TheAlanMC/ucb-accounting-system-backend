@@ -67,7 +67,7 @@ class AccountSubgroupBl @Autowired constructor(
             logger.info("User $kcUuid is getting account sub groups to company $companyId")
 
             // Get all the account subgroups from the company
-            val accountSubgroupsEntities = accountSubgroupRepository.findAllByCompanyIdAndStatusIsTrue(companyId.toInt())
+            val accountSubgroupsEntities = accountSubgroupRepository.findAllByCompanyIdAndStatusIsTrueOrderByAccountSubgroupIdAsc(companyId.toInt())
             val accountSubgroupsDto = accountSubgroupsEntities.map { AccountSubgroupPartialMapper.entityToDto(it)}
             logger.info("Account sub groups retrieved")
             return accountSubgroupsDto

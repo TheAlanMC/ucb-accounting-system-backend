@@ -10,6 +10,7 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
+import org.springframework.data.domain.*
 import org.springframework.stereotype.Service
 import ucb.accounting.backend.dao.KcUser
 import ucb.accounting.backend.dao.KcUserCompany
@@ -74,7 +75,13 @@ class UserBl @Autowired constructor(
         )
     }
 
-    fun findAllUsersByCompanyId(companyId: Long): List<UserPartialDto> {
+    fun findAllUsersByCompanyId(
+        companyId: Long,
+        sortBy: String,
+        sortType: String,
+        page: Int,
+        size: Int
+    ): Page<UserPartialDto> {
         logger.info("Getting all users by company id")
         // Validation that the company exists
         companyRepository.findByCompanyIdAndStatusIsTrue(companyId)?: throw UasException("404-05")
@@ -84,10 +91,12 @@ class UserBl @Autowired constructor(
         kcUserCompanyRepository.findAllByKcUser_KcUuidAndCompany_CompanyIdAndStatusIsTrue(kcUuid, companyId) ?: throw UasException("403-01")
         logger.info("User $kcUuid is getting all users from company $companyId")
 
-        // Get all users from company
-        val userCompanyEntities: List<KcUserCompany> = kcUserCompanyRepository.findAllByCompany_CompanyIdAndStatusIsTrue(companyId)
+        val pageable: Pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.fromString(sortType), sortBy))
 
-        val users: List<UserPartialDto> = userCompanyEntities.map { val user: UserRepresentation = keycloak
+        // Get all users from company
+        val userCompanyEntities: Page<KcUserCompany> = kcUserCompanyRepository.findAllByCompany_CompanyIdAndStatusIsTrue(companyId, pageable)
+
+        val users: List<UserPartialDto> = userCompanyEntities.content.map { val user: UserRepresentation = keycloak
             .realm(realm)
             .users()
             .get(it.kcUser!!.kcUuid)
@@ -100,7 +109,8 @@ class UserBl @Autowired constructor(
                 creationDate = Date(user.createdTimestamp),
             )
         }
-        return users
+
+        return PageImpl(users, pageable, userCompanyEntities.totalElements)
     }
 
     fun updateUser(userDto: UserDto): UserDto {
@@ -323,7 +333,7 @@ class UserBl @Autowired constructor(
         val kcUserCompany = KcUserCompany()
         kcUserCompany.kcUser = kcUserEntity
         kcUserCompany.company = companyEntity
-        kcUserCompany.kcGroupId = kcGroupRepository.findByGroupNameAndStatusIsTrue("Asistente contable")!!.kcGroupId
+        kcUserCompany.kcGroupId = kcGroupRepository.findByGroupNameAndStatusIsTrue("Cliente")!!.kcGroupId
         kcUserCompanyRepository.save(kcUserCompany)
     }
 

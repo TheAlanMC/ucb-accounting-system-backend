@@ -26,6 +26,9 @@ class SaleTransactionDetail {
     @Column(name = "unit_price_bs")
     var unitPriceBs: BigDecimal = BigDecimal.ZERO
 
+    @Column(name = "amount_bs")
+    var amountBs: BigDecimal = BigDecimal.ZERO
+
     @Column(name = "status")
     var status: Boolean = true
 

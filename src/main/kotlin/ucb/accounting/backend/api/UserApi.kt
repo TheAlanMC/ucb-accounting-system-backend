@@ -2,6 +2,7 @@ package ucb.accounting.backend.api
 
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.data.domain.Page
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 import ucb.accounting.backend.bl.UserBl
@@ -66,15 +67,21 @@ class UserApi @Autowired constructor(private val userBl: UserBl) {
     }
 
     @GetMapping("/companies/{companyId}")
-    fun findAllUsersByCompanyId(@PathVariable companyId: Long): ResponseEntity<ResponseDto<List<UserPartialDto>>> {
+    fun findAllUsersByCompanyId(
+        @PathVariable companyId: Long,
+        @RequestParam(defaultValue = "id") sortBy: String,
+        @RequestParam(defaultValue = "asc") sortType: String,
+        @RequestParam(defaultValue = "0") page: Int,
+        @RequestParam(defaultValue = "10") size: Int
+    ): ResponseEntity<ResponseDto<List<UserPartialDto>>> {
         logger.info("Starting the API call to get all users by company id")
         logger.info("GET /api/v1/users/companies/${companyId}")
-        val users: List<UserPartialDto> = userBl.findAllUsersByCompanyId(companyId)
+        val usersPage: Page<UserPartialDto> = userBl.findAllUsersByCompanyId(companyId, sortBy, sortType, page, size)
         logger.info("Sending response")
         val code = "200-01"
         val responseInfo = ResponseCodeUtil.getResponseInfo(code)
         logger.info("Code: $code - ${responseInfo.message}")
-        return ResponseEntity(ResponseDto(code, responseInfo.message!!, users), responseInfo.httpStatus)
+        return ResponseEntity(ResponseDto(code, responseInfo.message!!, usersPage.content, usersPage.totalElements), responseInfo.httpStatus)
     }
 
     @PutMapping
