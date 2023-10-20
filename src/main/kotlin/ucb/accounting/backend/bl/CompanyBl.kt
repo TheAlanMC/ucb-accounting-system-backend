@@ -13,6 +13,7 @@ import ucb.accounting.backend.exception.UasException
 import ucb.accounting.backend.mapper.CompanyMapper
 import ucb.accounting.backend.service.MinioService
 import ucb.accounting.backend.util.KeycloakSecurityContextHolder
+import java.math.BigDecimal
 
 @Service
 class CompanyBl @Autowired constructor(
@@ -27,7 +28,9 @@ class CompanyBl @Autowired constructor(
     private val kcUserRepository: KcUserRepository,
     private val minioService: MinioService,
     private val s3ObjectRepository: S3ObjectRepository,
-    private val subaccountRepository: SubaccountRepository
+    private val subaccountRepository: SubaccountRepository,
+    private val taxTypeRepository: TaxTypeRepository,
+    private val subaccountTaxTypeRepository: SubaccountTaxTypeRepository
 ) {
     companion object {
         private val logger = LoggerFactory.getLogger(CompanyBl::class.java.name)
@@ -89,6 +92,9 @@ class CompanyBl @Autowired constructor(
 
         // Create accounting plan
         createAccountingPlan(savedCompanyEntity.companyId)
+
+        // Create subaccount-tax_type relationships
+        createSubaccountTaxTypeRelationships(savedCompanyEntity.companyId)
     }
 
     fun updateCompany (companyPartialDto: CompanyPartialDto, companyId: Long): CompanyDto {
@@ -181,4 +187,56 @@ class CompanyBl @Autowired constructor(
             }
         }
     }
+
+    fun createSubaccountTaxTypeRelationships(companyId: Long) {
+        // Obtener todos los subaccounts para la empresa con companyId
+        val subaccounts = subaccountRepository.findByCompanyId(companyId)
+
+        // Obtener todos los tax_types
+        val taxTypes = taxTypeRepository.findAll()
+
+        // Crear un mapa de tax_type_name a taxTypeId para facilitar la búsqueda
+        val taxTypeMap = taxTypes.associateBy { it.taxTypeName }
+
+        // Definir el valor por defecto para tax_rate (13%)
+        val defaultTaxRate = BigDecimal("13")
+
+        // Valor por defecto para status
+        val defaultStatus = true
+
+        // Recorrer los subaccounts
+        for (subaccount in subaccounts) {
+            val subaccountName = subaccount.subaccountName
+
+            // Buscar el tax_type correspondiente en el mapa
+            val taxType = taxTypeMap[subaccountName]
+
+            // Si se encuentra un tax_type correspondiente, crear la relación en subaccount_tax_type
+            if (taxType != null) {
+                // Verificar si los nombres son iguales
+                if (subaccountName == taxType.taxTypeName) {
+                    val subaccountTaxType = SubaccountTaxType()
+                    subaccountTaxType.companyId = companyId
+
+                    // Obtener los IDs correspondientes
+                    val subaccountId = subaccount.subaccountId
+                    val taxTypeId = taxType.taxTypeId
+
+                    // Crear el objeto SubaccountTaxTypeId
+                    val subaccountTaxTypeId = SubaccountTaxTypeId()
+                    subaccountTaxTypeId.subaccountId = subaccountId
+                    subaccountTaxTypeId.taxTypeId = taxTypeId
+
+                    // Establecer los valores en la entidad SubaccountTaxType
+                    subaccountTaxType.companyId = companyId
+                    subaccountTaxType.taxRate = defaultTaxRate
+                    subaccountTaxType.status = defaultStatus
+
+                    // Guardar la relación en subaccount_tax_type
+                    subaccountTaxTypeRepository.save(subaccountTaxType)
+                }
+            }
+        }
+    }
+
 }
