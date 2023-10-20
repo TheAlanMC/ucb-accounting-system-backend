@@ -39,11 +39,12 @@ class CustomerApi @Autowired constructor(private val customerBl: CustomerBl){
         @RequestParam(defaultValue = "customerId") sortBy: String,
         @RequestParam(defaultValue = "asc") sortType: String,
         @RequestParam(defaultValue = "0") page: Int,
-        @RequestParam(defaultValue = "10") size: Int
-    ): ResponseEntity<ResponseDto<List<CustomerPartialDto>>> {
+        @RequestParam(defaultValue = "10") size: Int,
+        @RequestParam(required = false) keyword: String?,
+        ): ResponseEntity<ResponseDto<List<CustomerPartialDto>>> {
         logger.info("Starting the API call to get customers")
         logger.info("GET /api/v1/customers/companies/$companyId")
-        val customersPage: Page<CustomerPartialDto> = customerBl.getCustomers(companyId, sortBy, sortType, page, size)
+        val customersPage: Page<CustomerPartialDto> = customerBl.getCustomers(companyId, sortBy, sortType, page, size, keyword)
         logger.info("Sending response")
         val code = "200-28"
         val responseInfo = ResponseCodeUtil.getResponseInfo(code)

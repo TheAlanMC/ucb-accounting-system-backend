@@ -63,7 +63,7 @@ class TaxBl @Autowired constructor(
         logger.info("User $kcUuid is creating a new subaccount associated with tax type")
 
         val subaccountTaxTypeEntity = SubaccountTaxType()
-        subaccountTaxTypeEntity.companyId = companyId
+        subaccountTaxTypeEntity.companyId = companyId.toInt()
         subaccountTaxTypeEntity.subaccount = subaccountEntity
         subaccountTaxTypeEntity.taxType = taxTypeEntity
         subaccountTaxTypeEntity.taxRate = subaccountTaxTypeDto.taxRate

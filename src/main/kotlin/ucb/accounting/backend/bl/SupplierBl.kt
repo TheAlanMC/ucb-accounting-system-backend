@@ -7,9 +7,13 @@ import org.springframework.data.domain.Page
 import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Pageable
 import org.springframework.data.domain.Sort
+import org.springframework.data.jpa.domain.Specification
+import ucb.accounting.backend.dao.SaleTransaction
 import ucb.accounting.backend.dao.Subaccount
 import ucb.accounting.backend.dao.Supplier
 import ucb.accounting.backend.dao.repository.*
+import ucb.accounting.backend.dao.specification.SaleTransactionSpecification
+import ucb.accounting.backend.dao.specification.SupplierSpecification
 import ucb.accounting.backend.dto.SupplierDto
 import ucb.accounting.backend.dto.SupplierPartialDto
 import ucb.accounting.backend.exception.UasException
@@ -87,7 +91,8 @@ class SupplierBl @Autowired constructor(
         sortBy: String,
         sortType: String,
         page: Int,
-        size: Int
+        size: Int,
+        keyword: String?
     ): Page<SupplierPartialDto> {
         logger.info("Starting the BL call to get suppliers")
         // Validation of company
@@ -99,9 +104,15 @@ class SupplierBl @Autowired constructor(
         logger.info("User $kcUuid is getting suppliers from company $companyId")
 
         val pageable: Pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.fromString(sortType), sortBy))
+        var specification: Specification<Supplier> = Specification.where(null)
+        specification = specification.and(specification.and(SupplierSpecification.companyId(companyId.toInt())))
+        specification = specification.and(specification.and(SupplierSpecification.statusIsTrue()))
 
+        if (!keyword.isNullOrEmpty() && keyword.isNotBlank()) {
+            specification = specification.and(specification.and(SupplierSpecification.supplierKeyword(keyword)))
+        }
         // Get suppliers
-        val suppliers = supplierRepository.findAllByCompanyIdAndStatusIsTrue(companyId.toInt(), pageable)
+        val suppliers = supplierRepository.findAll(specification, pageable)
         logger.info("${suppliers.size} suppliers found")
         return suppliers.map { SupplierPartialMapper.entityToDto(it) }
     }

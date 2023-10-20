@@ -72,11 +72,12 @@ class UserApi @Autowired constructor(private val userBl: UserBl) {
         @RequestParam(defaultValue = "id") sortBy: String,
         @RequestParam(defaultValue = "asc") sortType: String,
         @RequestParam(defaultValue = "0") page: Int,
-        @RequestParam(defaultValue = "10") size: Int
+        @RequestParam(defaultValue = "10") size: Int,
+        @RequestParam(required = false) keyword: String?,
     ): ResponseEntity<ResponseDto<List<UserPartialDto>>> {
         logger.info("Starting the API call to get all users by company id")
         logger.info("GET /api/v1/users/companies/${companyId}")
-        val usersPage: Page<UserPartialDto> = userBl.findAllUsersByCompanyId(companyId, sortBy, sortType, page, size)
+        val usersPage: Page<UserPartialDto> = userBl.findAllUsersByCompanyId(companyId, sortBy, sortType, page, size, keyword)
         logger.info("Sending response")
         val code = "200-01"
         val responseInfo = ResponseCodeUtil.getResponseInfo(code)

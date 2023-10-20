@@ -12,6 +12,15 @@ class KcUser {
     @Column(name = "kc_uuid")
     var kcUuid: String = ""
 
+    @Column(name = "first_name")
+    var firstName: String = ""
+
+    @Column(name = "last_name")
+    var lastName: String = ""
+
+    @Column(name = "email")
+    var email: String = ""
+
     @Column(name = "s3_profile_picture")
     var s3ProfilePicture: Int = 0
 

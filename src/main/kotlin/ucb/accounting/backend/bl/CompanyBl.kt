@@ -216,19 +216,16 @@ class CompanyBl @Autowired constructor(
                 // Verificar si los nombres son iguales
                 if (subaccountName == taxType.taxTypeName) {
                     val subaccountTaxType = SubaccountTaxType()
-                    subaccountTaxType.companyId = companyId
+                    subaccountTaxType.companyId = companyId.toInt()
 
                     // Obtener los IDs correspondientes
                     val subaccountId = subaccount.subaccountId
                     val taxTypeId = taxType.taxTypeId
 
-                    // Crear el objeto SubaccountTaxTypeId
-                    val subaccountTaxTypeId = SubaccountTaxTypeId()
-                    subaccountTaxTypeId.subaccountId = subaccountId
-                    subaccountTaxTypeId.taxTypeId = taxTypeId
-
                     // Establecer los valores en la entidad SubaccountTaxType
-                    subaccountTaxType.companyId = companyId
+                    subaccountTaxType.subaccountId = subaccountId.toInt()
+                    subaccountTaxType.taxTypeId = taxTypeId.toInt()
+                    subaccountTaxType.companyId = companyId.toInt()
                     subaccountTaxType.taxRate = defaultTaxRate
                     subaccountTaxType.status = defaultStatus
 

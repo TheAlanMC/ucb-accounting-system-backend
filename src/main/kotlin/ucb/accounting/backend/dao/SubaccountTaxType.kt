@@ -9,11 +9,19 @@ import javax.persistence.*
 @Entity
 @Table(name = "subaccount_tax_type")
 class SubaccountTaxType {
-    @EmbeddedId
-    var id: SubaccountTaxTypeId? = SubaccountTaxTypeId()
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "subaccount_tax_type_id")
+    var subaccountTaxTypeId: Long = 0
+
+    @Column(name = "subaccount_id")
+    var subaccountId: Int = 0
+
+    @Column(name = "tax_type_id")
+    var taxTypeId: Int = 0
 
     @Column(name = "company_id")
-    var companyId: Long = 0
+    var companyId: Int = 0
 
     @Column(name = "tax_rate")
     var taxRate: BigDecimal = BigDecimal.ZERO

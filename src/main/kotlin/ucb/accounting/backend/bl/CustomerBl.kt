@@ -7,9 +7,11 @@ import org.springframework.data.domain.Page
 import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Pageable
 import org.springframework.data.domain.Sort
+import org.springframework.data.jpa.domain.Specification
 import ucb.accounting.backend.dao.Customer
 import ucb.accounting.backend.dao.Subaccount
 import ucb.accounting.backend.dao.repository.*
+import ucb.accounting.backend.dao.specification.CustomerSpecification
 import ucb.accounting.backend.dto.CustomerDto
 import ucb.accounting.backend.dto.CustomerPartialDto
 import ucb.accounting.backend.exception.UasException
@@ -86,7 +88,8 @@ class CustomerBl @Autowired constructor(
         sortBy: String,
         sortType: String,
         page: Int,
-        size: Int
+        size: Int,
+        keyword: String?,
     ): Page<CustomerPartialDto> {
         logger.info("Starting the BL call to get customers")
         // Validation of company
@@ -98,9 +101,15 @@ class CustomerBl @Autowired constructor(
         logger.info("User $kcUuid is getting customers from company $companyId")
 
         val pageable: Pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.fromString(sortType), sortBy))
+        var specification: Specification<Customer> = Specification.where(null)
+        specification = specification.and(specification.and(CustomerSpecification.companyId(companyId.toInt())))
+        specification = specification.and(specification.and(CustomerSpecification.statusIsTrue()))
 
+        if (!keyword.isNullOrEmpty() && keyword.isNotBlank()) {
+            specification = specification.and(specification.and(CustomerSpecification.customerKeyword(keyword)))
+        }
         // Get customers
-        val customers = customerRepository.findAllByCompanyIdAndStatusIsTrue(companyId.toInt(), pageable)
+        val customers = customerRepository.findAll (specification, pageable)
         logger.info("${customers.size} customers found")
         return customers.map { CustomerPartialMapper.entityToDto(it) }
     }

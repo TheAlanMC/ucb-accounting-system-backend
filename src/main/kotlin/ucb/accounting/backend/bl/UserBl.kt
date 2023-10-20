@@ -11,11 +11,13 @@ import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.data.domain.*
+import org.springframework.data.jpa.domain.Specification
 import org.springframework.stereotype.Service
 import ucb.accounting.backend.dao.KcUser
 import ucb.accounting.backend.dao.KcUserCompany
 import ucb.accounting.backend.dao.S3Object
 import ucb.accounting.backend.dao.repository.*
+import ucb.accounting.backend.dao.specification.KcUserCompanySpecification
 import ucb.accounting.backend.dto.*
 import ucb.accounting.backend.exception.UasException
 import ucb.accounting.backend.mapper.KcUserCompanyMapper
@@ -53,13 +55,6 @@ class UserBl @Autowired constructor(
         // Validation that the user exists
         val kcUserEntity: KcUser = kcUserRepository.findByKcUuidAndStatusIsTrue(kcUuid) ?: throw UasException("404-01")
 
-        // Get user info from keycloak
-        val user: UserRepresentation = keycloak
-            .realm(realm)
-            .users()
-            .get(kcUuid)
-            .toRepresentation()
-
         // Get s3 object
         val s3ObjectEntity: S3Object = s3ObjectRepository.findByS3ObjectIdAndStatusIsTrue(kcUserEntity.s3ProfilePicture.toLong())?: throw UasException("404-13")
         val preSignedUrl: String = minioService.getPreSignedUrl(s3ObjectEntity.bucket, s3ObjectEntity.filename)
@@ -67,9 +62,9 @@ class UserBl @Autowired constructor(
         // Return user info
         return UserDto(
             companyIds = findUserCompanies(kcUuid),
-            firstName = user.firstName,
-            lastName = user.lastName,
-            email = user.email,
+            firstName = kcUserEntity.firstName,
+            lastName = kcUserEntity.lastName,
+            email = kcUserEntity.email,
             s3ProfilePictureId = kcUserEntity.s3ProfilePicture.toLong(),
             profilePicture = preSignedUrl,
         )
@@ -80,7 +75,8 @@ class UserBl @Autowired constructor(
         sortBy: String,
         sortType: String,
         page: Int,
-        size: Int
+        size: Int,
+        keyword: String?
     ): Page<UserPartialDto> {
         logger.info("Getting all users by company id")
         // Validation that the company exists
@@ -92,21 +88,24 @@ class UserBl @Autowired constructor(
         logger.info("User $kcUuid is getting all users from company $companyId")
 
         val pageable: Pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.fromString(sortType), sortBy))
+        var specification: Specification<KcUserCompany> = Specification.where(null)
+        specification = specification.and(specification.and(KcUserCompanySpecification.companyId(companyId.toInt())))
+        specification = specification.and(specification.and(KcUserCompanySpecification.statusIsTrue()))
 
+        if (!keyword.isNullOrEmpty() && keyword.isNotBlank()) {
+            specification = specification.and(specification.and(KcUserCompanySpecification.kcUserKeyword(keyword)))
+        }
+        
         // Get all users from company
-        val userCompanyEntities: Page<KcUserCompany> = kcUserCompanyRepository.findAllByCompany_CompanyIdAndStatusIsTrue(companyId, pageable)
+        val userCompanyEntities: Page<KcUserCompany> = kcUserCompanyRepository.findAll(specification, pageable)
 
-        val users: List<UserPartialDto> = userCompanyEntities.content.map { val user: UserRepresentation = keycloak
-            .realm(realm)
-            .users()
-            .get(it.kcUser!!.kcUuid)
-            .toRepresentation()
+        val users: List<UserPartialDto> = userCompanyEntities.content.map {
             UserPartialDto(
                 kcGroupName = it.kcGroup!!.groupName,
-                firstName = user.firstName,
-                lastName = user.lastName,
-                email = user.email,
-                creationDate = Date(user.createdTimestamp),
+                firstName = it.kcUser!!.firstName,
+                lastName = it.kcUser!!.lastName,
+                email = it.kcUser!!.email,
+                creationDate = Date(it.kcUser!!.txDate.time)
             )
         }
 
@@ -154,6 +153,11 @@ class UserBl @Autowired constructor(
             .get(kcUuid)
             .update(user)
         logger.info("User info updated")
+
+        // Update user info in database
+        kcUserEntity.firstName = user.firstName
+        kcUserEntity.lastName = user.lastName
+        kcUserRepository.save(kcUserEntity)
 
         return UserDto(
             companyIds = findUserCompanies(kcUuid),
@@ -233,9 +237,13 @@ class UserBl @Autowired constructor(
             throw UasException("400-01")
         }
 
+
         // Storage of the user id in the database
         val kcUserEntity = KcUser()
         kcUserEntity.kcUuid = response.location.path.split("/").last()
+        kcUserEntity.firstName = newUserDto.firstName
+        kcUserEntity.lastName = newUserDto.lastName
+        kcUserEntity.email = newUserDto.email
         kcUserEntity.s3ProfilePicture = 1 // Default profile picture
         kcUserRepository.save(kcUserEntity)
         logger.info("Accountant created")
@@ -277,6 +285,9 @@ class UserBl @Autowired constructor(
         // Storage of the user id in the database
         val kcUserEntity = KcUser()
         kcUserEntity.kcUuid = response.location.path.split("/").last()
+        kcUserEntity.firstName = newUserDto.firstName
+        kcUserEntity.lastName = newUserDto.lastName
+        kcUserEntity.email = newUserDto.email
         kcUserEntity.s3ProfilePicture = 1 // Default profile picture
         kcUserRepository.save(kcUserEntity)
         logger.info("Accounting assistant created")
@@ -325,6 +336,9 @@ class UserBl @Autowired constructor(
         // Storage of the user id in the database
         val kcUserEntity = KcUser()
         kcUserEntity.kcUuid = response.location.path.split("/").last()
+        kcUserEntity.firstName = newUserDto.firstName
+        kcUserEntity.lastName = newUserDto.lastName
+        kcUserEntity.email = newUserDto.email
         kcUserEntity.s3ProfilePicture = 1
         kcUserRepository.save(kcUserEntity)
         logger.info("Client created")

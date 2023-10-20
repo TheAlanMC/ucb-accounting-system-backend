@@ -2,6 +2,7 @@ package ucb.accounting.backend.dao
 
 import ucb.accounting.backend.util.HttpUtil
 import ucb.accounting.backend.util.KeycloakSecurityContextHolder
+import java.math.BigDecimal
 import java.sql.Timestamp
 import javax.persistence.*
 
@@ -15,6 +16,9 @@ class TaxType {
 
     @Column(name = "tax_type_name")
     var taxTypeName: String = ""
+
+    @Column(name = "default_tax_rate")
+    var defaultTaxRate: BigDecimal = BigDecimal.ZERO
 
     @Column(name = "description")
     var description: String = ""
