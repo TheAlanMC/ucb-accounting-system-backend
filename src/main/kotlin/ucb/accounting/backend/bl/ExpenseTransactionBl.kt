@@ -79,7 +79,7 @@ class ExpenseTransactionBl @Autowired constructor(
         if (supplierEntity.companyId != companyId.toInt()) throw UasException("403-34")
 
         // Validation that the invoice expense transaction number is unique
-        if (expenseTransactionRepository.findByCompanyIdAndTransactionTypeIdAndExpenseTransactionNumberAndStatusIsTrue(invoiceDto.invoiceNumber, transactionTypeEntity.transactionTypeId.toInt(), companyId.toInt()) != null) throw UasException("409-06")
+        if (expenseTransactionRepository.findByCompanyIdAndTransactionTypeIdAndExpenseTransactionNumberAndStatusIsTrue(companyId.toInt(), transactionTypeEntity.transactionTypeId.toInt(), invoiceDto.invoiceNumber) != null) throw UasException("409-06")
 
         // Validation that the user belongs to the company
         val kcUuid = KeycloakSecurityContextHolder.getSubject()!!

@@ -34,3 +34,6 @@ build/
 
 ### Environments ###
 .env
+
+### Scripts ###
+/scripts/

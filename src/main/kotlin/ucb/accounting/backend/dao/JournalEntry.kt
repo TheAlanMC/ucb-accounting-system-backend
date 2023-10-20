@@ -50,4 +50,10 @@ class JournalEntry {
 
     @OneToOne(mappedBy = "journalEntry")
     var transaction: Transaction? = null
+
+    @OneToMany(mappedBy = "journalEntry")
+    var saleTransactions: List<SaleTransaction>? = null
+
+    @OneToMany(mappedBy = "journalEntry")
+    var expenseTransactions: List<ExpenseTransaction>? = null
 }
