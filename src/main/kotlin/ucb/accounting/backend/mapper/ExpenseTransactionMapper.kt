@@ -6,7 +6,7 @@ import java.math.BigDecimal
 
 class ExpenseTransactionMapper {
     companion object {
-        fun entityToDto(expenseTransaction: ExpenseTransaction): ExpenseTransactionDto {
+        fun entityToDto(expenseTransaction: ExpenseTransaction, totalAmountBs: BigDecimal): ExpenseTransactionDto {
             return ExpenseTransactionDto(
                 expenseTransactionId = expenseTransaction.expenseTransactionId.toInt(),
                 transactionType = TransactionTypeMapper.entityToDto(expenseTransaction.transactionType!!),
@@ -14,7 +14,7 @@ class ExpenseTransactionMapper {
                 expenseTransactionDate = expenseTransaction.expenseTransactionDate,
                 supplier = SupplierPartialMapper.entityToDto(expenseTransaction.supplier!!),
                 gloss = expenseTransaction.gloss,
-                totalAmountBs = expenseTransaction.totalAmountBs,
+                totalAmountBs = totalAmountBs,
                 expenseTransactionAccepted = expenseTransaction.expenseTransactionAccepted
             )
         }

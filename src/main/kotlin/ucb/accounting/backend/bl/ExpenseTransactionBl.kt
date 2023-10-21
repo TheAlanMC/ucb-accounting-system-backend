@@ -11,7 +11,6 @@ import ucb.accounting.backend.dao.*
 import ucb.accounting.backend.dao.repository.*
 import ucb.accounting.backend.dto.*
 import ucb.accounting.backend.exception.UasException
-import ucb.accounting.backend.mapper.ExpenseTransactionMapper
 import ucb.accounting.backend.mapper.SubaccountMapper
 import ucb.accounting.backend.util.KeycloakSecurityContextHolder
 import java.math.BigDecimal

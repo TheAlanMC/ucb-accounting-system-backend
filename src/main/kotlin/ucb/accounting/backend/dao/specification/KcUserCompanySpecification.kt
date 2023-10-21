@@ -2,6 +2,7 @@ package ucb.accounting.backend.dao.specification
 
 import org.springframework.data.jpa.domain.Specification
 import ucb.accounting.backend.dao.Company
+import ucb.accounting.backend.dao.KcGroup
 import ucb.accounting.backend.dao.KcUser
 import ucb.accounting.backend.dao.KcUserCompany
 
@@ -14,9 +15,12 @@ class KcUserCompanySpecification {
                     cb.like(cb.lower(root.get<KcUser>("kcUser").get("firstName")), "%${keyword.lowercase()}%"),
                     cb.like(cb.lower(root.get<KcUser>("kcUser").get("lastName")), "%${keyword.lowercase()}%"),
                     cb.like(cb.lower(root.get<KcUser>("kcUser").get("email")), "%${keyword.lowercase()}%"),
+                    cb.like(cb.lower(root.get<KcGroup>("kcGroup").get("kcGroupName")), "%${keyword.lowercase()}%"),
                 )
             }
         }
+
+
         fun companyId(companyId: Int): Specification<KcUserCompany> {
             return Specification { root, _, cb ->
                 cb.equal(root.get<Company>("company").get<Any>("companyId"), companyId)

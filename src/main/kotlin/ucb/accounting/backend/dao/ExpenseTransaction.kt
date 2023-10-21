@@ -50,9 +50,6 @@ class ExpenseTransaction {
     @Column(name = "gloss")
     var gloss: String = ""
 
-    @Generated(GenerationTime.ALWAYS)
-    var totalAmountBs: BigDecimal = BigDecimal.ZERO
-
     @Column(name = "expense_transaction_accepted")
     var expenseTransactionAccepted: Boolean = false
 
