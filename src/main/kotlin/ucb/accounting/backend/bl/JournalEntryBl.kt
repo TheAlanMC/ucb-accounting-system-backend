@@ -9,15 +9,17 @@ import ucb.accounting.backend.dao.Transaction
 import ucb.accounting.backend.dao.TransactionAttachment
 import ucb.accounting.backend.dao.TransactionDetail
 import ucb.accounting.backend.dao.repository.*
+import ucb.accounting.backend.dao.specification.CustomerSpecification
 import ucb.accounting.backend.dto.*
 import ucb.accounting.backend.exception.UasException
 import ucb.accounting.backend.mapper.*
 import ucb.accounting.backend.util.KeycloakSecurityContextHolder
 import ucb.accounting.backend.service.MinioService
 import java.sql.Date
+import java.util.*
 
 @Service
-class JournalEntryBl @Autowired constructor(
+class   JournalEntryBl @Autowired constructor(
     private val attachmentRepository: AttachmentRepository,
     private val companyRepository: CompanyRepository,
     private val documentTypeRepository: DocumentTypeRepository,
@@ -30,6 +32,7 @@ class JournalEntryBl @Autowired constructor(
     private val transactionRepository: TransactionRepository,
     private val expenseTransactionRepository: ExpenseTransactionRepository,
     private val saleTransactionRepository: SaleTransactionRepository,
+    private val transactionEntryRepository: TransactionEntryRepository,
     ) {
     companion object {
         private val logger = LoggerFactory.getLogger(JournalEntryBl::class.java.name)
@@ -150,7 +153,8 @@ class JournalEntryBl @Autowired constructor(
         sortBy: String,
         sortType: String,
         page: Int,
-        size: Int
+        size: Int,
+        keyword: String?
     ): Page<TransactionDto> {
         logger.info("Starting the BL call to get list of transactions")
         // Validation of company
@@ -161,43 +165,42 @@ class JournalEntryBl @Autowired constructor(
         kcUserCompanyRepository.findAllByKcUser_KcUuidAndCompany_CompanyIdAndStatusIsTrue(kcUuid, companyId)
             ?: throw UasException("403-46")
         logger.info("User $kcUuid is getting list of transactions from company $companyId")
-        val saleJournalEntryIds = saleTransactionRepository.findAllJournalEntryId(companyId.toInt())
-        val expenseJournalEntryIds = expenseTransactionRepository.findAllJournalEntryId(companyId.toInt())
 
-        val pageable: Pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.fromString(sortType), sortBy))
+        // convert sortBy from camelCase to snake_case
+        val newSortBy = sortBy.replace(Regex("([a-z])([A-Z]+)"), "$1_$2").lowercase()
+        val pageable: Pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.fromString(sortType), newSortBy))
 
-        val journalEntriesPage =
-            journalEntryRepository.findAllByJournalEntryIdIsInAndStatusIsTrue(
-                saleJournalEntryIds + expenseJournalEntryIds,
-                pageable
-            )
+        var searchKeyword = ""
+        if (!keyword.isNullOrEmpty() && keyword.isNotBlank()) {
+            searchKeyword = keyword
+        }
+
+        val journalEntriesPage = transactionEntryRepository.findAll(companyId, searchKeyword, pageable)
 
         val transactionsList: List<TransactionDto> = journalEntriesPage.content.map {
-            val saleTransaction =
-                saleTransactionRepository.findByJournalEntryIdAndStatusIsTrue(it.journalEntryId.toInt())
-            val expenseTransaction =
-                expenseTransactionRepository.findByJournalEntryIdAndStatusIsTrue(it.journalEntryId.toInt())
             val transaction = TransactionDto(
                 it.journalEntryId.toInt(),
-                saleTransaction?.saleTransactionNumber ?: expenseTransaction?.expenseTransactionNumber,
+                it.transactionNumber,
                 ClientPartialDto(
-                    saleTransaction?.customer?.customerId ?: expenseTransaction?.supplier?.supplierId,
-                    saleTransaction?.customer?.displayName ?: expenseTransaction?.supplier?.displayName,
-                    saleTransaction?.customer?.companyName ?: expenseTransaction?.supplier?.companyName,
-                    saleTransaction?.customer?.companyPhoneNumber ?: expenseTransaction?.supplier?.companyPhoneNumber,
-                    Date(saleTransaction?.customer?.txDate?.time ?: expenseTransaction?.supplier?.txDate?.time ?: 0)
+                    it.clientId,
+                    it.displayName,
+                    it.companyName,
+                    it.companyPhoneNumber,
+                    Date(it.creationDate.time)
                 ),
-                saleTransaction?.saleTransactionAccepted ?: expenseTransaction?.expenseTransactionAccepted,
-                DocumentTypeMapper.entityToDto(it.documentType!!),
-                TransactionTypeMapper.entityToDto(
-                    saleTransaction?.transactionType ?: expenseTransaction?.transactionType!!
+                it.transactionAccepted,
+                DocumentTypeDto(
+                    it.documentTypeId.toLong(),
+                    it.documentTypeName
                 ),
-                it.transaction!!.transactionDetails!!.sumOf { transactionDetail ->
-                    transactionDetail.debitAmountBs
-                },
-                Date(saleTransaction?.txDate?.time ?: expenseTransaction?.txDate?.time!!),
-                saleTransaction?.saleTransactionDate ?: expenseTransaction?.expenseTransactionDate,
-                saleTransaction?.description ?: expenseTransaction?.description,
+                TransactionTypeDto(
+                    it.transactionTypeId,
+                    it.transactionTypeName
+                ),
+                it.totalAmountBs,
+                Date(it.creationDate.time),
+                it.transactionDate,
+                it.description
             )
             transaction
         }

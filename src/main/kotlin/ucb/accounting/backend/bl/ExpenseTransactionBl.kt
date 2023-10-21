@@ -239,7 +239,7 @@ class ExpenseTransactionBl @Autowired constructor(
         logger.info("Saving journal entry")
         val journalEntryEntity = JournalEntry()
         journalEntryEntity.companyId = companyId.toInt()
-        journalEntryEntity.documentTypeId = documentTypeRepository.findByDocumentTypeNameAndStatusIsTrue("Ingreso")!!.documentTypeId.toInt()
+        journalEntryEntity.documentTypeId = documentTypeRepository.findByDocumentTypeNameAndStatusIsTrue("Egreso")!!.documentTypeId.toInt()
         journalEntryEntity.journalEntryNumber = paymentDto.paymentNumber
         journalEntryEntity.gloss = paymentDto.gloss
         val savedJournalEntry = journalEntryRepository.save(journalEntryEntity)

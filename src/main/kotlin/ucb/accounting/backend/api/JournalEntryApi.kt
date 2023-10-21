@@ -56,11 +56,12 @@ class JournalEntryApi @Autowired constructor(private val journalEntryBl: Journal
         @RequestParam(defaultValue = "journalEntryId") sortBy: String,
         @RequestParam(defaultValue = "asc") sortType: String,
         @RequestParam(defaultValue = "0") page: Int,
-        @RequestParam(defaultValue = "10") size: Int
+        @RequestParam(defaultValue = "10") size: Int,
+        @RequestParam(required = false) keyword: String?
     ): ResponseEntity<ResponseDto<List<TransactionDto>>> {
         logger.info("Starting the API call to get list of transactions")
         logger.info("GET /api/v1/journal-entries/companies/${companyId}")
-        val journalEntriesPage: Page<TransactionDto> = journalEntryBl.getListOfTransactions(companyId, sortBy, sortType, page, size)
+        val journalEntriesPage: Page<TransactionDto> = journalEntryBl.getListOfTransactions(companyId, sortBy, sortType, page, size, keyword)
         logger.info("Sending response")
         val code = "200-41"
         val responseInfo = ResponseCodeUtil.getResponseInfo(code)
