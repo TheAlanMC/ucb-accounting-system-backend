@@ -15,8 +15,8 @@ interface ExpenseTransactionRepository: PagingAndSortingRepository<ExpenseTransa
 
     fun findFirstByCompanyIdAndTransactionTypeIdAndStatusIsTrueOrderByExpenseTransactionNumberDesc (companyId: Int, transactionTypeId: Int): ExpenseTransaction?
 
-    @Query(value = "SELECT journal_entry_id FROM expense_transaction WHERE company_id = :companyId AND status = true", nativeQuery = true)
-    fun findAllJournalEntryId(companyId: Int): List<Long>
+    @Query(value = "SELECT journal_entry_id FROM expense_transaction WHERE journal_entry_id = :journalEntryId AND company_id = :companyId  AND status = true", nativeQuery = true)
+    fun findByJournalEntryIdAndCompanyIdAndStatusIsTrue(journalEntryId: Int, companyId: Int): Long?
 
     fun findByJournalEntryIdAndStatusIsTrue(journalEntryId: Int): ExpenseTransaction?
 }

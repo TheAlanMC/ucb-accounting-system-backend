@@ -220,10 +220,10 @@ class   JournalEntryBl @Autowired constructor(
             ?: throw UasException("403-45")
         logger.info("User $kcUuid is getting journal entry $journalEntryId from company $companyId")
 
-        // Validation that journal entry is associated with a journal entry
-        val saleJournalEntryIds = saleTransactionRepository.findAllJournalEntryId(companyId.toInt())
-        val expenseJournalEntryIds = expenseTransactionRepository.findAllJournalEntryId(companyId.toInt())
-        if (journalEntryId !in saleJournalEntryIds + expenseJournalEntryIds) throw UasException("404-19")
+        // Validation that journal entry is associated with an expense transaction or sale transaction
+        val saleJournalEntryId = saleTransactionRepository.findByJournalEntryIdAndCompanyIdAndStatusIsTrue(journalEntryId.toInt(), companyId.toInt())
+        val expenseJournalEntryId = expenseTransactionRepository.findByJournalEntryIdAndCompanyIdAndStatusIsTrue(journalEntryId.toInt(), companyId.toInt())
+        if (saleJournalEntryId == null && expenseJournalEntryId == null) throw UasException("404-19")
 
         // Validation of journal entry exists
         val journalEntryEntity = journalEntryRepository.findByJournalEntryIdAndStatusIsTrue(journalEntryId) ?: throw UasException("404-19")
@@ -287,10 +287,10 @@ class   JournalEntryBl @Autowired constructor(
             ?: throw UasException("403-47")
         logger.info("User $kcUuid is accepting journal entry $journalEntryId from company $companyId")
 
-        // Validation that journal entry is associated with a journal entry
-        val saleJournalEntryIds = saleTransactionRepository.findAllJournalEntryId(companyId.toInt())
-        val expenseJournalEntryIds = expenseTransactionRepository.findAllJournalEntryId(companyId.toInt())
-        if (journalEntryId !in saleJournalEntryIds + expenseJournalEntryIds) throw UasException("404-19")
+        // Validation that journal entry is associated with an expense transaction or sale transaction
+        val saleJournalEntryId = saleTransactionRepository.findByJournalEntryIdAndCompanyIdAndStatusIsTrue(journalEntryId.toInt(), companyId.toInt())
+        val expenseJournalEntryId = expenseTransactionRepository.findByJournalEntryIdAndCompanyIdAndStatusIsTrue(journalEntryId.toInt(), companyId.toInt())
+        if (saleJournalEntryId == null && expenseJournalEntryId == null) throw UasException("404-19")
 
         // Validation of journal entry exists
         val journalEntryEntity = journalEntryRepository.findByJournalEntryIdAndStatusIsTrue(journalEntryId) ?: throw UasException("404-19")
