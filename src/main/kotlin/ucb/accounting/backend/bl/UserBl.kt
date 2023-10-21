@@ -186,15 +186,20 @@ class UserBl @Autowired constructor(
         val username = KeycloakSecurityContextHolder.getUsername() ?: throw UasException("403-03")
 
         // Check if current password is correct
-        val keycloakUser: Keycloak = KeycloakBuilder.builder()
-            .grantType(OAuth2Constants.PASSWORD)
-            .serverUrl(authUrl)
-            .realm(realm)
-            .clientId(frontendClientId)
-            .username(username)
-            .password(passwordUpdateDto.currentPassword)
-            .build()
-        keycloakUser.tokenManager().accessToken
+        try {
+            val keycloakUser: Keycloak = KeycloakBuilder.builder()
+                .grantType(OAuth2Constants.PASSWORD)
+                .serverUrl(authUrl)
+                .realm(realm)
+                .clientId(frontendClientId)
+                .username(username)
+                .password(passwordUpdateDto.currentPassword)
+                .build()
+            keycloakUser.tokenManager().accessToken
+        } catch (e: Exception) {
+            throw UasException("400-05")
+        }
+
         logger.info("Current password is correct")
 
         // Update password in keycloak

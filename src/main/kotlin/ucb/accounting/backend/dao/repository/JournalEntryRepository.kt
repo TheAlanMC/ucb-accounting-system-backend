@@ -2,14 +2,47 @@ package ucb.accounting.backend.dao.repository
 
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
+import org.springframework.data.jpa.repository.Query
 import org.springframework.data.repository.PagingAndSortingRepository
+import org.springframework.data.repository.query.Param
 import org.springframework.stereotype.Repository
 import ucb.accounting.backend.dao.JournalEntry
 
 @Repository
 interface JournalEntryRepository: PagingAndSortingRepository<JournalEntry, Long> {
-    fun findByCompanyIdAndJournalEntryNumberAndStatusIsTrue (companyId: Int, journalEntryNumber: Int): JournalEntry?
-    fun findFirstByCompanyIdAndStatusIsTrueOrderByJournalEntryNumberDesc (companyId: Int): JournalEntry?
+
+    @Query(value =
+    """
+            SELECT *
+        FROM journal_entry je
+        LEFT JOIN sale_transaction st ON st.journal_entry_id = je.journal_entry_id
+        LEFT JOIN expense_transaction et ON et.journal_entry_id = je.journal_entry_id
+        
+        WHERE je.company_id = :companyId
+        AND je.status = TRUE
+        AND st.journal_entry_id IS NULL
+        AND et.journal_entry_id IS NULL
+        AND je.journal_entry_number = :journalEntryNumber
+    """
+        , nativeQuery = true)
+    fun findByCompanyIdAndJournalEntryNumberAndStatusIsTrue (@Param("companyId") companyId: Int, @Param("journalEntryNumber") journalEntryNumber: Int): JournalEntry?
+
+    @Query(value =
+        """
+            SELECT *
+            FROM journal_entry je
+            LEFT JOIN sale_transaction st ON st.journal_entry_id = je.journal_entry_id
+            LEFT JOIN expense_transaction et ON et.journal_entry_id = je.journal_entry_id
+            
+            WHERE je.company_id = :companyId
+            AND je.status = TRUE
+            AND st.journal_entry_id IS NULL
+            AND et.journal_entry_id IS NULL
+            ORDER by journal_entry_number DESC LIMIT 1;
+        """
+        , nativeQuery = true)
+    fun findFirstByCompanyIdAndStatusIsTrueOrderByJournalEntryNumberDesc (@Param("companyId") companyId: Int): JournalEntry?
+
     fun findAllByCompanyIdAndStatusIsTrue (companyId: Int): List<JournalEntry>
     fun findByJournalEntryIdAndStatusIsTrue(journalEntryId: Long): JournalEntry?
 

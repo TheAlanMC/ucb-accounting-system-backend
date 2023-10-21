@@ -15,7 +15,7 @@ class KcUserCompanySpecification {
                     cb.like(cb.lower(root.get<KcUser>("kcUser").get("firstName")), "%${keyword.lowercase()}%"),
                     cb.like(cb.lower(root.get<KcUser>("kcUser").get("lastName")), "%${keyword.lowercase()}%"),
                     cb.like(cb.lower(root.get<KcUser>("kcUser").get("email")), "%${keyword.lowercase()}%"),
-                    cb.like(cb.lower(root.get<KcGroup>("kcGroup").get("kcGroupName")), "%${keyword.lowercase()}%"),
+                    cb.like(cb.lower(root.get<KcGroup>("kcGroup").get("groupName")), "%${keyword.lowercase()}%"),
                 )
             }
         }
