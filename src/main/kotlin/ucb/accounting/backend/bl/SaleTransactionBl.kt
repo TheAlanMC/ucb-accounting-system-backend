@@ -12,10 +12,7 @@ import org.springframework.stereotype.Service
 import ucb.accounting.backend.dao.*
 import ucb.accounting.backend.dao.repository.*
 import ucb.accounting.backend.dao.specification.SaleTransactionSpecification
-import ucb.accounting.backend.dto.InvoiceDto
-import ucb.accounting.backend.dto.PaymentDto
-import ucb.accounting.backend.dto.SaleTransactionDto
-import ucb.accounting.backend.dto.SubaccountDto
+import ucb.accounting.backend.dto.*
 import ucb.accounting.backend.exception.UasException
 import ucb.accounting.backend.mapper.SaleTransactionMapper
 import ucb.accounting.backend.mapper.SubaccountMapper
@@ -34,6 +31,7 @@ class SaleTransactionBl @Autowired constructor(
     private val paymentTypeRepository: PaymentTypeRepository,
     private val saleTransactionDetailRepository: SaleTransactionDetailRepository,
     private val saleTransactionRepository: SaleTransactionRepository,
+    private val saleTransactionEntryRepository: SaleTransactionEntryRepository,
     private val subaccountRepository: SubaccountRepository,
     private val transactionAttachmentRepository: TransactionAttachmentRepository,
     private val transactionDetailRepository: TransactionDetailRepository,
@@ -435,9 +433,28 @@ class SaleTransactionBl @Autowired constructor(
             customerRepository.findAllByCompanyIdAndStatusIsTrue(companyId.toInt()).map { it.displayName }
         }
         // Getting sale transactions
-        val saleTransactionEntities = saleTransactionRepository.findAll(companyId, searchDateFrom, searchDateTo, searchTransactionType, searchCustomers, pageable)
+        val saleTransactionEntities = saleTransactionEntryRepository.findAll(companyId, searchDateFrom, searchDateTo, searchTransactionType, searchCustomers, pageable)
         logger.info("Sale transactions obtained successfully")
-        return saleTransactionEntities.map { saleTransactionEntity -> SaleTransactionMapper.entityToDto(saleTransactionEntity)
+        return saleTransactionEntities.map {
+            SaleTransactionDto(
+                it.saleTransactionId.toInt(),
+                TransactionTypeDto(
+                    it.transactionTypeId,
+                    it.transactionTypeName
+                ),
+                it.saleTransactionNumber,
+                it.saleTransactionDate,
+                CustomerPartialDto(
+                    it.customerId,
+                    it.displayName,
+                    it.companyName,
+                    it.companyPhoneNumber,
+                    it.creationDate
+                ),
+                it.gloss,
+                it.totalAmountBs,
+                it.saleTransactionAccepted
+            )
         }
     }
 }

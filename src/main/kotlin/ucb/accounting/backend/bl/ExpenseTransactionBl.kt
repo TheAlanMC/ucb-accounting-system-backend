@@ -9,10 +9,7 @@ import org.springframework.data.domain.Sort
 import org.springframework.stereotype.Service
 import ucb.accounting.backend.dao.*
 import ucb.accounting.backend.dao.repository.*
-import ucb.accounting.backend.dto.ExpenseTransactionDto
-import ucb.accounting.backend.dto.InvoiceDto
-import ucb.accounting.backend.dto.PaymentDto
-import ucb.accounting.backend.dto.SubaccountDto
+import ucb.accounting.backend.dto.*
 import ucb.accounting.backend.exception.UasException
 import ucb.accounting.backend.mapper.ExpenseTransactionMapper
 import ucb.accounting.backend.mapper.SubaccountMapper
@@ -27,6 +24,7 @@ class ExpenseTransactionBl @Autowired constructor(
     private val documentTypeRepository: DocumentTypeRepository,
     private val expenseTransactionDetailRepository: ExpenseTransactionDetailRepository,
     private val expenseTransactionRepository: ExpenseTransactionRepository,
+    private val expenseTransactionEntryRepository: ExpenseTransactionEntryRepository,
     private val journalEntryRepository: JournalEntryRepository,
     private val kcUserCompanyRepository: KcUserCompanyRepository,
     private val paymentTypeRepository: PaymentTypeRepository,
@@ -435,7 +433,7 @@ class ExpenseTransactionBl @Autowired constructor(
             supplierRepository.findAllByCompanyIdAndStatusIsTrue(companyId.toInt()).map { it.displayName }
         }
         // Getting expense transactions
-        val expenseTransactionEntities = expenseTransactionRepository.findAll(
+        val expenseTransactionEntities = expenseTransactionEntryRepository.findAll(
             companyId,
             searchDateFrom,
             searchDateTo,
@@ -444,8 +442,26 @@ class ExpenseTransactionBl @Autowired constructor(
             pageable
         )
         logger.info("Expense transactions obtained successfully")
-        return expenseTransactionEntities.map { expenseTransactionEntity ->
-            ExpenseTransactionMapper.entityToDto(expenseTransactionEntity)
+        return expenseTransactionEntities.map {
+            ExpenseTransactionDto(
+                it.expenseTransactionId.toInt(),
+                TransactionTypeDto(
+                    it.transactionTypeId,
+                    it.transactionTypeName
+                ),
+                it.expenseTransactionNumber,
+                it.expenseTransactionDate,
+                SupplierPartialDto(
+                    it.supplierId,
+                    it.displayName,
+                    it.companyName,
+                    it.companyPhoneNumber,
+                    it.creationDate
+                ),
+                it.gloss,
+                it.totalAmountBs,
+                it.expenseTransactionAccepted
+            )
         }
     }
 }

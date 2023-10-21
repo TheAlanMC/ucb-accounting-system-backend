@@ -94,7 +94,7 @@ class CompanyBl @Autowired constructor(
         createAccountingPlan(savedCompanyEntity.companyId)
 
         // Create subaccount-tax_type relationships
-        createSubaccountTaxTypeRelationships(savedCompanyEntity.companyId)
+//        createSubaccountTaxTypeRelationships(savedCompanyEntity.companyId)
     }
 
     fun updateCompany (companyPartialDto: CompanyPartialDto, companyId: Long): CompanyDto {
