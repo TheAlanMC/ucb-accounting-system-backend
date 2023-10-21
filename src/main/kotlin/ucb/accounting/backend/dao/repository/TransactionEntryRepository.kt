@@ -11,7 +11,7 @@ import ucb.accounting.backend.dao.TransactionEntry
 interface TransactionEntryRepository: PagingAndSortingRepository<TransactionEntry, Long> {
     @Query(
         """
-         SELECT  je.journal_entry_id,
+         SELECT  je.journal_entry_id AS journal_entry_id,
                 CONCAT (et.expense_transaction_number, st.sale_transaction_number) AS transaction_number,
                 CONCAT(c.customer_id, s.supplier_id) AS client_id,
                 CONCAT(c.display_name, s.display_name) AS display_name,
@@ -19,8 +19,8 @@ interface TransactionEntryRepository: PagingAndSortingRepository<TransactionEntr
                 CONCAT(c.company_phone_number, s.company_phone_number) AS company_phone_number,
                 CONCAT(c.tx_date, s.tx_date) AS client_creation_date,
                 je.journal_entry_accepted AS transaction_accepted,
-                dt.document_type_id,
-                dt.document_type_name,
+                dt.document_type_id AS document_type_id,
+                dt.document_type_name AS document_type_name,
                 CONCAT(tt1.transaction_type_id, tt2.transaction_type_id) AS transaction_type_id,
                 CONCAT(tt1.transaction_type_name, tt2.transaction_type_name) AS transaction_type_name,
                 CONCAT(SUM((etd.quantity * etd.unit_price_bs) + etd.amount_bs), SUM((std.quantity * std.unit_price_bs) + std.amount_bs)) AS total_amount_bs,

@@ -1,7 +1,10 @@
 package ucb.accounting.backend.dao
 
+import org.hibernate.annotations.Generated
+import org.hibernate.annotations.GenerationTime
 import ucb.accounting.backend.util.HttpUtil
 import ucb.accounting.backend.util.KeycloakSecurityContextHolder
+import java.math.BigDecimal
 import java.sql.Date
 import java.sql.Timestamp
 import javax.persistence.*
@@ -46,6 +49,9 @@ class ExpenseTransaction {
 
     @Column(name = "gloss")
     var gloss: String = ""
+
+    @Generated(GenerationTime.ALWAYS)
+    var totalAmountBs: BigDecimal = BigDecimal.ZERO
 
     @Column(name = "expense_transaction_accepted")
     var expenseTransactionAccepted: Boolean = false

@@ -7,6 +7,7 @@ import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Pageable
 import org.springframework.data.domain.Sort
 import org.springframework.data.jpa.domain.Specification
+import org.springframework.data.repository.query.Param
 import org.springframework.stereotype.Service
 import ucb.accounting.backend.dao.*
 import ucb.accounting.backend.dao.repository.*
@@ -408,11 +409,13 @@ class SaleTransactionBl @Autowired constructor(
             ?: throw UasException("403-35")
         logger.info("User $kcUuid is getting sale transactions")
 
-        val pageable: Pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.fromString(sortType), sortBy))
-        var specification: Specification<SaleTransaction> = Specification.where(null)
-        specification = specification.and(specification.and(SaleTransactionSpecification.companyId(companyId.toInt())))
-        specification = specification.and(specification.and(SaleTransactionSpecification.statusIsTrue()))
+        val newSortBy = sortBy.replace(Regex("([a-z])([A-Z]+)"), "$1_$2").lowercase()
+        val pageable: Pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.fromString(sortType), newSortBy))
 
+        var searchDateFrom: Date? = null
+        var searchDateTo: Date? = null
+        var searchTransactionType: String? = null
+        var searchCustomers: List<String>? = null
         if (!creationDate.isNullOrEmpty()) {
             val format: java.text.DateFormat = java.text.SimpleDateFormat("yyyy-MM-dd")
             val newDateFrom: Date = format.parse(creationDate)
@@ -420,23 +423,21 @@ class SaleTransactionBl @Autowired constructor(
             calendar.time = format.parse(creationDate)
             calendar.add(Calendar.DATE, 1)
             val newDateTo: Date = calendar.time
-            specification = specification.and(specification.and(SaleTransactionSpecification.dateBetween(newDateFrom, newDateTo)))
+            searchDateFrom = newDateFrom
+            searchDateTo = newDateTo
         }
         if (!transactionType.isNullOrEmpty()) {
-            specification = specification.and(specification.and(SaleTransactionSpecification.transactionTypeId(transactionType)))
+            searchTransactionType = transactionType
         }
-        if (!customers.isNullOrEmpty()) {
-            specification = specification.and(specification.and(SaleTransactionSpecification.customers(customers)))
+        searchCustomers = if (!customers.isNullOrEmpty()) {
+            customers
+        } else {
+            customerRepository.findAllByCompanyIdAndStatusIsTrue(companyId.toInt()).map { it.displayName }
         }
         // Getting sale transactions
-        val saleTransactionEntities = saleTransactionRepository.findAll(specification, pageable)
+        val saleTransactionEntities = saleTransactionRepository.findAll(companyId, searchDateFrom, searchDateTo, searchTransactionType, searchCustomers, pageable)
         logger.info("Sale transactions obtained successfully")
-
-        return saleTransactionEntities.map { saleTransactionEntity ->
-            SaleTransactionMapper.entityToDto(saleTransactionEntity,
-                saleTransactionDetailRepository.findAllBySaleTransactionIdAndStatusIsTrue(saleTransactionEntity.saleTransactionId)
-                    .sumOf { it.unitPriceBs.times(it.quantity.toBigDecimal()) + it.amountBs }
-            )
+        return saleTransactionEntities.map { saleTransactionEntity -> SaleTransactionMapper.entityToDto(saleTransactionEntity)
         }
     }
 }

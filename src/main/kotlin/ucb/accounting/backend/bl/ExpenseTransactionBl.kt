@@ -6,11 +6,9 @@ import org.springframework.data.domain.Page
 import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Pageable
 import org.springframework.data.domain.Sort
-import org.springframework.data.jpa.domain.Specification
 import org.springframework.stereotype.Service
 import ucb.accounting.backend.dao.*
 import ucb.accounting.backend.dao.repository.*
-import ucb.accounting.backend.dao.specification.ExpenseTransactionSpecification
 import ucb.accounting.backend.dto.ExpenseTransactionDto
 import ucb.accounting.backend.dto.InvoiceDto
 import ucb.accounting.backend.dto.PaymentDto
@@ -38,18 +36,20 @@ class ExpenseTransactionBl @Autowired constructor(
     private val transactionDetailRepository: TransactionDetailRepository,
     private val transactionRepository: TransactionRepository,
     private val transactionTypeRepository: TransactionTypeRepository,
-){
-    companion object{
+) {
+    companion object {
         private val logger = LoggerFactory.getLogger(ExpenseTransactionBl::class.java.name)
     }
-    fun createInvoiceExpenseTransaction(companyId: Long, invoiceDto: InvoiceDto){
+
+    fun createInvoiceExpenseTransaction(companyId: Long, invoiceDto: InvoiceDto) {
         logger.info("Starting the BL call to create expense transaction")
         // Validate that no field is null but attachments
         if (invoiceDto.clientId == null || invoiceDto.paymentTypeId == null ||
             invoiceDto.gloss.isNullOrEmpty() || invoiceDto.description.isNullOrEmpty() ||
             invoiceDto.gloss.trim().isEmpty() || invoiceDto.description.trim().isEmpty() ||
             invoiceDto.invoiceDate == null || invoiceDto.invoiceDetails == null ||
-            invoiceDto.invoiceNumber == null) throw UasException("400-28")
+            invoiceDto.invoiceNumber == null
+        ) throw UasException("400-28")
         // Validation of company exists
         companyRepository.findByCompanyIdAndStatusIsTrue(companyId) ?: throw UasException("404-05")
 
@@ -63,34 +63,45 @@ class ExpenseTransactionBl @Autowired constructor(
 
         // Validation that subaccounts exist
         invoiceDto.invoiceDetails.map {
-            val subaccountEntities = subaccountRepository.findBySubaccountIdAndStatusIsTrue(it.subaccountId) ?: throw UasException("404-10")
+            val subaccountEntities =
+                subaccountRepository.findBySubaccountIdAndStatusIsTrue(it.subaccountId) ?: throw UasException("404-10")
             // Validation that subaccounts belong to the company
             if (subaccountEntities.companyId != companyId.toInt()) throw UasException("403-34")
         }
 
         // Validation that the transaction type exists
-        val transactionTypeEntity = transactionTypeRepository.findByTransactionTypeNameAndStatusIsTrue("Factura") ?: throw UasException("404-17")
+        val transactionTypeEntity = transactionTypeRepository.findByTransactionTypeNameAndStatusIsTrue("Factura")
+            ?: throw UasException("404-17")
         // Validation that the payment type exists
-        paymentTypeRepository.findByPaymentTypeIdAndStatusIsTrue(invoiceDto.paymentTypeId.toLong()) ?: throw UasException("404-18")
+        paymentTypeRepository.findByPaymentTypeIdAndStatusIsTrue(invoiceDto.paymentTypeId.toLong())
+            ?: throw UasException("404-18")
 
         // Validation that the supplier exists
-        val supplierEntity = supplierRepository.findBySupplierIdAndStatusIsTrue(invoiceDto.clientId.toLong()) ?: throw UasException("404-15")
+        val supplierEntity = supplierRepository.findBySupplierIdAndStatusIsTrue(invoiceDto.clientId.toLong())
+            ?: throw UasException("404-15")
         // Validation that the supplier belongs to the company
         if (supplierEntity.companyId != companyId.toInt()) throw UasException("403-34")
 
         // Validation that the invoice expense transaction number is unique
-        if (expenseTransactionRepository.findByCompanyIdAndTransactionTypeIdAndExpenseTransactionNumberAndStatusIsTrue(companyId.toInt(), transactionTypeEntity.transactionTypeId.toInt(), invoiceDto.invoiceNumber) != null) throw UasException("409-06")
+        if (expenseTransactionRepository.findByCompanyIdAndTransactionTypeIdAndExpenseTransactionNumberAndStatusIsTrue(
+                companyId.toInt(),
+                transactionTypeEntity.transactionTypeId.toInt(),
+                invoiceDto.invoiceNumber
+            ) != null
+        ) throw UasException("409-06")
 
         // Validation that the user belongs to the company
         val kcUuid = KeycloakSecurityContextHolder.getSubject()!!
-        kcUserCompanyRepository.findAllByKcUser_KcUuidAndCompany_CompanyIdAndStatusIsTrue(kcUuid, companyId) ?: throw UasException("403-34")
+        kcUserCompanyRepository.findAllByKcUser_KcUuidAndCompany_CompanyIdAndStatusIsTrue(kcUuid, companyId)
+            ?: throw UasException("403-34")
         logger.info("User $kcUuid is registering a new expense transaction")
 
         // Creating journal entry
         logger.info("Saving journal entry")
         val journalEntryEntity = JournalEntry()
         journalEntryEntity.companyId = companyId.toInt()
-        journalEntryEntity.documentTypeId = documentTypeRepository.findByDocumentTypeNameAndStatusIsTrue("Egreso")!!.documentTypeId.toInt()
+        journalEntryEntity.documentTypeId =
+            documentTypeRepository.findByDocumentTypeNameAndStatusIsTrue("Egreso")!!.documentTypeId.toInt()
         journalEntryEntity.journalEntryNumber = invoiceDto.invoiceNumber
         journalEntryEntity.gloss = invoiceDto.gloss
         val savedJournalEntry = journalEntryRepository.save(journalEntryEntity)
@@ -107,7 +118,8 @@ class ExpenseTransactionBl @Autowired constructor(
             invoiceDto.attachments.map {
                 val transactionAttachmentEntity = TransactionAttachment()
                 transactionAttachmentEntity.transaction = savedTransaction
-                transactionAttachmentEntity.attachment = attachmentRepository.findByAttachmentIdAndStatusIsTrue(it.attachmentId)!!
+                transactionAttachmentEntity.attachment =
+                    attachmentRepository.findByAttachmentIdAndStatusIsTrue(it.attachmentId)!!
                 transactionAttachmentRepository.save(transactionAttachmentEntity)
             }
         } else {
@@ -128,7 +140,8 @@ class ExpenseTransactionBl @Autowired constructor(
         val transactionDetailEntity = TransactionDetail()
         transactionDetailEntity.transactionId = savedTransaction.transactionId.toInt()
         transactionDetailEntity.subaccountId = supplierEntity.subaccountId
-        transactionDetailEntity.debitAmountBs = invoiceDto.invoiceDetails.sumOf { it.unitPriceBs.times(it.quantity.toBigDecimal()) }
+        transactionDetailEntity.debitAmountBs =
+            invoiceDto.invoiceDetails.sumOf { it.unitPriceBs.times(it.quantity.toBigDecimal()) }
         transactionDetailEntity.creditAmountBs = BigDecimal.ZERO
         transactionDetailRepository.save(transactionDetailEntity)
 
@@ -141,7 +154,8 @@ class ExpenseTransactionBl @Autowired constructor(
         expenseTransactionEntity.supplierId = invoiceDto.clientId.toInt()
         expenseTransactionEntity.subaccountId = supplierEntity.subaccountId
         expenseTransactionEntity.expenseTransactionNumber = invoiceDto.invoiceNumber
-        expenseTransactionEntity.expenseTransactionReference = invoiceDto.reference ?: invoiceDto.invoiceNumber.toString()
+        expenseTransactionEntity.expenseTransactionReference =
+            invoiceDto.reference ?: invoiceDto.invoiceNumber.toString()
         expenseTransactionEntity.expenseTransactionDate = invoiceDto.invoiceDate
         expenseTransactionEntity.description = invoiceDto.description
         expenseTransactionEntity.gloss = invoiceDto.gloss
@@ -159,18 +173,23 @@ class ExpenseTransactionBl @Autowired constructor(
         logger.info("Expense transaction created successfully")
     }
 
-    fun getSubaccountsForInvoiceExpenseTransaction(companyId: Long):List<SubaccountDto>{
+    fun getSubaccountsForInvoiceExpenseTransaction(companyId: Long): List<SubaccountDto> {
         logger.info("Starting the BL call to get subaccounts for expense transaction")
         // Validation of company exists
         companyRepository.findByCompanyIdAndStatusIsTrue(companyId) ?: throw UasException("404-05")
 
         // Validation that the user belongs to the company
         val kcUuid = KeycloakSecurityContextHolder.getSubject()!!
-        kcUserCompanyRepository.findAllByKcUser_KcUuidAndCompany_CompanyIdAndStatusIsTrue(kcUuid, companyId) ?: throw UasException("403-16")
+        kcUserCompanyRepository.findAllByKcUser_KcUuidAndCompany_CompanyIdAndStatusIsTrue(kcUuid, companyId)
+            ?: throw UasException("403-16")
         logger.info("User $kcUuid is getting subaccounts for expense transaction")
 
         // Getting subaccounts
-        val subaccountEntities = subaccountRepository.findAllByAccountAccountSubgroupAccountGroupAccountCategoryAccountCategoryNameAndCompanyIdAndStatusIsTrueOrderBySubaccountIdAsc("EGRESOS", companyId.toInt())
+        val subaccountEntities =
+            subaccountRepository.findAllByAccountAccountSubgroupAccountGroupAccountCategoryAccountCategoryNameAndCompanyIdAndStatusIsTrueOrderBySubaccountIdAsc(
+                "EGRESOS",
+                companyId.toInt()
+            )
         logger.info("Subaccounts for expense transaction obtained successfully")
         return subaccountEntities.map { SubaccountMapper.entityToDto(it) }
     }
@@ -182,25 +201,32 @@ class ExpenseTransactionBl @Autowired constructor(
 
         // Validation of user belongs to company
         val kcUuid = KeycloakSecurityContextHolder.getSubject()!!
-        kcUserCompanyRepository.findAllByKcUser_KcUuidAndCompany_CompanyIdAndStatusIsTrue(kcUuid, companyId) ?: throw UasException("403-44")
+        kcUserCompanyRepository.findAllByKcUser_KcUuidAndCompany_CompanyIdAndStatusIsTrue(kcUuid, companyId)
+            ?: throw UasException("403-44")
         logger.info("User $kcUuid is getting last expense transaction number from company $companyId")
 
         // Get last expense transaction number
-        val transactionTypeEntity = transactionTypeRepository.findByTransactionTypeNameAndStatusIsTrue("Factura") ?: throw UasException("404-17")
-        val lastExpenseTransactionNumber = expenseTransactionRepository.findFirstByCompanyIdAndTransactionTypeIdAndStatusIsTrueOrderByExpenseTransactionNumberDesc(companyId.toInt(), transactionTypeEntity.transactionTypeId.toInt())?.expenseTransactionNumber ?: 0
+        val transactionTypeEntity = transactionTypeRepository.findByTransactionTypeNameAndStatusIsTrue("Factura")
+            ?: throw UasException("404-17")
+        val lastExpenseTransactionNumber =
+            expenseTransactionRepository.findFirstByCompanyIdAndTransactionTypeIdAndStatusIsTrueOrderByExpenseTransactionNumberDesc(
+                companyId.toInt(),
+                transactionTypeEntity.transactionTypeId.toInt()
+            )?.expenseTransactionNumber ?: 0
         logger.info("Last expense transaction number is $lastExpenseTransactionNumber")
 
         return lastExpenseTransactionNumber + 1
     }
 
-    fun createPaymentExpenseTransaction(companyId: Long, paymentDto: PaymentDto){
+    fun createPaymentExpenseTransaction(companyId: Long, paymentDto: PaymentDto) {
         logger.info("Starting the BL call to create expense transaction")
         // Validate that no field is null but attachments
         if (paymentDto.clientId == null || paymentDto.paymentTypeId == null ||
             paymentDto.gloss.isNullOrEmpty() || paymentDto.description.isNullOrEmpty() ||
             paymentDto.gloss.trim().isEmpty() || paymentDto.description.trim().isEmpty() ||
             paymentDto.paymentDate == null || paymentDto.paymentDetail == null ||
-            paymentDto.paymentNumber == null) throw UasException("400-28")
+            paymentDto.paymentNumber == null
+        ) throw UasException("400-28")
         // Validation of company exists
         companyRepository.findByCompanyIdAndStatusIsTrue(companyId) ?: throw UasException("404-05")
 
@@ -213,33 +239,45 @@ class ExpenseTransactionBl @Autowired constructor(
         }
 
         // Validation that subaccounts exist
-        val subaccountEntity = subaccountRepository.findBySubaccountIdAndStatusIsTrue(paymentDto.paymentDetail.subaccountId) ?: throw UasException("404-10")
+        val subaccountEntity =
+            subaccountRepository.findBySubaccountIdAndStatusIsTrue(paymentDto.paymentDetail.subaccountId)
+                ?: throw UasException("404-10")
         // Validation that subaccount belongs to company
         if (subaccountEntity.companyId != companyId.toInt()) throw UasException("403-34")
 
         // Validation that the transaction type exists
-        val transactionTypeEntity = transactionTypeRepository.findByTransactionTypeNameAndStatusIsTrue("Recibo") ?: throw UasException("404-17")
+        val transactionTypeEntity =
+            transactionTypeRepository.findByTransactionTypeNameAndStatusIsTrue("Recibo") ?: throw UasException("404-17")
         // Validation that the payment type exists
-        paymentTypeRepository.findByPaymentTypeIdAndStatusIsTrue(paymentDto.paymentTypeId.toLong()) ?: throw UasException("404-18")
+        paymentTypeRepository.findByPaymentTypeIdAndStatusIsTrue(paymentDto.paymentTypeId.toLong())
+            ?: throw UasException("404-18")
 
         // Validation supplier exists
-        val supplierEntity = supplierRepository.findBySupplierIdAndStatusIsTrue(paymentDto.clientId.toLong()) ?: throw UasException("404-14")
+        val supplierEntity = supplierRepository.findBySupplierIdAndStatusIsTrue(paymentDto.clientId.toLong())
+            ?: throw UasException("404-14")
         // Validation that the supplier belongs to the company
         if (supplierEntity.companyId != companyId.toInt()) throw UasException("403-34")
 
         // Validation that the payment expense transaction number is unique
-        if (expenseTransactionRepository.findByCompanyIdAndTransactionTypeIdAndExpenseTransactionNumberAndStatusIsTrue(companyId.toInt(), transactionTypeEntity.transactionTypeId.toInt(), paymentDto.paymentNumber) != null) throw UasException("409-06")
+        if (expenseTransactionRepository.findByCompanyIdAndTransactionTypeIdAndExpenseTransactionNumberAndStatusIsTrue(
+                companyId.toInt(),
+                transactionTypeEntity.transactionTypeId.toInt(),
+                paymentDto.paymentNumber
+            ) != null
+        ) throw UasException("409-06")
 
         // Validation that the user belongs to the company
         val kcUuid = KeycloakSecurityContextHolder.getSubject()!!
-        kcUserCompanyRepository.findAllByKcUser_KcUuidAndCompany_CompanyIdAndStatusIsTrue(kcUuid, companyId) ?: throw UasException("403-33")
+        kcUserCompanyRepository.findAllByKcUser_KcUuidAndCompany_CompanyIdAndStatusIsTrue(kcUuid, companyId)
+            ?: throw UasException("403-33")
         logger.info("User $kcUuid is registering a new expense transaction")
 
         // Creating journal entry
         logger.info("Saving journal entry")
         val journalEntryEntity = JournalEntry()
         journalEntryEntity.companyId = companyId.toInt()
-        journalEntryEntity.documentTypeId = documentTypeRepository.findByDocumentTypeNameAndStatusIsTrue("Egreso")!!.documentTypeId.toInt()
+        journalEntryEntity.documentTypeId =
+            documentTypeRepository.findByDocumentTypeNameAndStatusIsTrue("Egreso")!!.documentTypeId.toInt()
         journalEntryEntity.journalEntryNumber = paymentDto.paymentNumber
         journalEntryEntity.gloss = paymentDto.gloss
         val savedJournalEntry = journalEntryRepository.save(journalEntryEntity)
@@ -256,7 +294,8 @@ class ExpenseTransactionBl @Autowired constructor(
             paymentDto.attachments.map {
                 val transactionAttachmentEntity = TransactionAttachment()
                 transactionAttachmentEntity.transaction = savedTransaction
-                transactionAttachmentEntity.attachment = attachmentRepository.findByAttachmentIdAndStatusIsTrue(it.attachmentId)!!
+                transactionAttachmentEntity.attachment =
+                    attachmentRepository.findByAttachmentIdAndStatusIsTrue(it.attachmentId)!!
                 transactionAttachmentRepository.save(transactionAttachmentEntity)
             }
         } else {
@@ -288,7 +327,8 @@ class ExpenseTransactionBl @Autowired constructor(
         expenseTransactionEntity.supplierId = paymentDto.clientId.toInt()
         expenseTransactionEntity.subaccountId = supplierEntity.subaccountId
         expenseTransactionEntity.expenseTransactionNumber = paymentDto.paymentNumber
-        expenseTransactionEntity.expenseTransactionReference = paymentDto.reference ?: paymentDto.paymentNumber.toString()
+        expenseTransactionEntity.expenseTransactionReference =
+            paymentDto.reference ?: paymentDto.paymentNumber.toString()
         expenseTransactionEntity.expenseTransactionDate = paymentDto.paymentDate
         expenseTransactionEntity.description = paymentDto.description
         expenseTransactionEntity.gloss = paymentDto.gloss
@@ -303,7 +343,7 @@ class ExpenseTransactionBl @Autowired constructor(
         logger.info("Expense transaction created successfully")
     }
 
-    fun getSubaccountsForPaymentExpenseTransaction(companyId: Long):List<SubaccountDto>{
+    fun getSubaccountsForPaymentExpenseTransaction(companyId: Long): List<SubaccountDto> {
         logger.info("Starting the BL call to get subaccounts for expense transaction")
         // Validation of company exists
         companyRepository.findByCompanyIdAndStatusIsTrue(companyId) ?: throw UasException("404-05")
@@ -313,10 +353,15 @@ class ExpenseTransactionBl @Autowired constructor(
         logger.info("User $kcUuid is getting subaccounts for expense transaction")
 
         // Validation of user belongs to company
-        kcUserCompanyRepository.findAllByKcUser_KcUuidAndCompany_CompanyIdAndStatusIsTrue(kcUuid, companyId) ?: throw UasException("403-16")
+        kcUserCompanyRepository.findAllByKcUser_KcUuidAndCompany_CompanyIdAndStatusIsTrue(kcUuid, companyId)
+            ?: throw UasException("403-16")
 
         // Getting subaccounts
-        val subaccountEntities = subaccountRepository.findAllByAccountAccountSubgroupAccountSubgroupNameAndCompanyIdAndStatusIsTrueOrderBySubaccountIdAsc("DISPONIBILIDADES", companyId.toInt())
+        val subaccountEntities =
+            subaccountRepository.findAllByAccountAccountSubgroupAccountSubgroupNameAndCompanyIdAndStatusIsTrueOrderBySubaccountIdAsc(
+                "DISPONIBILIDADES",
+                companyId.toInt()
+            )
         logger.info("Subaccounts for expense transaction obtained successfully")
         return subaccountEntities.map { SubaccountMapper.entityToDto(it) }
     }
@@ -328,12 +373,18 @@ class ExpenseTransactionBl @Autowired constructor(
 
         // Validation of user belongs to company
         val kcUuid = KeycloakSecurityContextHolder.getSubject()!!
-        kcUserCompanyRepository.findAllByKcUser_KcUuidAndCompany_CompanyIdAndStatusIsTrue(kcUuid, companyId) ?: throw UasException("403-43")
+        kcUserCompanyRepository.findAllByKcUser_KcUuidAndCompany_CompanyIdAndStatusIsTrue(kcUuid, companyId)
+            ?: throw UasException("403-43")
         logger.info("User $kcUuid is getting last expense transaction number from company $companyId")
 
         // Getting last expense transaction number
-        val transactionTypeEntity = transactionTypeRepository.findByTransactionTypeNameAndStatusIsTrue("Recibo") ?: throw UasException("404-17")
-        val lastExpenseTransactionNumber = expenseTransactionRepository.findFirstByCompanyIdAndTransactionTypeIdAndStatusIsTrueOrderByExpenseTransactionNumberDesc(companyId.toInt(), transactionTypeEntity.transactionTypeId.toInt())?.expenseTransactionNumber ?: 0
+        val transactionTypeEntity =
+            transactionTypeRepository.findByTransactionTypeNameAndStatusIsTrue("Recibo") ?: throw UasException("404-17")
+        val lastExpenseTransactionNumber =
+            expenseTransactionRepository.findFirstByCompanyIdAndTransactionTypeIdAndStatusIsTrueOrderByExpenseTransactionNumberDesc(
+                companyId.toInt(),
+                transactionTypeEntity.transactionTypeId.toInt()
+            )?.expenseTransactionNumber ?: 0
         logger.info("Last expense transaction number obtained successfully")
         return lastExpenseTransactionNumber + 1
     }
@@ -354,14 +405,17 @@ class ExpenseTransactionBl @Autowired constructor(
 
         // Validation that the user belongs to the company
         val kcUuid = KeycloakSecurityContextHolder.getSubject()!!
-        kcUserCompanyRepository.findAllByKcUser_KcUuidAndCompany_CompanyIdAndStatusIsTrue(kcUuid, companyId) ?: throw UasException("403-36")
+        kcUserCompanyRepository.findAllByKcUser_KcUuidAndCompany_CompanyIdAndStatusIsTrue(kcUuid, companyId)
+            ?: throw UasException("403-36")
         logger.info("User $kcUuid is getting expense transactions")
 
-        val pageable: Pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.fromString(sortType), sortBy))
-        var specification: Specification<ExpenseTransaction> = Specification.where(null)
-        specification = specification.and(specification.and(ExpenseTransactionSpecification.companyId(companyId.toInt())))
-        specification = specification.and(specification.and(ExpenseTransactionSpecification.statusIsTrue()))
+        val newSortBy = sortBy.replace(Regex("([a-z])([A-Z]+)"), "$1_$2").lowercase()
+        val pageable: Pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.fromString(sortType), newSortBy))
 
+        var searchDateFrom: Date? = null
+        var searchDateTo: Date? = null
+        var searchTransactionType: String? = null
+        var searchSuppliers: List<String>? = null
         if (!creationDate.isNullOrEmpty()) {
             val format: java.text.DateFormat = java.text.SimpleDateFormat("yyyy-MM-dd")
             val newDateFrom: Date = format.parse(creationDate)
@@ -369,21 +423,29 @@ class ExpenseTransactionBl @Autowired constructor(
             calendar.time = format.parse(creationDate)
             calendar.add(Calendar.DATE, 1)
             val newDateTo: Date = calendar.time
-            specification = specification.and(specification.and(ExpenseTransactionSpecification.dateBetween(newDateFrom, newDateTo)))
+            searchDateFrom = newDateFrom
+            searchDateTo = newDateTo
         }
         if (!transactionType.isNullOrEmpty()) {
-            specification = specification.and(specification.and(ExpenseTransactionSpecification.transactionType(transactionType)))
+            searchTransactionType = transactionType
         }
-        if (!suppliers.isNullOrEmpty()) {
-            specification = specification.and(specification.and(ExpenseTransactionSpecification.suppliers(suppliers)))
+        searchSuppliers = if (!suppliers.isNullOrEmpty()) {
+            suppliers
+        } else {
+            supplierRepository.findAllByCompanyIdAndStatusIsTrue(companyId.toInt()).map { it.displayName }
         }
         // Getting expense transactions
-        val expenseTransactionEntities = expenseTransactionRepository.findAll(specification, pageable)
+        val expenseTransactionEntities = expenseTransactionRepository.findAll(
+            companyId,
+            searchDateFrom,
+            searchDateTo,
+            searchTransactionType,
+            searchSuppliers,
+            pageable
+        )
         logger.info("Expense transactions obtained successfully")
         return expenseTransactionEntities.map { expenseTransactionEntity ->
-            ExpenseTransactionMapper.entityToDto(expenseTransactionEntity,
-                expenseTransactionDetailRepository.findAllByExpenseTransactionIdAndStatusIsTrue(expenseTransactionEntity.expenseTransactionId).sumOf { it.unitPriceBs.times(it.quantity.toBigDecimal()) + it.amountBs }
-            )
+            ExpenseTransactionMapper.entityToDto(expenseTransactionEntity)
         }
     }
 }

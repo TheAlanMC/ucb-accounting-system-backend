@@ -166,7 +166,6 @@ class   JournalEntryBl @Autowired constructor(
             ?: throw UasException("403-46")
         logger.info("User $kcUuid is getting list of transactions from company $companyId")
 
-        // convert sortBy from camelCase to snake_case
         val newSortBy = sortBy.replace(Regex("([a-z])([A-Z]+)"), "$1_$2").lowercase()
         val pageable: Pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.fromString(sortType), newSortBy))
 
