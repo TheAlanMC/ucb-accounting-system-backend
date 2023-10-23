@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import ucb.accounting.backend.bl.AccountBl
 import ucb.accounting.backend.bl.FilesBl
@@ -15,6 +16,7 @@ import ucb.accounting.backend.bl.ReportBl
 import ucb.accounting.backend.dto.AttachmentDownloadDto
 import ucb.accounting.backend.dto.ResponseDto
 import ucb.accounting.backend.util.ResponseCodeUtil
+import java.util.Date
 
 @RestController
 @RequestMapping("/api/v1/report")
@@ -30,11 +32,14 @@ class ReportsApi @Autowired constructor(
     @GetMapping("/journal-book/companies/{companyId}")
     fun generateJournalBookReport (
         @PathVariable("companyId") companyId: Long,
+        @RequestParam("startDate") startDate: Date,
+        @RequestParam("endDate") endDate: Date,
+        @RequestParam("documentTypeId") documentTypeId: Long
     ): ResponseEntity<ResponseDto<AttachmentDownloadDto>>
     {
         logger.info("Generating Journal Book report")
         logger.info("GET api/v1/report/journal-book/companies/${companyId}")
-        val report:ByteArray = reportBl.generateJournalBook(companyId)
+        val report:ByteArray = reportBl.generateJournalBookByDates(companyId, startDate, endDate, documentTypeId)
         val uploadedReport = fileBl.uploadFile(report, companyId)
         val downloadReport = fileBl.downloadFile(uploadedReport.attachmentId, companyId)
         val code = "200-22"
