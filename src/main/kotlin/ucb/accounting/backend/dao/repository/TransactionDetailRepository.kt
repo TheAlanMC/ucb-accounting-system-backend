@@ -27,4 +27,6 @@ interface TransactionDetailRepository : JpaRepository<TransactionDetail, Long> {
         nativeQuery = true
     )
     fun findAll (@Param("companyId") companyId: Int, @Param("dateFrom") dateFrom: Date, @Param("dateTo") dateTo: Date, @Param("subaccounts") subaccounts: List<Int>): List<TransactionDetail>
+
+    fun findAll (specification: Specification<TransactionDetail>): List<TransactionDetail>
 }

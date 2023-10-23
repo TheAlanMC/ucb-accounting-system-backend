@@ -10,6 +10,7 @@ import ucb.accounting.backend.dao.JournalEntry
 import ucb.accounting.backend.dao.S3Object
 import ucb.accounting.backend.dao.TransactionDetail
 import ucb.accounting.backend.dao.repository.*
+import ucb.accounting.backend.dao.specification.TransactionDetailSpecification
 import ucb.accounting.backend.dto.*
 import ucb.accounting.backend.exception.UasException
 import ucb.accounting.backend.mapper.CompanyMapper
@@ -81,7 +82,13 @@ class ReportBl @Autowired constructor(
         }
 
         val pageable: Pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.fromString(sortType), sortBy))
-        val ledgerBooks: List<TransactionDetail> = transactionDetailRepository.findAll(companyId.toInt(), newDateFrom, newDateTo, newSubaccountIds)
+        val specification: Specification<TransactionDetail> = Specification.where(TransactionDetailSpecification.dateBetween(newDateFrom, newDateTo))
+            .and(TransactionDetailSpecification.subaccounts(newSubaccountIds))
+            .and(TransactionDetailSpecification.accepted())
+            .and(TransactionDetailSpecification.companyId(companyId.toInt()))
+            .and(TransactionDetailSpecification.statusIsTrue())
+
+        val ledgerBooks: List<TransactionDetail> = transactionDetailRepository.findAll(specification)
 
         // Getting company info
         // Get s3 object for company logo
@@ -92,7 +99,8 @@ class ReportBl @Autowired constructor(
         val reportDto: List<ReportDto<GeneralLedgerReportDto>> = subaccountsEntities.map { subaccount ->
             var accumulatedBalance = BigDecimal(0.00)
             val ledgerBook = ledgerBooks.filter { it.subaccount!!.subaccountId == subaccount.subaccountId }
-            val transactionDetails = ledgerBook.map {
+            val sortedLedgerBook = ledgerBook.sortedBy { it.transaction!!.transactionDate.time }
+            val transactionDetails = sortedLedgerBook.map {
                     accumulatedBalance += it.creditAmountBs - it.debitAmountBs
                     GeneralLedgerTransactionDetailDto(
                         transactionDate = it.transaction!!.transactionDate,

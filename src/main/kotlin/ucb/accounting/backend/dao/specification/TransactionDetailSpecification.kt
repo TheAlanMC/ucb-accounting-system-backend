@@ -27,7 +27,7 @@ class TransactionDetailSpecification {
         }
         fun companyId(companyId: Int): Specification<TransactionDetail> {
             return Specification { root, _, cb ->
-                cb.equal(root.get<Transaction>("transaction").get<JournalEntry>("journalEntry"), companyId)
+                cb.equal(root.get<Transaction>("transaction").get<JournalEntry>("journalEntry").get<Any>("companyId"), companyId)
             }
         }
 
