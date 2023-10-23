@@ -47,4 +47,24 @@ class ReportApi  @Autowired constructor(private val reportBl: ReportBl) {
         logger.info("Code: $code - ${responseInfo.message}")
         return ResponseEntity(ResponseDto(code, responseInfo.message!!, journalBook.content, journalBook.totalElements), responseInfo.httpStatus)
     }
+
+    @GetMapping("/worksheets/companies/{companyId}")
+    fun getWorksheet(
+        @PathVariable("companyId") companyId: Long,
+        @RequestParam(defaultValue = "subaccountId") sortBy: String,
+        @RequestParam(defaultValue = "asc") sortType: String,
+        @RequestParam(defaultValue = "0") page: Int,
+        @RequestParam(defaultValue = "10") size: Int,
+        @RequestParam(required = true) dateFrom: String,
+        @RequestParam(required = true) dateTo: String,
+    ): ResponseEntity<ResponseDto<ReportDto<WorksheetReportDto>>> {
+        logger.info("Starting the API call to get worksheet report")
+        logger.info("GET /api/v1/reports/worksheet/companies/$companyId")
+        val worksheet: ReportDto<WorksheetReportDto> = reportBl.getWorksheet(companyId, sortBy, sortType, page, size, dateFrom, dateTo)
+        logger.info("Sending response")
+        val code = "200-25"
+        val responseInfo = ResponseCodeUtil.getResponseInfo(code)
+        logger.info("Code: $code - ${responseInfo.message}")
+        return ResponseEntity(ResponseDto(code, responseInfo.message!!, worksheet), responseInfo.httpStatus)
+    }
 }
