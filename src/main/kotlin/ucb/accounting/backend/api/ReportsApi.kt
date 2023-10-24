@@ -30,7 +30,7 @@ class ReportsApi @Autowired constructor(
     }
 
     @GetMapping("/journal-book/companies/{companyId}")
-    fun generateJournalBookReport (
+    fun generateJournalBookReportByDates (
         @PathVariable("companyId") companyId: Long,
         @RequestParam("startDate") startDate: Date,
         @RequestParam("endDate") endDate: Date,
@@ -46,4 +46,22 @@ class ReportsApi @Autowired constructor(
         val responseInfo = ResponseCodeUtil.getResponseInfo(code)
         return ResponseEntity(ResponseDto(code, responseInfo.message!!, downloadReport), responseInfo.httpStatus)
     }
+
+    @GetMapping("/journal-book/companies/{companyId}")
+    fun generateJournalBookReportByMonth (
+        @PathVariable("companyId") companyId: Long,
+        @RequestParam("month") month: Int,
+        @RequestParam("documentTypeId") documentTypeId: Long
+    ): ResponseEntity<ResponseDto<AttachmentDownloadDto>>
+    {
+        logger.info("Generating Journal Book report")
+        logger.info("GET api/v1/report/journal-book/companies/${companyId}")
+        val report:ByteArray = reportBl.generateJournalBookByMonth(companyId, month, documentTypeId)
+        val uploadedReport = fileBl.uploadFile(report, companyId)
+        val downloadReport = fileBl.downloadFile(uploadedReport.attachmentId, companyId)
+        val code = "200-22"
+        val responseInfo = ResponseCodeUtil.getResponseInfo(code)
+        return ResponseEntity(ResponseDto(code, responseInfo.message!!, downloadReport), responseInfo.httpStatus)
+    }
+
 }
