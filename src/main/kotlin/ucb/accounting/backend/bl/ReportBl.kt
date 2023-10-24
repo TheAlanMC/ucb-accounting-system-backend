@@ -155,4 +155,63 @@ class ReportBl @Autowired constructor(
         logger.info("model:\n$model")
         return pdfTurtleService.generatePdf(footerHtmlTemplate, headerHtmlTemplate, htmlTemplate, model, options, templateEngine)
     }
+
+    fun generateModelForLedgerAccountReport(
+        companyId: Long,
+        startDate: Date,
+        endDate: Date,
+        accountCode: Int,
+        currency: String,
+        withBalance: Boolean
+    ):Map<String, Any>{
+        companyRepository.findByCompanyIdAndStatusIsTrue(companyId) ?: throw UasException("404-05")
+        // Validation of user belongs to company
+        val kcUuid = KeycloakSecurityContextHolder.getSubject()!!
+        kcUserCompanyRepository.findAllByKcUser_KcUuidAndCompany_CompanyIdAndStatusIsTrue(kcUuid, companyId) ?: throw UasException("403-19")
+
+        //TODO: implement generation of model to ledger account report
+
+        //val journalEntries = journalEntryRepository.findByCompanyIdAndAccountCodeAndTxDate(companyId.toInt(), accountCode, startDate, endDate)
+
+        /*val ledgerAccountReportList = journalEntries.map {
+                journalEntry ->
+            val transaction = journalEntry.transaction
+            val transactionDetails = transaction?.transactionDetails ?: emptyList()
+
+            val ledgerAccountReportEntry = mapOf(
+                "numero" to journalEntry.journalEntryNumber,
+                "fecha" to journalEntry.txDate.toString(),
+                "codigo" to journalEntry.journalEntryNumber,
+                "nombre" to "Activo",
+                "referencia" to journalEntry.gloss,
+                "debe" to transactionDetails.sumOf { it.debitAmountBs },
+                "haber" to transactionDetails.sumOf { it.creditAmountBs }
+            )
+            ledgerAccountReportEntry
+        }*/
+        return mapOf(
+            "titulo" to "ProfitWave",
+            "subtitulo" to "Reporte de Libro Diario",
+            //"libroDiario" to ledgerAccountReportList
+        )
+    }
+
+    fun generateLedgerAccountReport(
+        companyId: Long,
+        startDate: Date,
+        endDate: Date,
+        accountCode: Int,
+        currency: String,
+        withBalance: Boolean
+    ): ByteArray {
+        logger.info("Generating Ledger Account report")
+        logger.info("GET api/v1/report/ledger-account-report/companies/${companyId}?startDate=${startDate}&endDate=${endDate}&accountCode=${accountCode}&currency=${currency}&withBalance=${withBalance}")
+        val footerHtmlTemplate = "<string>"
+        val headerHtmlTemplate = "<string>"
+        val htmlTemplate = "<!DOCTYPE html><html><head><style>.report {font-family: Arial, sans-serif;}.title {font-size: 24px;font-weight: bold;text-align: center;}.subtitle {font-size: 18px;text-align: center;}table {width: 100%;border-collapse: collapse;margin-top: 20px;}table, th, td {border: 1px solid black;}th, td {padding: 8px;text-align: left;}th {background-color: #f2f2f2;}</style></head><body class=\"report\"><h1 class=\"title\">{{ .titulo }}</h1><h2 class=\"subtitle\">{{ .subtitulo }}</h2><table><tr><th>Número</th><th>Fecha</th><th>Código</th><th>Nombre</th><th>Referencia</th><th>Debe</th><th>Haber</th></tr>{{range .libroDiario}}<tr><td>{{ .numero }}</td><td>{{ .fecha }}</td><td>{{ .codigo }}</td><td>{{ .nombre }}</td><td>{{ .referencia }}</td><td>{{ .debe }}</td><td>{{ .haber }}</td></tr>{{end}}</table></body></html>"
+        val model = generateModelForLedgerAccountReport(companyId, startDate, endDate, accountCode, currency, withBalance)
+
+        logger.info("model:\n$model")
+        return pdfTurtleService.generatePdf(footerHtmlTemplate, headerHtmlTemplate, htmlTemplate, model, options, templateEngine)
+    }
 }

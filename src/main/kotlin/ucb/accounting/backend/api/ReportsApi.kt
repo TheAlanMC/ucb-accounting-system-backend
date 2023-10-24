@@ -64,4 +64,24 @@ class ReportsApi @Autowired constructor(
         return ResponseEntity(ResponseDto(code, responseInfo.message!!, downloadReport), responseInfo.httpStatus)
     }
 
+    @GetMapping("/ledger-account-report/companies/{companyId}")
+    fun generateLedgerAccountReportByDates (
+        @PathVariable("companyId") companyId: Long,
+        @RequestParam("accountCode") accountCode: Int,
+        @RequestParam("startDate") startDate: Date,
+        @RequestParam("endDate") endDate: Date,
+        @RequestParam("currency") currency: String,
+        @RequestParam("withBalance") withBalance: Boolean
+    ): ResponseEntity<ResponseDto<AttachmentDownloadDto>>
+    {
+        logger.info("Generating Ledger Account report")
+        logger.info("GET api/v1/report/ledger-account-report/companies/${companyId}")
+        val report:ByteArray = reportBl.generateLedgerAccountReport(companyId, startDate, endDate, accountCode, currency, withBalance)
+        val uploadedReport = fileBl.uploadFile(report, companyId)
+        val downloadReport = fileBl.downloadFile(uploadedReport.attachmentId, companyId)
+        val code = "200-22"
+        val responseInfo = ResponseCodeUtil.getResponseInfo(code)
+        return ResponseEntity(ResponseDto(code, responseInfo.message!!, downloadReport), responseInfo.httpStatus)
+    }
+
 }
