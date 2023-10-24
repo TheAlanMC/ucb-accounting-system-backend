@@ -144,16 +144,10 @@ class ReportBl @Autowired constructor(
             throw UasException("400-16")
         }
 
-        val specification: Specification<TransactionDetail> =
-            Specification.where(TransactionDetailSpecification.dateBetween(newDateFrom, newDateTo))
-                .and(TransactionDetailSpecification.accepted())
-                .and(TransactionDetailSpecification.companyId(companyId.toInt()))
-                .and(TransactionDetailSpecification.statusIsTrue())
-
-        val sort: Sort = Sort.by(Sort.Direction.fromString(sortType), sortBy)
-
-        val ledgerBooks: List<TransactionDetail> = transactionDetailRepository.findAll(specification, sort)
-        val subaccounts: List<SubaccountDto> = ledgerBooks.map { SubaccountMapper.entityToDto(it.subaccount!!) }.distinct()
+        val newSortBy = sortBy.replace(Regex("([a-z])([A-Z]+)"), "$1_$2").lowercase()
+        val pageable: Pageable = PageRequest.of(0, Integer.MAX_VALUE, Sort.by(Sort.Direction.fromString(sortType), newSortBy))
+        val ledgerBooks: Page<TransactionDetail> = transactionDetailRepository.findAllSubaccounts(companyId.toInt(), newDateFrom, newDateTo, pageable)
+        val subaccounts: List<SubaccountDto> = ledgerBooks.map { SubaccountMapper.entityToDto(it.subaccount!!) }.content
 
         logger.info("Found ${subaccounts.size} subaccounts")
         logger.info("Finishing the BL call to get available subaccounts")
@@ -203,16 +197,11 @@ class ReportBl @Autowired constructor(
             currencyName = currencyTypeEntity.currencyName
         )
 
-        val sort: Sort = Sort.by(Sort.Direction.fromString(sortType), sortBy)
-        val specification: Specification<TransactionDetail> =
-            Specification.where(TransactionDetailSpecification.dateBetween(newDateFrom, newDateTo))
-                .and(TransactionDetailSpecification.subaccounts(newSubaccountIds))
-                .and(TransactionDetailSpecification.accepted())
-                .and(TransactionDetailSpecification.companyId(companyId.toInt()))
-                .and(TransactionDetailSpecification.statusIsTrue())
+        val newSortBy = sortBy.replace(Regex("([a-z])([A-Z]+)"), "$1_$2").lowercase()
+        val pageable: Pageable = PageRequest.of(0, Integer.MAX_VALUE, Sort.by(Sort.Direction.fromString(sortType), newSortBy))
 
-        val ledgerBooks: List<TransactionDetail> = transactionDetailRepository.findAll(specification, sort)
-
+        val ledgerBooksPage: Page<TransactionDetail> = transactionDetailRepository.findAllInSubaccounts(companyId.toInt(), newDateFrom, newDateTo, newSubaccountIds, pageable)
+        val ledgerBooks: List<TransactionDetail> = ledgerBooksPage.content
         // Getting company info
         // Get s3 object for company logo
         val s3Object: S3Object = s3ObjectRepository.findByS3ObjectIdAndStatusIsTrue(company.s3CompanyLogo.toLong())!!
@@ -312,14 +301,11 @@ class ReportBl @Autowired constructor(
             currencyName = currencyTypeEntity.currencyName
         )
 
-        val sort: Sort = Sort.by(Sort.Direction.fromString(sortType), sortBy)
-        val specification: Specification<TransactionDetail> =
-            Specification.where(TransactionDetailSpecification.dateBetween(newDateFrom, newDateTo))
-                .and(TransactionDetailSpecification.accepted())
-                .and(TransactionDetailSpecification.companyId(companyId.toInt()))
-                .and(TransactionDetailSpecification.statusIsTrue())
+        val newSortBy = sortBy.replace(Regex("([a-z])([A-Z]+)"), "$1_$2").lowercase()
+        val pageable: Pageable = PageRequest.of(0, Integer.MAX_VALUE, Sort.by(Sort.Direction.fromString(sortType), newSortBy))
 
-        val ledgerBooks: List<TransactionDetail> = transactionDetailRepository.findAll(specification, sort)
+        val ledgerBookPage: Page<TransactionDetail> = transactionDetailRepository.findAll(companyId.toInt(), newDateFrom, newDateTo, pageable)
+        val ledgerBooks: List<TransactionDetail> = ledgerBookPage.content
 
         // Getting company info
         // Get s3 object for company logo
