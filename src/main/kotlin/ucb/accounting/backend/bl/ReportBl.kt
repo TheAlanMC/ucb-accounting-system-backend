@@ -43,16 +43,50 @@ class ReportBl @Autowired constructor(
         return reportTypes.map { ReportTypeMapper.entityToDto(it) }
     }
 
+    fun getAvailableSubaccounts(companyId: Long, sortBy:String, sortType: String, dateFrom: String, dateTo: String): List<SubaccountDto> {
+        logger.info("Starting the BL call to get available subaccounts")
+        // Validate that the company exists
+        val company = companyRepository.findByCompanyIdAndStatusIsTrue(companyId) ?: throw UasException("404-05")
+
+        // Validation of user belongs to company
+        val kcUuid = KeycloakSecurityContextHolder.getSubject()!!
+        kcUserCompanyRepository.findAllByKcUser_KcUuidAndCompany_CompanyIdAndStatusIsTrue(kcUuid, companyId)
+            ?: throw UasException("403-16")
+        logger.info("User $kcUuid is trying to get available subaccounts from company $companyId")
+
+        // Convert dateFrom and dateTo to Date
+        val format: java.text.DateFormat = java.text.SimpleDateFormat("yyyy-MM-dd")
+        val newDateFrom: Date = format.parse(dateFrom)
+        val newDateTo: Date = format.parse(dateTo)
+        // Validation of dateFrom and dateTo
+        if (newDateFrom.after(newDateTo)) {
+            throw UasException("400-16")
+        }
+
+        val specification: Specification<TransactionDetail> =
+            Specification.where(TransactionDetailSpecification.dateBetween(newDateFrom, newDateTo))
+                .and(TransactionDetailSpecification.accepted())
+                .and(TransactionDetailSpecification.companyId(companyId.toInt()))
+                .and(TransactionDetailSpecification.statusIsTrue())
+
+        val sort: Sort = Sort.by(Sort.Direction.fromString(sortType), sortBy)
+
+        val ledgerBooks: List<TransactionDetail> = transactionDetailRepository.findAll(specification, sort)
+        val subaccounts: List<SubaccountDto> = ledgerBooks.map { SubaccountMapper.entityToDto(it.subaccount!!) }.distinct()
+
+        logger.info("Found ${subaccounts.size} subaccounts")
+        logger.info("Finishing the BL call to get available subaccounts")
+        return subaccounts
+    }
+
     fun getJournalBook(
         companyId: Long,
         sortBy: String,
         sortType: String,
-        page: Int,
-        size: Int,
         dateFrom: String,
         dateTo: String,
         subaccountIds: List<String>
-    ): Page<ReportDto<GeneralLedgerReportDto>> {
+    ): ReportDto<List<GeneralLedgerReportDto>> {
         logger.info("Starting the BL call to get journal book report")
         // Validate that the company exists
         val company = companyRepository.findByCompanyIdAndStatusIsTrue(companyId) ?: throw UasException("404-05")
@@ -88,7 +122,7 @@ class ReportBl @Autowired constructor(
             currencyName = currencyTypeEntity.currencyName
         )
 
-        val pageable: Pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.fromString(sortType), sortBy))
+        val sort: Sort = Sort.by(Sort.Direction.fromString(sortType), sortBy)
         val specification: Specification<TransactionDetail> =
             Specification.where(TransactionDetailSpecification.dateBetween(newDateFrom, newDateTo))
                 .and(TransactionDetailSpecification.subaccounts(newSubaccountIds))
@@ -96,7 +130,7 @@ class ReportBl @Autowired constructor(
                 .and(TransactionDetailSpecification.companyId(companyId.toInt()))
                 .and(TransactionDetailSpecification.statusIsTrue())
 
-        val ledgerBooks: List<TransactionDetail> = transactionDetailRepository.findAll(specification)
+        val ledgerBooks: List<TransactionDetail> = transactionDetailRepository.findAll(specification, sort)
 
         // Getting company info
         // Get s3 object for company logo
@@ -105,7 +139,7 @@ class ReportBl @Autowired constructor(
         val companyDto = CompanyMapper.entityToDto(company, preSignedUrl)
 
 
-        val reportDto: List<ReportDto<GeneralLedgerReportDto>> = subaccountsEntities.map { subaccount ->
+        val generalLedgerReports: List<GeneralLedgerReportDto> = subaccountsEntities.map { subaccount ->
             var accumulatedBalance = BigDecimal(0.00)
             val ledgerBook = ledgerBooks.filter { it.subaccount!!.subaccountId == subaccount.subaccountId }
             val sortedLedgerBook = ledgerBook.sortedBy { it.transaction!!.transactionDate.time }
@@ -155,25 +189,24 @@ class ReportBl @Autowired constructor(
                     .reduce { acc, it -> acc + it } else BigDecimal(0.00),
                 totalBalanceAmount = accumulatedBalance
             )
-            ReportDto(
-                company = companyDto,
-                startDate = newDateFrom,
-                endDate = newDateTo,
-                currencyType = currencyType,
-                reportData = generalLedgerReportDto
-            )
-        }
-        logger.info("Found ${reportDto.size} journal book reports")
+            generalLedgerReportDto
+            }
+
+        logger.info("Found ${generalLedgerReports.size} general ledger reports")
         logger.info("Finishing the BL call to get journal book report")
-        return PageImpl(reportDto, pageable, reportDto.size.toLong())
+        return ReportDto(
+            company = companyDto,
+            startDate = newDateFrom,
+            endDate = newDateTo,
+            currencyType = currencyType,
+            reportData = generalLedgerReports
+        )
     }
 
     fun getWorksheet(
         companyId: Long,
         sortBy: String,
         sortType: String,
-        page: Int,
-        size: Int,
         dateFrom: String,
         dateTo: String,
     ): ReportDto<WorksheetReportDto> {
@@ -198,14 +231,14 @@ class ReportBl @Autowired constructor(
             currencyName = currencyTypeEntity.currencyName
         )
 
-        val pageable: Pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.fromString(sortType), sortBy))
+        val sort: Sort = Sort.by(Sort.Direction.fromString(sortType), sortBy)
         val specification: Specification<TransactionDetail> =
             Specification.where(TransactionDetailSpecification.dateBetween(newDateFrom, newDateTo))
                 .and(TransactionDetailSpecification.accepted())
                 .and(TransactionDetailSpecification.companyId(companyId.toInt()))
                 .and(TransactionDetailSpecification.statusIsTrue())
 
-        val ledgerBooks: List<TransactionDetail> = transactionDetailRepository.findAll(specification)
+        val ledgerBooks: List<TransactionDetail> = transactionDetailRepository.findAll(specification, sort)
 
         // Getting company info
         // Get s3 object for company logo

@@ -1,5 +1,6 @@
 package ucb.accounting.backend.dao.repository
 
+import org.springframework.data.domain.Sort
 import org.springframework.data.jpa.domain.Specification
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.Query
@@ -28,5 +29,5 @@ interface TransactionDetailRepository : JpaRepository<TransactionDetail, Long> {
     )
     fun findAll (@Param("companyId") companyId: Int, @Param("dateFrom") dateFrom: Date, @Param("dateTo") dateTo: Date, @Param("subaccounts") subaccounts: List<Int>): List<TransactionDetail>
 
-    fun findAll (specification: Specification<TransactionDetail>): List<TransactionDetail>
+    fun findAll (specification: Specification<TransactionDetail>, sort: Sort): List<TransactionDetail>
 }
