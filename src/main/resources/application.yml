@@ -155,4 +155,13 @@ keycloak:
             - POST
             - GET
             - PUT
+# Journal Entry Report Api
+    - auth-roles:
+        - journal-entry-recorder-assistant
+      security-collections:
+        - name: Journal Entry Report
+          patterns:
+            - /api/v1/report/*
+          methods:
+            - GET
 
