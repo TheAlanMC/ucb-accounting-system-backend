@@ -1,6 +1,5 @@
 package ucb.accounting.backend.dto
 
-import ucb.accounting.backend.dao.CurrencyType
 import java.util.*
 
 data class ReportDto <T> (

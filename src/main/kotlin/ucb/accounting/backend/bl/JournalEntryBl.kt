@@ -9,7 +9,6 @@ import ucb.accounting.backend.dao.Transaction
 import ucb.accounting.backend.dao.TransactionAttachment
 import ucb.accounting.backend.dao.TransactionDetail
 import ucb.accounting.backend.dao.repository.*
-import ucb.accounting.backend.dao.specification.CustomerSpecification
 import ucb.accounting.backend.dto.*
 import ucb.accounting.backend.exception.UasException
 import ucb.accounting.backend.mapper.*
@@ -268,7 +267,7 @@ class   JournalEntryBl @Autowired constructor(
                 )
             },
             transactionDetails = journalEntryEntity.transaction!!.transactionDetails!!.map {
-                TransactionDetailPartialMapper.entityToDto(it)
+                JournalBookTransactionDetailMapper.entityToDto(it)
             }
         )
         logger.info("Journal entry retrieved successfully")

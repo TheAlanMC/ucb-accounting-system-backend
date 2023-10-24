@@ -28,6 +28,23 @@ class ReportApi  @Autowired constructor(private val reportBl: ReportBl) {
         return ResponseEntity(ResponseDto(code, responseInfo.message!!, reportTypes), responseInfo.httpStatus)
     }
 
+    @GetMapping("/journal-books/companies/{companyId}")
+    fun getJournalEntries(@PathVariable("companyId") companyId: Int,
+                          @RequestParam(defaultValue = "0") page: Int,
+                          @RequestParam(defaultValue = "10") size: Int,
+                          @RequestParam(defaultValue = "t.transactionDate") sortBy: String,
+                          @RequestParam(defaultValue = "asc") sortType: String,
+                          @RequestParam(required = true) dateFrom: String,
+    @RequestParam(required = true) dateTo: String,
+    ): ResponseEntity<ResponseDto<ReportDto<List<JournalBookReportDto>>>> {
+        logger.info("Starting the API call to get journal entries")
+        val journalBook: Page<ReportDto<List<JournalBookReportDto>>> = reportBl.getJournalBook(companyId, sortBy, sortType, page, size, dateFrom, dateTo)
+        val code = "200-22"
+        val responseInfo = ResponseCodeUtil.getResponseInfo(code)
+        logger.info("Finishing the API call to get journal entries")
+        return ResponseEntity(ResponseDto(code, responseInfo.message!!, journalBook.content[0], journalBook.totalElements), responseInfo.httpStatus)
+    }
+
     @GetMapping("/general-ledgers/companies/{companyId}/subaccounts")
     fun getAvailableSubaccounts(
         @PathVariable("companyId") companyId: Long,
@@ -58,7 +75,7 @@ class ReportApi  @Autowired constructor(private val reportBl: ReportBl) {
     ): ResponseEntity<ResponseDto<ReportDto<List<GeneralLedgerReportDto>>>> {
         logger.info("Starting the API call to get journal book report")
         logger.info("GET /api/v1/reports/general-ledgers/companies/$companyId")
-        val journalBook: ReportDto<List<GeneralLedgerReportDto>> = reportBl.getJournalBook(companyId, sortBy, sortType, dateFrom, dateTo, subaccountIds)
+        val journalBook: ReportDto<List<GeneralLedgerReportDto>> = reportBl.getGeneralLedger(companyId, sortBy, sortType, dateFrom, dateTo, subaccountIds)
         logger.info("Sending response")
         val code = "200-23"
         val responseInfo = ResponseCodeUtil.getResponseInfo(code)

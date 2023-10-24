@@ -1,13 +1,13 @@
 package ucb.accounting.backend.mapper
 
 import ucb.accounting.backend.dao.TransactionDetail
-import ucb.accounting.backend.dto.TransactionDetailPartialDto
+import ucb.accounting.backend.dto.JournalBookTransactionDetailDto
 
-class TransactionDetailPartialMapper {
+class JournalBookTransactionDetailMapper {
 
     companion object{
-        fun entityToDto(transactionDetail: TransactionDetail): TransactionDetailPartialDto {
-            return TransactionDetailPartialDto(
+        fun entityToDto(transactionDetail: TransactionDetail): JournalBookTransactionDetailDto {
+            return JournalBookTransactionDetailDto(
                 subaccount = SubaccountMapper.entityToDto(transactionDetail.subaccount!!),
                 debitAmountBs = transactionDetail.debitAmountBs,
                 creditAmountBs = transactionDetail.creditAmountBs
