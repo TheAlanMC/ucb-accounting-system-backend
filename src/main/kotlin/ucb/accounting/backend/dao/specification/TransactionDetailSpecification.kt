@@ -19,7 +19,6 @@ class TransactionDetailSpecification {
             }
         }
 
-
         fun accepted(): Specification<TransactionDetail> {
             return Specification { root, _, cb ->
                 cb.equal(root.get<Transaction>("transaction").get<JournalEntry>("journalEntry").get<Any>("journalEntryAccepted"), true)

@@ -22,45 +22,79 @@ class ReportApi  @Autowired constructor(private val reportBl: ReportBl) {
         logger.info("GET /api/v1/reports/report-types")
         val reportTypes: List<ReportTypeDto> = reportBl.getReportTypes()
         logger.info("Sending response")
-        val code = "200-21"
+        val code = "200-14"
         val responseInfo = ResponseCodeUtil.getResponseInfo(code)
         logger.info("Code: $code - ${responseInfo.message}")
         return ResponseEntity(ResponseDto(code, responseInfo.message!!, reportTypes), responseInfo.httpStatus)
     }
+
+    @GetMapping("/journal-books/companies/{companyId}")
+    fun getJournalEntries(@PathVariable("companyId") companyId: Int,
+                          @RequestParam(defaultValue = "0") page: Int,
+                          @RequestParam(defaultValue = "10") size: Int,
+                          @RequestParam(defaultValue = "t.transactionDate") sortBy: String,
+                          @RequestParam(defaultValue = "asc") sortType: String,
+                          @RequestParam(required = true) dateFrom: String,
+    @RequestParam(required = true) dateTo: String,
+    ): ResponseEntity<ResponseDto<ReportDto<List<JournalBookReportDto>>>> {
+        logger.info("Starting the API call to get journal entries")
+        val journalBook: Page<ReportDto<List<JournalBookReportDto>>> = reportBl.getJournalBook(companyId, sortBy, sortType, page, size, dateFrom, dateTo)
+        val code = "200-22"
+        val responseInfo = ResponseCodeUtil.getResponseInfo(code)
+        logger.info("Finishing the API call to get journal entries")
+        return ResponseEntity(ResponseDto(code, responseInfo.message!!, journalBook.content[0], journalBook.totalElements), responseInfo.httpStatus)
+    }
+
+    @GetMapping("/general-ledgers/companies/{companyId}/subaccounts")
+    fun getAvailableSubaccounts(
+        @PathVariable("companyId") companyId: Long,
+        @RequestParam(defaultValue = "subaccountId") sortBy: String,
+        @RequestParam(defaultValue = "asc") sortType: String,
+        @RequestParam(required = true) dateFrom: String,
+        @RequestParam(required = true) dateTo: String,
+    ): ResponseEntity<ResponseDto<List<SubaccountDto>>> {
+        logger.info("Starting the API call to get available subaccounts")
+        logger.info("GET /api/v1/reports/general-ledgers/companies/$companyId/subaccounts")
+        val subaccounts: List<SubaccountDto> = reportBl.getAvailableSubaccounts(companyId, sortBy, sortType, dateFrom, dateTo)
+        logger.info("Sending response")
+        val code = "200-22"
+        val responseInfo = ResponseCodeUtil.getResponseInfo(code)
+        logger.info("Code: $code - ${responseInfo.message}")
+        return ResponseEntity(ResponseDto(code, responseInfo.message!!, subaccounts), responseInfo.httpStatus)
+    }
+
+
     @GetMapping("/general-ledgers/companies/{companyId}")
     fun getGeneralLedgers(
         @PathVariable("companyId") companyId: Long,
         @RequestParam(defaultValue = "subaccountId") sortBy: String,
         @RequestParam(defaultValue = "asc") sortType: String,
-        @RequestParam(defaultValue = "0") page: Int,
-        @RequestParam(defaultValue = "10") size: Int,
         @RequestParam(required = true) dateFrom: String,
         @RequestParam(required = true) dateTo: String,
         @RequestParam(required = true) subaccountIds: List<String>
-    ): ResponseEntity<ResponseDto<List<ReportDto<GeneralLedgerReportDto>>>> {
+    ): ResponseEntity<ResponseDto<ReportDto<List<GeneralLedgerReportDto>>>> {
         logger.info("Starting the API call to get journal book report")
         logger.info("GET /api/v1/reports/general-ledgers/companies/$companyId")
-        val journalBook: Page<ReportDto<GeneralLedgerReportDto>> = reportBl.getJournalBook(companyId, sortBy, sortType, page, size, dateFrom, dateTo, subaccountIds)
+        val journalBook: ReportDto<List<GeneralLedgerReportDto>> = reportBl.getGeneralLedger(companyId, sortBy, sortType, dateFrom, dateTo, subaccountIds)
         logger.info("Sending response")
         val code = "200-23"
         val responseInfo = ResponseCodeUtil.getResponseInfo(code)
         logger.info("Code: $code - ${responseInfo.message}")
-        return ResponseEntity(ResponseDto(code, responseInfo.message!!, journalBook.content, journalBook.totalElements), responseInfo.httpStatus)
+        return ResponseEntity(ResponseDto(code, responseInfo.message!!, journalBook ), responseInfo.httpStatus)
     }
+
 
     @GetMapping("/worksheets/companies/{companyId}")
     fun getWorksheet(
         @PathVariable("companyId") companyId: Long,
         @RequestParam(defaultValue = "subaccountId") sortBy: String,
         @RequestParam(defaultValue = "asc") sortType: String,
-        @RequestParam(defaultValue = "0") page: Int,
-        @RequestParam(defaultValue = "10") size: Int,
         @RequestParam(required = true) dateFrom: String,
         @RequestParam(required = true) dateTo: String,
     ): ResponseEntity<ResponseDto<ReportDto<WorksheetReportDto>>> {
         logger.info("Starting the API call to get worksheet report")
         logger.info("GET /api/v1/reports/worksheet/companies/$companyId")
-        val worksheet: ReportDto<WorksheetReportDto> = reportBl.getWorksheet(companyId, sortBy, sortType, page, size, dateFrom, dateTo)
+        val worksheet: ReportDto<WorksheetReportDto> = reportBl.getWorksheet(companyId, sortBy, sortType, dateFrom, dateTo)
         logger.info("Sending response")
         val code = "200-25"
         val responseInfo = ResponseCodeUtil.getResponseInfo(code)

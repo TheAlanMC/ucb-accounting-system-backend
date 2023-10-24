@@ -1,7 +1,6 @@
 package ucb.accounting.backend.mapper
 
 import ucb.accounting.backend.dao.ReportType
-import ucb.accounting.backend.dto.PaymentTypeDto
 import ucb.accounting.backend.dto.ReportTypeDto
 
 class ReportTypeMapper {
@@ -14,4 +13,5 @@ class ReportTypeMapper {
             )
         }
     }
+
 }

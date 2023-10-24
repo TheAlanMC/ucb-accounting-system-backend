@@ -2,13 +2,10 @@ package ucb.accounting.backend.dto
 
 import java.sql.Date
 
-data class JournalEntryPartialDto (
+data class JournalBookReportDto (
     val journalEntryId: Int?,
-    val transactionNumber: Int?,
-    val client: ClientPartialDto?,
-    val transactionAccepted: Boolean?,
     val documentType: DocumentTypeDto?,
-    val transactionType: TransactionTypeDto?,
+    val journalEntryNumber: Int?,
     val gloss: String?,
     val description: String?,
     val transactionDate: Date?,
