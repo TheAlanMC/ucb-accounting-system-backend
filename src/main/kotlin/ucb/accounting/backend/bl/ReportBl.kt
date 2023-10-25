@@ -227,31 +227,6 @@ class ReportBl @Autowired constructor(
 
             val generalLedgerReportDto: GeneralLedgerReportDto = GeneralLedgerReportDto(
                 subaccount = SubaccountMapper.entityToDto(subaccount),
-//                accountCategory = AccountCategoryDetailDto(
-//                    accountCategoryId = subaccount.account!!.accountSubgroup!!.accountGroup!!.accountCategory!!.accountCategoryId,
-//                    accountCategoryCode = subaccount.account!!.accountSubgroup!!.accountGroup!!.accountCategory!!.accountCategoryCode,
-//                    accountCategoryName = subaccount.account!!.accountSubgroup!!.accountGroup!!.accountCategory!!.accountCategoryName,
-//                    accountGroup = AccountGroupDetailDto(
-//                        accountGroupId = subaccount.account!!.accountSubgroup!!.accountGroup!!.accountGroupId,
-//                        accountGroupCode = subaccount.account!!.accountSubgroup!!.accountGroup!!.accountGroupCode,
-//                        accountGroupName = subaccount.account!!.accountSubgroup!!.accountGroup!!.accountGroupName,
-//                        accountSubgroup = AccountSubgroupDetailDto(
-//                            accountSubgroupId = subaccount.account!!.accountSubgroup!!.accountSubgroupId,
-//                            accountSubgroupCode = subaccount.account!!.accountSubgroup!!.accountSubgroupCode,
-//                            accountSubgroupName = subaccount.account!!.accountSubgroup!!.accountSubgroupName,
-//                            account = AccountDetailDto(
-//                                accountId = subaccount.account!!.accountId,
-//                                accountCode = subaccount.account!!.accountCode,
-//                                accountName = subaccount.account!!.accountName,
-//                                subaccount = SubaccountDetailDto(
-//                                    subaccountId = subaccount.subaccountId,
-//                                    subaccountCode = subaccount.subaccountCode,
-//                                    subaccountName = subaccount.subaccountName
-//                                )
-//                            )
-//                        )
-//                    )
-//                ),
                 transactionDetails = transactionDetails,
                 totalDebitAmount = if (transactionDetails.isNotEmpty()) transactionDetails.map { it.debitAmount }
                     .reduce { acc, it -> acc + it } else BigDecimal(0.00),
@@ -272,6 +247,97 @@ class ReportBl @Autowired constructor(
             reportData = generalLedgerReports
         )
     }
+
+    fun getTrialBalance(
+        companyId: Long,
+        sortBy: String,
+        sortType: String,
+        dateFrom: String,
+        dateTo: String,
+    ): ReportDto<List<TrialBalanceReportDto>> {
+        logger.info("Starting the BL call to get trial balance report")
+        // Validate that the company exists
+        val company = companyRepository.findByCompanyIdAndStatusIsTrue(companyId) ?: throw UasException("404-05")
+
+        // Validation of user belongs to company
+        val kcUuid = KeycloakSecurityContextHolder.getSubject()!!
+        kcUserCompanyRepository.findAllByKcUser_KcUuidAndCompany_CompanyIdAndStatusIsTrue(kcUuid, companyId)
+            ?: throw UasException("403-23")
+        logger.info("User $kcUuid is trying to get journal book report from company $companyId")
+
+        // Convert dateFrom and dateTo to Date
+        val format: java.text.DateFormat = java.text.SimpleDateFormat("yyyy-MM-dd")
+        val newDateFrom: Date = format.parse(dateFrom)
+        val newDateTo: Date = format.parse(dateTo)
+
+        val currencyTypeEntity: CurrencyType = currencyTypeRepository.findByCurrencyCodeAndStatusIsTrue("Bs")!!
+        val currencyType: CurrencyTypeDto = CurrencyTypeDto(
+            currencyCode = currencyTypeEntity.currencyCode,
+            currencyName = currencyTypeEntity.currencyName
+        )
+
+        val newSortBy = sortBy.replace(Regex("([a-z])([A-Z]+)"), "$1_$2").lowercase()
+        val pageable: Pageable = PageRequest.of(0, Integer.MAX_VALUE, Sort.by(Sort.Direction.fromString(sortType), newSortBy))
+
+        val ledgerBookPage: Page<TransactionDetail> = transactionDetailRepository.findAll(companyId.toInt(), newDateFrom, newDateTo, pageable)
+        val ledgerBooks: List<TransactionDetail> = ledgerBookPage.content
+
+        // Getting company info
+        // Get s3 object for company logo
+        val s3Object: S3Object = s3ObjectRepository.findByS3ObjectIdAndStatusIsTrue(company.s3CompanyLogo.toLong())!!
+        val preSignedUrl: String = minioService.getPreSignedUrl(s3Object.bucket, s3Object.filename)
+        val companyDto = CompanyMapper.entityToDto(company, preSignedUrl)
+
+        val trialBalanceDetails: List<TrialBalanceReportDetailDto> =
+            ledgerBooks.groupBy { it.subaccount!!.subaccountId }.map { transactionDetail ->
+                val ledgerBook = transactionDetail.value
+                val transactionDetails = ledgerBook.map {
+                    GeneralLedgerTransactionDetailDto(
+                        transactionDate = it.transaction!!.transactionDate,
+                        gloss = it.transaction!!.journalEntry!!.gloss,
+                        description = it.transaction!!.description,
+                        creditAmount = it.creditAmountBs,
+                        debitAmount = it.debitAmountBs,
+                        balanceAmount = BigDecimal(0.00)
+                    )
+                }
+                val totalCreditAmount = if (transactionDetails.isNotEmpty()) transactionDetails.map { it.creditAmount }
+                    .reduce { acc, it -> acc + it } else BigDecimal(0.00)
+                val totalDebitAmount = if (transactionDetails.isNotEmpty()) transactionDetails.map { it.debitAmount }
+                    .reduce { acc, it -> acc + it } else BigDecimal(0.00)
+
+                val balanceDebtor = if (totalDebitAmount > totalCreditAmount) totalDebitAmount - totalCreditAmount else BigDecimal(0.00)
+                val balanceCreditor = if (totalCreditAmount > totalDebitAmount) totalCreditAmount - totalDebitAmount else BigDecimal(0.00)
+                val trialBalanceDetail = TrialBalanceReportDetailDto(
+                    subaccount = SubaccountMapper.entityToDto(transactionDetail.value[0].subaccount!!),
+                    debitAmount = totalDebitAmount,
+                    creditAmount = totalCreditAmount,
+                    balanceDebtor = balanceDebtor,
+                    balanceCreditor = balanceCreditor
+                )
+                trialBalanceDetail
+            }
+        val totalDebitAmount = trialBalanceDetails.map { it.debitAmount }.reduce { acc, it -> acc + it }
+        val totalCreditAmount = trialBalanceDetails.map { it.creditAmount }.reduce { acc, it -> acc + it }
+        val totalBalanceDebtor = trialBalanceDetails.map { it.balanceDebtor }.reduce { acc, it -> acc + it }
+        val totalBalanceCreditor = trialBalanceDetails.map { it.balanceCreditor }.reduce { acc, it -> acc + it }
+        val trialBalanceReportDto: TrialBalanceReportDto = TrialBalanceReportDto(
+            trialBalanceDetails = trialBalanceDetails,
+            totalDebitAmount = totalDebitAmount,
+            totalCreditAmount = totalCreditAmount,
+            totalBalanceDebtor = totalBalanceDebtor,
+            totalBalanceCreditor = totalBalanceCreditor
+        )
+        logger.info("Found trial balance report")
+        return ReportDto(
+            company = companyDto,
+            startDate = newDateFrom,
+            endDate = newDateTo,
+            currencyType = currencyType,
+            reportData = listOf(trialBalanceReportDto)
+        )
+    }
+
 
     fun getWorksheet(
         companyId: Long,

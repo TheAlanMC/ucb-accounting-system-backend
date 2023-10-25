@@ -83,6 +83,24 @@ class ReportApi  @Autowired constructor(private val reportBl: ReportBl) {
         return ResponseEntity(ResponseDto(code, responseInfo.message!!, journalBook ), responseInfo.httpStatus)
     }
 
+    @GetMapping("/trial-balances/companies/{companyId}")
+    fun getTrialBalances(
+        @PathVariable("companyId") companyId: Long,
+        @RequestParam(defaultValue = "subaccountId") sortBy: String,
+        @RequestParam(defaultValue = "asc") sortType: String,
+        @RequestParam(required = true) dateFrom: String,
+        @RequestParam(required = true) dateTo: String,
+    ): ResponseEntity<ResponseDto<ReportDto<List<TrialBalanceReportDto>>>> {
+        logger.info("Starting the API call to get trial balance report")
+        logger.info("GET /api/v1/reports/trial-balances/companies/$companyId")
+        val trialBalance: ReportDto<List<TrialBalanceReportDto>> = reportBl.getTrialBalance(companyId, sortBy, sortType, dateFrom, dateTo)
+        logger.info("Sending response")
+        val code = "200-24"
+        val responseInfo = ResponseCodeUtil.getResponseInfo(code)
+        logger.info("Code: $code - ${responseInfo.message}")
+        return ResponseEntity(ResponseDto(code, responseInfo.message!!, trialBalance), responseInfo.httpStatus)
+    }
+
 
     @GetMapping("/worksheets/companies/{companyId}")
     fun getWorksheet(
