@@ -45,7 +45,8 @@ class CompanyBl @Autowired constructor(
         // Validation of user belongs to company
         val kcUuid = KeycloakSecurityContextHolder.getSubject()!!
         logger.info("User $kcUuid is getting company info")
-        kcUserCompanyRepository.findAllByKcUser_KcUuidAndCompany_CompanyIdAndStatusIsTrue(kcUuid, companyId) ?: throw UasException("403-03")
+        kcUserCompanyRepository.findAllByKcUser_KcUuidAndCompany_CompanyIdAndStatusIsTrue(kcUuid, companyId)
+            ?: throw UasException("403-03")
 
         // Get s3 object for company logo
         val s3Object: S3Object = s3ObjectRepository.findByS3ObjectIdAndStatusIsTrue(company.s3CompanyLogo.toLong())!!
@@ -54,15 +55,18 @@ class CompanyBl @Autowired constructor(
         return CompanyMapper.entityToDto(company, preSignedUrl)
     }
 
-    fun createCompany (companyPartialDto: CompanyPartialDto){
+    fun createCompany(companyPartialDto: CompanyPartialDto) {
         // TODO: USER CAN CREATE MULTIPLE COMPANIES
         logger.info("Starting the BL call to post company info")
         // Validate that not null fields are not null
-        if (companyPartialDto.industryId == null || companyPartialDto.businessEntityId == null || companyPartialDto.companyName == null || companyPartialDto.companyNit == null || companyPartialDto.companyAddress == null || companyPartialDto.phoneNumber == null ) throw UasException("400-05")
+        if (companyPartialDto.industryId == null || companyPartialDto.businessEntityId == null || companyPartialDto.companyName == null || companyPartialDto.companyNit == null || companyPartialDto.companyAddress == null || companyPartialDto.phoneNumber == null) throw UasException(
+            "400-05"
+        )
 
         // Validate that the industry and business entity exist
         industryRepository.findByIndustryIdAndStatusIsTrue(companyPartialDto.industryId) ?: throw UasException("404-03")
-        businessEntityRepository.findByBusinessEntityIdAndStatusIsTrue(companyPartialDto.businessEntityId) ?: throw UasException("404-04")
+        businessEntityRepository.findByBusinessEntityIdAndStatusIsTrue(companyPartialDto.businessEntityId)
+            ?: throw UasException("404-04")
 
         // Validate that the user exists
         val kcUuid = KeycloakSecurityContextHolder.getSubject()!!
@@ -94,30 +98,38 @@ class CompanyBl @Autowired constructor(
         createAccountingPlan(savedCompanyEntity.companyId)
 
         // Create subaccount-tax_type relationships
-//        createSubaccountTaxTypeRelationships(savedCompanyEntity.companyId)
+        createSubaccountTaxTypeRelationships(savedCompanyEntity.companyId)
     }
 
-    fun updateCompany (companyPartialDto: CompanyPartialDto, companyId: Long): CompanyDto {
+    fun updateCompany(companyPartialDto: CompanyPartialDto, companyId: Long): CompanyDto {
         logger.info("Starting the BL call to put company info")
         // Validate that at least one field is not null
-        if (companyPartialDto.industryId == null && companyPartialDto.businessEntityId == null && companyPartialDto.companyName == null && companyPartialDto.companyNit == null && companyPartialDto.companyAddress == null && companyPartialDto.phoneNumber == null && companyPartialDto.s3CompanyLogoId == null) throw UasException("400-06")
+        if (companyPartialDto.industryId == null && companyPartialDto.businessEntityId == null && companyPartialDto.companyName == null && companyPartialDto.companyNit == null && companyPartialDto.companyAddress == null && companyPartialDto.phoneNumber == null && companyPartialDto.s3CompanyLogoId == null) throw UasException(
+            "400-06"
+        )
 
         // Validate that the industry and business entity exist
-        if (companyPartialDto.industryId != null) industryRepository.findByIndustryIdAndStatusIsTrue(companyPartialDto.industryId) ?: throw UasException("404-03")
-        if (companyPartialDto.businessEntityId != null) businessEntityRepository.findByBusinessEntityIdAndStatusIsTrue(companyPartialDto.businessEntityId) ?: throw UasException("404-04")
+        if (companyPartialDto.industryId != null) industryRepository.findByIndustryIdAndStatusIsTrue(companyPartialDto.industryId)
+            ?: throw UasException("404-03")
+        if (companyPartialDto.businessEntityId != null) businessEntityRepository.findByBusinessEntityIdAndStatusIsTrue(
+            companyPartialDto.businessEntityId
+        ) ?: throw UasException("404-04")
 
         // Validate that the company exists
         val companyEntity = companyRepository.findByCompanyIdAndStatusIsTrue(companyId) ?: throw UasException("404-05")
 
         // Validate that the user belongs to the company
         val kcUuid = KeycloakSecurityContextHolder.getSubject()!!
-        kcUserCompanyRepository.findAllByKcUser_KcUuidAndCompany_CompanyIdAndStatusIsTrue(kcUuid, companyId) ?: throw UasException("403-04")
+        kcUserCompanyRepository.findAllByKcUser_KcUuidAndCompany_CompanyIdAndStatusIsTrue(kcUuid, companyId)
+            ?: throw UasException("403-04")
         logger.info("User $kcUuid is updating a company")
 
         // If s3CompanyLogoId is not null, update s3CompanyLogo in Company
         if (companyPartialDto.s3CompanyLogoId != null) {
             // Validation that the s3CompanyLogoId exists
-            s3ObjectRepository.findByS3ObjectIdAndStatusIsTrue(companyPartialDto.s3CompanyLogoId) ?: throw UasException("404-13")
+            s3ObjectRepository.findByS3ObjectIdAndStatusIsTrue(companyPartialDto.s3CompanyLogoId) ?: throw UasException(
+                "404-13"
+            )
             companyEntity.s3CompanyLogo = companyPartialDto.s3CompanyLogoId.toInt()
         }
 
@@ -131,14 +143,15 @@ class CompanyBl @Autowired constructor(
         companyEntity.phoneNumber = companyPartialDto.phoneNumber ?: companyEntity.phoneNumber
         val updatedCompany = companyRepository.save(companyEntity)
 
-        val s3Object: S3Object = s3ObjectRepository.findByS3ObjectIdAndStatusIsTrue(companyEntity.s3CompanyLogo.toLong())!!
+        val s3Object: S3Object =
+            s3ObjectRepository.findByS3ObjectIdAndStatusIsTrue(companyEntity.s3CompanyLogo.toLong())!!
         val preSignedUrl: String = minioService.getPreSignedUrl(s3Object.bucket, s3Object.filename)
 
         logger.info("Company updated successfully")
         return CompanyMapper.entityToDto(updatedCompany, preSignedUrl)
     }
 
-    fun createAccountingPlan(companyId: Long){
+    fun createAccountingPlan(companyId: Long) {
 
         logger.info("Starting the BL call to create accounting plan for a new company")
 
@@ -147,7 +160,7 @@ class CompanyBl @Autowired constructor(
         val jsonNode = objectMapper.readTree(resource.inputStream)
 
         val accountGroups = jsonNode.get("account_groups")
-        for (group in accountGroups){
+        for (group in accountGroups) {
             logger.info("Creating account group ${group.get("account_group_name")} for company $companyId")
             val accountGroup = AccountGroup()
             accountGroup.companyId = companyId.toInt()
@@ -156,7 +169,7 @@ class CompanyBl @Autowired constructor(
             accountGroup.accountGroupName = group.get("account_group_name").toString().replace("\"", "")
             val savedAccountGroup = accountGroupRepository.save(accountGroup)
             val accountSubGroups = group.get("accounts_subgroups")
-            for (subgroup in accountSubGroups){
+            for (subgroup in accountSubGroups) {
                 logger.info("Creating account subgroup ${subgroup.get("account_subgroup_name")} for company $companyId")
                 val accountSubGroup = AccountSubgroup()
                 accountSubGroup.accountGroupId = savedAccountGroup.accountGroupId.toInt()
@@ -165,7 +178,7 @@ class CompanyBl @Autowired constructor(
                 accountSubGroup.accountSubgroupName = subgroup.get("account_subgroup_name").toString().replace("\"", "")
                 val savedAccountSubGroup = accountSubgroupRepository.save(accountSubGroup)
                 val accounts = subgroup.get("accounts")
-                for(account in accounts){
+                for (account in accounts) {
                     logger.info("Creating account ${account.get("account_name")} for company $companyId")
                     val accountEntity = Account()
                     accountEntity.accountSubgroupId = savedAccountSubGroup.accountSubgroupId.toInt()
@@ -174,7 +187,7 @@ class CompanyBl @Autowired constructor(
                     accountEntity.accountName = account.get("account_name").toString().replace("\"", "")
                     val savedAccount = accountRepository.save(accountEntity)
                     val subAccounts = account.get("subaccounts")
-                    for (subAccount in subAccounts){
+                    for (subAccount in subAccounts) {
                         logger.info("Creating subaccount ${subAccount.get("subaccount_name")} for company $companyId")
                         val subAccountEntity = Subaccount()
                         subAccountEntity.accountId = savedAccount.accountId.toInt()
@@ -189,51 +202,26 @@ class CompanyBl @Autowired constructor(
     }
 
     fun createSubaccountTaxTypeRelationships(companyId: Long) {
+        logger.info("Starting the BL call to create subaccount-tax_type relationships for a new company")
+        // Get all tax types
+        val taxTypeEntities = taxTypeRepository.findAllByStatusIsTrue()
+
         // Obtener todos los subaccounts para la empresa con companyId
-        val subaccounts = subaccountRepository.findByCompanyId(companyId)
+        taxTypeEntities.map { taxType ->
+            val subaccountEntity = subaccountRepository.findFirstByCompanyIdAndSubaccountNameAndStatusIsTrue(
+                companyId.toInt(),
+                taxType.taxTypeName
+            )
+            if (subaccountEntity != null) {
+                val subaccountTaxType = SubaccountTaxType()
+                subaccountTaxType.companyId = companyId.toInt()
+                subaccountTaxType.subaccountId = subaccountEntity.subaccountId.toInt()
+                subaccountTaxType.taxTypeId = taxType.taxTypeId.toInt()
+                subaccountTaxType.taxRate = taxType.defaultTaxRate
 
-        // Obtener todos los tax_types
-        val taxTypes = taxTypeRepository.findAll()
-
-        // Crear un mapa de tax_type_name a taxTypeId para facilitar la búsqueda
-        val taxTypeMap = taxTypes.associateBy { it.taxTypeName }
-
-        // Definir el valor por defecto para tax_rate (13%)
-        val defaultTaxRate = BigDecimal("13")
-
-        // Valor por defecto para status
-        val defaultStatus = true
-
-        // Recorrer los subaccounts
-        for (subaccount in subaccounts) {
-            val subaccountName = subaccount.subaccountName
-
-            // Buscar el tax_type correspondiente en el mapa
-            val taxType = taxTypeMap[subaccountName]
-
-            // Si se encuentra un tax_type correspondiente, crear la relación en subaccount_tax_type
-            if (taxType != null) {
-                // Verificar si los nombres son iguales
-                if (subaccountName == taxType.taxTypeName) {
-                    val subaccountTaxType = SubaccountTaxType()
-                    subaccountTaxType.companyId = companyId.toInt()
-
-                    // Obtener los IDs correspondientes
-                    val subaccountId = subaccount.subaccountId
-                    val taxTypeId = taxType.taxTypeId
-
-                    // Establecer los valores en la entidad SubaccountTaxType
-                    subaccountTaxType.subaccountId = subaccountId.toInt()
-                    subaccountTaxType.taxTypeId = taxTypeId.toInt()
-                    subaccountTaxType.companyId = companyId.toInt()
-                    subaccountTaxType.taxRate = defaultTaxRate
-                    subaccountTaxType.status = defaultStatus
-
-                    // Guardar la relación en subaccount_tax_type
-                    subaccountTaxTypeRepository.save(subaccountTaxType)
-                }
+                subaccountTaxTypeRepository.save(subaccountTaxType)
             }
         }
+        logger.info("Subaccount-tax_type relationships created successfully")
     }
-
 }

@@ -83,7 +83,7 @@ class TaxBl @Autowired constructor(
         kcUserCompanyRepository.findAllByKcUser_KcUuidAndCompany_CompanyIdAndStatusIsTrue(kcUuid, companyId) ?: throw UasException("403-39")
         logger.info("User $kcUuid is uploading file to company $companyId")
 
-        val subaccountTaxTypes = subaccountTaxTypeRepository.findAllByCompanyIdAndStatusIsTrue(companyId)
+        val subaccountTaxTypes = subaccountTaxTypeRepository.findAllByCompanyIdAndStatusIsTrue(companyId.toInt())
         logger.info("Found ${subaccountTaxTypes.size} subaccount associated with tax type")
 
         logger.info("Finishing the BL call to get all subaccount associated with tax type")

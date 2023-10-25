@@ -128,8 +128,8 @@ class ExpenseTransactionBl @Autowired constructor(
             val transactionDetailEntity = TransactionDetail()
             transactionDetailEntity.transactionId = savedTransaction.transactionId.toInt()
             transactionDetailEntity.subaccountId = it.subaccountId.toInt()
-            transactionDetailEntity.debitAmountBs = BigDecimal.ZERO
-            transactionDetailEntity.creditAmountBs = it.unitPriceBs.times(it.quantity.toBigDecimal())
+            transactionDetailEntity.debitAmountBs = it.unitPriceBs.times(it.quantity.toBigDecimal())
+            transactionDetailEntity.creditAmountBs = BigDecimal.ZERO
             transactionDetailRepository.save(transactionDetailEntity)
         }
 
@@ -137,9 +137,8 @@ class ExpenseTransactionBl @Autowired constructor(
         val transactionDetailEntity = TransactionDetail()
         transactionDetailEntity.transactionId = savedTransaction.transactionId.toInt()
         transactionDetailEntity.subaccountId = supplierEntity.subaccountId
-        transactionDetailEntity.debitAmountBs =
-            invoiceDto.invoiceDetails.sumOf { it.unitPriceBs.times(it.quantity.toBigDecimal()) }
-        transactionDetailEntity.creditAmountBs = BigDecimal.ZERO
+        transactionDetailEntity.debitAmountBs = BigDecimal.ZERO
+        transactionDetailEntity.creditAmountBs = invoiceDto.invoiceDetails.sumOf { it.unitPriceBs.times(it.quantity.toBigDecimal()) }
         transactionDetailRepository.save(transactionDetailEntity)
 
         logger.info("Saving expense transaction")
@@ -303,16 +302,16 @@ class ExpenseTransactionBl @Autowired constructor(
         val transactionDetailDebitEntity = TransactionDetail()
         transactionDetailDebitEntity.transactionId = savedTransaction.transactionId.toInt()
         transactionDetailDebitEntity.subaccountId = subaccountEntity.subaccountId.toInt()
-        transactionDetailDebitEntity.debitAmountBs = BigDecimal.ZERO
-        transactionDetailDebitEntity.creditAmountBs = paymentDto.paymentDetail.amountBs
+        transactionDetailDebitEntity.debitAmountBs = paymentDto.paymentDetail.amountBs
+        transactionDetailDebitEntity.creditAmountBs = BigDecimal.ZERO
         transactionDetailRepository.save(transactionDetailDebitEntity)
 
         logger.info("Saving the total of the expense transaction, credit")
         val transactionDetailCreditEntity = TransactionDetail()
         transactionDetailCreditEntity.transactionId = savedTransaction.transactionId.toInt()
         transactionDetailCreditEntity.subaccountId = supplierEntity.subaccountId
-        transactionDetailCreditEntity.debitAmountBs = paymentDto.paymentDetail.amountBs
-        transactionDetailCreditEntity.creditAmountBs = BigDecimal.ZERO
+        transactionDetailCreditEntity.debitAmountBs = BigDecimal.ZERO
+        transactionDetailCreditEntity.creditAmountBs = paymentDto.paymentDetail.amountBs
         transactionDetailRepository.save(transactionDetailCreditEntity)
 
         logger.info("Saving expense transaction")
