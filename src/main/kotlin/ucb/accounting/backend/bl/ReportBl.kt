@@ -15,7 +15,11 @@ import java.nio.file.Files
 import java.nio.file.Paths
 import java.sql.Date
 import java.sql.Timestamp
+import java.text.DecimalFormat
+import java.text.DecimalFormatSymbols
+import java.text.NumberFormat
 import java.text.SimpleDateFormat
+import java.util.*
 
 @Service
 class ReportBl @Autowired constructor(
@@ -56,29 +60,27 @@ class ReportBl @Autowired constructor(
         val companyEntity = companyRepository.findByCompanyIdAndStatusIsTrue(companyId) ?: throw UasException("404-05")
         // Validation of user belongs to company
         val kcUuid = KeycloakSecurityContextHolder.getSubject()!!
-        val user = kcUserCompanyRepository.findAllByKcUser_KcUuidAndCompany_CompanyIdAndStatusIsTrue(kcUuid, companyId) ?: throw UasException("403-19")
+        kcUserCompanyRepository.findAllByKcUser_KcUuidAndCompany_CompanyIdAndStatusIsTrue(kcUuid, companyId) ?: throw UasException("403-19")
 
         val journalBookData = journalEntryRepository.getJournalBookData(companyId.toInt(), documentTypeId.toInt(), startDate, endDate)
 
         val sdf = SimpleDateFormat("dd/MM/yyyy")
+        val locale = Locale("en", "EN")
+        val format = DecimalFormat("#,##0.00", DecimalFormatSymbols(locale))
+
         val journalBookList = journalBookData.groupBy { it["fecha"] }.map { (fecha, rows) ->
             val numeroComprobante = "Comprobante de ingreso Nro. ${rows.first()["numero_comprobante"]}"
             val transacciones = rows.map {
                 mapOf(
                     "codigo" to it["codigo"],
                     "detalle" to it["detalle"],
-                    "debe" to String.format("%.2f", it["debe"]),
-                    "haber" to String.format("%.2f", it["haber"])
+                    "debe" to format.format(it["debe"] as Number),
+                    "haber" to format.format(it["haber"] as Number)
                 )
             }
-            val totalDebe = String.format(
-                "%.2f",
-                rows.sumOf { (it["debe"] as Number).toDouble() }
-            )
-            val totalHaber = String.format(
-                "%.2f",
-                rows.sumOf { (it["haber"] as Number).toDouble() }
-            )
+            val totalDebe = format.format(rows.sumOf { (it["debe"] as Number).toDouble() })
+            val totalHaber = format.format(rows.sumOf { (it["haber"] as Number).toDouble() })
+
 
             val fechaEnMilis = (fecha as Timestamp).time
             mapOf(
@@ -92,7 +94,7 @@ class ReportBl @Autowired constructor(
         //TODO: obtain icono from company
 
         return mapOf(
-            "empresa" to companyEntity.companyName + " " + companyEntity.companyNit ,
+            "empresa" to companyEntity.companyName + "\nNIT:" + companyEntity.companyNit ,
             "subtitulo" to "Libro Diario\nDEL ${sdf.format(startDate)} al ${sdf.format(endDate)}",
             "icono" to "https://cdn-icons-png.flaticon.com/512/5741/5741196.png",
             "expresadoEn" to "Expresado en Bolivianos",
