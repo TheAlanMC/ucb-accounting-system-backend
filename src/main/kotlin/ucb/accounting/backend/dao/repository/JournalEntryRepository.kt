@@ -23,7 +23,7 @@ interface JournalEntryRepository: PagingAndSortingRepository<JournalEntry, Long>
             "je.journal_entry_number AS numero_comprobante, " +
             "s.subaccount_code AS codigo, " +
             "s.subaccount_name AS nombre, " +
-            "s.description AS detalle, " +
+            "t.description AS detalle, " +
             "td.debit_amount_bs AS debe, " +
             "td.credit_amount_bs AS haber " +
             "FROM journal_entry je " +
@@ -33,6 +33,7 @@ interface JournalEntryRepository: PagingAndSortingRepository<JournalEntry, Long>
             "WHERE je.company_id = :companyId " +
             "AND je.document_type_id = :documentTypeId " +
             "AND je.status = true " +
+            "And je.journal_entry_accepted = true " +
             "AND t.transaction_date BETWEEN :startDate AND :endDate", nativeQuery = true)
     fun getJournalBookData(
         @Param("companyId") companyId: Int,

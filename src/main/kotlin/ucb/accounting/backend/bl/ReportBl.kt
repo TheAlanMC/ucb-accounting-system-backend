@@ -8,9 +8,6 @@ import ucb.accounting.backend.dao.repository.*
 import ucb.accounting.backend.dto.pdf_turtle.Margins
 import ucb.accounting.backend.dto.pdf_turtle.PageSize
 import ucb.accounting.backend.dto.pdf_turtle.ReportOptions
-import ucb.accounting.backend.dto.report.JournalEntryReportDto
-import ucb.accounting.backend.dto.report.TotalesReportDto
-import ucb.accounting.backend.dto.report.TransactionReportDto
 import ucb.accounting.backend.exception.UasException
 import ucb.accounting.backend.service.PdfTurtleService
 import ucb.accounting.backend.util.KeycloakSecurityContextHolder
@@ -56,10 +53,10 @@ class ReportBl @Autowired constructor(
         endDate: Date,
         documentTypeId: Long
     ):Map<String, Any>{
-        companyRepository.findByCompanyIdAndStatusIsTrue(companyId) ?: throw UasException("404-05")
+        val companyEntity = companyRepository.findByCompanyIdAndStatusIsTrue(companyId) ?: throw UasException("404-05")
         // Validation of user belongs to company
         val kcUuid = KeycloakSecurityContextHolder.getSubject()!!
-        kcUserCompanyRepository.findAllByKcUser_KcUuidAndCompany_CompanyIdAndStatusIsTrue(kcUuid, companyId) ?: throw UasException("403-19")
+        val user = kcUserCompanyRepository.findAllByKcUser_KcUuidAndCompany_CompanyIdAndStatusIsTrue(kcUuid, companyId) ?: throw UasException("403-19")
 
         val journalBookData = journalEntryRepository.getJournalBookData(companyId.toInt(), documentTypeId.toInt(), startDate, endDate)
 
@@ -95,8 +92,8 @@ class ReportBl @Autowired constructor(
         //TODO: obtain icono from company
 
         return mapOf(
-            "empresa" to "ProfitWave",
-            "subtitulo" to "Libro Diario",
+            "empresa" to companyEntity.companyName + " " + companyEntity.companyNit ,
+            "subtitulo" to "Libro Diario\nDEL ${sdf.format(startDate)} al ${sdf.format(endDate)}",
             "icono" to "https://cdn-icons-png.flaticon.com/512/5741/5741196.png",
             "expresadoEn" to "Expresado en Bolivianos",
             "libroDiario" to journalBookList
