@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+	<style>
+		.unbold-heading {
+			font-weight: normal;
+		}
+	</style>
+</head>
+
+<body class="pdf-turtle">
+	<h2 class="unbold-heading">{{ .subtitulo }}</h2>
+	<h4 class="unbold-heading">{{ .expresadoEn }}</h4>
+
+	<table class="reduced" style="margin-top:3mm; font-size:11pt;">
+		<tr>
+			<th>Fecha/Codigo</th>
+			<th>Detalle</th>
+			<th>Debe(Bs.)</th>
+			<th>Haber(Bs.)</th>
+		</tr>
+
+		{{range .libroDiario}}
+		<tr class="no-page-break-inside" style="margin-top: 1000px;">
+			<td align="center" style="font-weight: bold;">{{ .fecha }}</td>
+			<td align="center" style="font-weight: bold;">{{ .numeroDeComprobante }}</td>
+			<td></td>
+			<td></td>
+			{{range .transacciones }}
+			<tr>
+				<td align="center">{{ .codigo }}</td>
+				<td align="center">{{ .detalle }}</td>
+				<td class="nowrap right">{{ .debe }}</td>
+				<td class="nowrap right">{{ .haber }}</td>
+			</tr>
+			{{end}}
+			<tr>
+				<td align="center" style="font-weight: bold; border-bottom: 2px solid black;">Totales</td>
+				<td style="border-bottom: 2px solid black;"></td>
+				<td class="nowrap right" style="border-bottom: 2px solid black;">{{ .totales.debe }}</td>
+				<td class="nowrap right" style="border-bottom: 2px solid black;">{{ .totales.haber }}</td>
+			</tr>
+		</tr>
+		<tr>
+    	<td style="border-bottom: 0px;" colspan="2">&nbsp;</td>
+  	</tr>
+		{{end}}
+	</table>
+</body>
+</html>

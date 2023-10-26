@@ -23,7 +23,7 @@ class Report {
     @Column(name = "currency_type_id")
     var currencyTypeId: Int = 0
 
-    @Column(name = "attachment_id")
+    @Column(name = "atattachment_id")
     var attachmentId: Int = 0
 
     @Column(name = "period_start_date")
@@ -35,7 +35,7 @@ class Report {
     @Column(name = "description")
     var description: String = ""
 
-    @Column(name = "is_financial_statement")
+    @Column(name = "is_finantial_statement")
     var isFinancialStatement: Boolean = false
 
     @Column(name = "status")

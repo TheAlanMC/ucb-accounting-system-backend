@@ -2,6 +2,7 @@ package ucb.accounting.backend.api
 
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.format.annotation.DateTimeFormat
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
@@ -16,7 +17,7 @@ import ucb.accounting.backend.bl.ReportBl
 import ucb.accounting.backend.dto.AttachmentDownloadDto
 import ucb.accounting.backend.dto.ResponseDto
 import ucb.accounting.backend.util.ResponseCodeUtil
-import java.util.Date
+import java.sql.Date
 
 @RestController
 @RequestMapping("/api/v1/report")
@@ -42,12 +43,14 @@ class ReportsApi @Autowired constructor(
         val report:ByteArray = reportBl.generateJournalBookByDates(companyId, startDate, endDate, documentTypeId)
         val uploadedReport = fileBl.uploadFile(report, companyId)
         val downloadReport = fileBl.downloadFile(uploadedReport.attachmentId, companyId)
+        //TODO: obtain real values instead of hardcoded
+        reportBl.saveReport(companyId, 1, 1, uploadedReport.attachmentId, startDate, endDate, "Journal Book Report", false)
         val code = "200-22"
         val responseInfo = ResponseCodeUtil.getResponseInfo(code)
         return ResponseEntity(ResponseDto(code, responseInfo.message!!, downloadReport), responseInfo.httpStatus)
     }
 
-    @GetMapping("/journal-book/companies/{companyId}")
+    /*@GetMapping("/journal-book/companies/{companyId}")
     fun generateJournalBookReportByMonth (
         @PathVariable("companyId") companyId: Long,
         @RequestParam("month") month: Int,
@@ -62,7 +65,7 @@ class ReportsApi @Autowired constructor(
         val code = "200-22"
         val responseInfo = ResponseCodeUtil.getResponseInfo(code)
         return ResponseEntity(ResponseDto(code, responseInfo.message!!, downloadReport), responseInfo.httpStatus)
-    }
+    }*/
 
     @GetMapping("/ledger-account-report/companies/{companyId}")
     fun generateLedgerAccountReportByDates (
@@ -79,6 +82,8 @@ class ReportsApi @Autowired constructor(
         val report:ByteArray = reportBl.generateLedgerAccountReport(companyId, startDate, endDate, accountCode, currency, withBalance)
         val uploadedReport = fileBl.uploadFile(report, companyId)
         val downloadReport = fileBl.downloadFile(uploadedReport.attachmentId, companyId)
+        //TODO: obtain real values instead of hardcoded
+        reportBl.saveReport(companyId, 1, 1, uploadedReport.attachmentId, startDate, endDate, "Ledger Account Report", false)
         val code = "200-22"
         val responseInfo = ResponseCodeUtil.getResponseInfo(code)
         return ResponseEntity(ResponseDto(code, responseInfo.message!!, downloadReport), responseInfo.httpStatus)
