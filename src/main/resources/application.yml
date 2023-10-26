@@ -164,3 +164,11 @@ keycloak:
             - /api/v1/reports/*
           methods:
             - GET
+    - auth-roles:
+        - report-generator
+      security-collections:
+        - name: Report
+          patterns:
+            - /api/v1/report/*
+          methods:
+            - GET

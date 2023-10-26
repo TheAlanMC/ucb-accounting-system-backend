@@ -1,0 +1,119 @@
+2023-09-28 10:50:04.616 INFO  9847 --- [main] u.a.backend.BackendApplicationTests : Starting BackendApplicationTests using Java 17.0.8.1 on HP-Pavilion-15-Notebook-PC with PID 9847 (started by root in /home/isaidiaz/Personal/Código/Backend/Spring Boot/ucb-accounting-system-backend)
+2023-09-28 10:50:04.625 INFO  9847 --- [main] u.a.backend.BackendApplicationTests : No active profile set, falling back to 1 default profile: "default"
+2023-09-28 10:50:07.698 INFO  9847 --- [main] o.s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2023-09-28 10:50:08.088 INFO  9847 --- [main] o.s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 360 ms. Found 17 JPA repository interfaces.
+2023-09-28 10:50:11.903 INFO  9847 --- [main] o.h.jpa.internal.util.LogHelper : HHH000204: Processing PersistenceUnitInfo [name: default]
+2023-09-28 10:50:12.102 INFO  9847 --- [main] org.hibernate.Version : HHH000412: Hibernate ORM core version 5.6.15.Final
+2023-09-28 10:50:12.651 INFO  9847 --- [main] o.h.annotations.common.Version : HCANN000001: Hibernate Commons Annotations {5.1.2.Final}
+2023-09-28 10:50:15.107 INFO  9847 --- [main] org.hibernate.dialect.Dialect : HHH000400: Using dialect: org.hibernate.dialect.PostgreSQL10Dialect
+2023-09-28 10:50:17.154 WARN  9847 --- [main] org.hibernate.mapping.RootClass : HHH000038: Composite-id class does not override equals(): ucb.accounting.backend.dao.TransactionAttachmentId
+2023-09-28 10:50:17.156 WARN  9847 --- [main] org.hibernate.mapping.RootClass : HHH000039: Composite-id class does not override hashCode(): ucb.accounting.backend.dao.TransactionAttachmentId
+2023-09-28 10:50:17.158 WARN  9847 --- [main] org.hibernate.mapping.RootClass : HHH000038: Composite-id class does not override equals(): ucb.accounting.backend.dao.SubaccountTaxId
+2023-09-28 10:50:17.159 WARN  9847 --- [main] org.hibernate.mapping.RootClass : HHH000039: Composite-id class does not override hashCode(): ucb.accounting.backend.dao.SubaccountTaxId
+2023-09-28 10:50:17.162 WARN  9847 --- [main] org.hibernate.mapping.RootClass : HHH000038: Composite-id class does not override equals(): ucb.accounting.backend.dao.KcUserCompanyId
+2023-09-28 10:50:17.163 WARN  9847 --- [main] org.hibernate.mapping.RootClass : HHH000039: Composite-id class does not override hashCode(): ucb.accounting.backend.dao.KcUserCompanyId
+2023-09-28 10:50:17.843 INFO  9847 --- [main] o.h.e.t.j.p.i.JtaPlatformInitiator : HHH000490: Using JtaPlatform implementation: [org.hibernate.engine.transaction.jta.platform.internal.NoJtaPlatform]
+2023-09-28 10:50:17.879 INFO  9847 --- [main] o.s.o.j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'default'
+2023-09-28 10:50:27.312 WARN  9847 --- [main] o.s.b.a.o.j.JpaBaseConfiguration$JpaWebConfiguration : spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
+2023-09-28 10:50:29.381 INFO  9847 --- [main] u.a.backend.BackendApplicationTests : Started BackendApplicationTests in 26.271 seconds (JVM running for 29.714)
+2023-09-28 10:50:30.683 INFO  9847 --- [SpringApplicationShutdownHook] o.s.o.j.LocalContainerEntityManagerFactoryBean : Closing JPA EntityManagerFactory for persistence unit 'default'
+2023-09-28 10:52:01.681 INFO  10025 --- [main] u.a.backend.BackendApplicationKt : Starting BackendApplicationKt using Java 17.0.8.1 on HP-Pavilion-15-Notebook-PC with PID 10025 (/home/isaidiaz/Personal/Código/Backend/Spring Boot/ucb-accounting-system-backend/target/classes started by root in /home/isaidiaz/Personal/Código/Backend/Spring Boot/ucb-accounting-system-backend)
+2023-09-28 10:52:01.689 INFO  10025 --- [main] u.a.backend.BackendApplicationKt : No active profile set, falling back to 1 default profile: "default"
+2023-09-28 10:52:03.802 INFO  10025 --- [main] o.s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2023-09-28 10:52:04.126 INFO  10025 --- [main] o.s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 296 ms. Found 17 JPA repository interfaces.
+2023-09-28 10:52:05.952 INFO  10025 --- [main] o.s.b.w.e.tomcat.TomcatWebServer : Tomcat initialized with port(s): 8080 (http)
+2023-09-28 10:52:05.981 INFO  10025 --- [main] o.a.catalina.core.StandardService : Starting service [Tomcat]
+2023-09-28 10:52:05.982 INFO  10025 --- [main] o.a.catalina.core.StandardEngine : Starting Servlet engine: [Apache Tomcat/9.0.80]
+2023-09-28 10:52:06.279 INFO  10025 --- [main] o.a.c.c.C.[Tomcat].[localhost].[/] : Initializing Spring embedded WebApplicationContext
+2023-09-28 10:52:06.280 INFO  10025 --- [main] o.s.b.w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 4424 ms
+2023-09-28 10:52:06.431 ERROR 10025 --- [main] o.a.c.c.C.[Tomcat].[localhost].[/] : For security constraints with URL pattern [/api/v1/files/attachments/*] only the HTTP methods [POST GET] are covered. All other methods are uncovered.
+2023-09-28 10:52:06.432 ERROR 10025 --- [main] o.a.c.c.C.[Tomcat].[localhost].[/] : For security constraints with URL pattern [/api/v1/subaccounts/companies/*] only the HTTP methods [POST GET PUT] are covered. All other methods are uncovered.
+2023-09-28 10:52:06.434 ERROR 10025 --- [main] o.a.c.c.C.[Tomcat].[localhost].[/] : For security constraints with URL pattern [/api/v1/accounting-plans/*] only the HTTP methods [GET] are covered. All other methods are uncovered.
+2023-09-28 10:52:06.435 ERROR 10025 --- [main] o.a.c.c.C.[Tomcat].[localhost].[/] : For security constraints with URL pattern [/api/v1/accounts/companies/*] only the HTTP methods [POST GET PUT] are covered. All other methods are uncovered.
+2023-09-28 10:52:06.436 ERROR 10025 --- [main] o.a.c.c.C.[Tomcat].[localhost].[/] : For security constraints with URL pattern [/api/v1/companies/*] only the HTTP methods [GET PUT] are covered. All other methods are uncovered.
+2023-09-28 10:52:06.437 ERROR 10025 --- [main] o.a.c.c.C.[Tomcat].[localhost].[/] : For security constraints with URL pattern [/api/v1/files/pictures/*] only the HTTP methods [POST] are covered. All other methods are uncovered.
+2023-09-28 10:52:06.438 ERROR 10025 --- [main] o.a.c.c.C.[Tomcat].[localhost].[/] : For security constraints with URL pattern [/api/v1/users/*] only the HTTP methods [GET PUT] are covered. All other methods are uncovered.
+2023-09-28 10:52:06.439 ERROR 10025 --- [main] o.a.c.c.C.[Tomcat].[localhost].[/] : For security constraints with URL pattern [/api/v1/journal-entries/companies/*] only the HTTP methods [POST GET] are covered. All other methods are uncovered.
+2023-09-28 10:52:08.796 INFO  10025 --- [main] o.h.jpa.internal.util.LogHelper : HHH000204: Processing PersistenceUnitInfo [name: default]
+2023-09-28 10:52:08.915 INFO  10025 --- [main] org.hibernate.Version : HHH000412: Hibernate ORM core version 5.6.15.Final
+2023-09-28 10:52:09.300 INFO  10025 --- [main] o.h.annotations.common.Version : HCANN000001: Hibernate Commons Annotations {5.1.2.Final}
+2023-09-28 10:52:11.592 INFO  10025 --- [main] org.hibernate.dialect.Dialect : HHH000400: Using dialect: org.hibernate.dialect.PostgreSQL10Dialect
+2023-09-28 10:52:12.926 WARN  10025 --- [main] org.hibernate.mapping.RootClass : HHH000038: Composite-id class does not override equals(): ucb.accounting.backend.dao.TransactionAttachmentId
+2023-09-28 10:52:12.927 WARN  10025 --- [main] org.hibernate.mapping.RootClass : HHH000039: Composite-id class does not override hashCode(): ucb.accounting.backend.dao.TransactionAttachmentId
+2023-09-28 10:52:12.929 WARN  10025 --- [main] org.hibernate.mapping.RootClass : HHH000038: Composite-id class does not override equals(): ucb.accounting.backend.dao.SubaccountTaxId
+2023-09-28 10:52:12.930 WARN  10025 --- [main] org.hibernate.mapping.RootClass : HHH000039: Composite-id class does not override hashCode(): ucb.accounting.backend.dao.SubaccountTaxId
+2023-09-28 10:52:12.932 WARN  10025 --- [main] org.hibernate.mapping.RootClass : HHH000038: Composite-id class does not override equals(): ucb.accounting.backend.dao.KcUserCompanyId
+2023-09-28 10:52:12.933 WARN  10025 --- [main] org.hibernate.mapping.RootClass : HHH000039: Composite-id class does not override hashCode(): ucb.accounting.backend.dao.KcUserCompanyId
+2023-09-28 10:52:13.424 INFO  10025 --- [main] o.h.e.t.j.p.i.JtaPlatformInitiator : HHH000490: Using JtaPlatform implementation: [org.hibernate.engine.transaction.jta.platform.internal.NoJtaPlatform]
+2023-09-28 10:52:13.449 INFO  10025 --- [main] o.s.o.j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'default'
+2023-09-28 10:52:19.710 WARN  10025 --- [main] o.s.b.a.o.j.JpaBaseConfiguration$JpaWebConfiguration : spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
+2023-09-28 10:52:20.620 INFO  10025 --- [main] o.s.b.w.e.tomcat.TomcatWebServer : Tomcat started on port(s): 8080 (http) with context path ''
+2023-09-28 10:52:20.651 INFO  10025 --- [main] u.a.backend.BackendApplicationKt : Started BackendApplicationKt in 20.364 seconds (JVM running for 21.475)
+2023-09-28 10:53:54.351 INFO  10025 --- [http-nio-8080-exec-2] o.a.c.c.C.[Tomcat].[localhost].[/] : Initializing Spring DispatcherServlet 'dispatcherServlet'
+2023-09-28 10:53:54.352 INFO  10025 --- [http-nio-8080-exec-2] o.s.web.servlet.DispatcherServlet : Initializing Servlet 'dispatcherServlet'
+2023-09-28 10:53:54.356 INFO  10025 --- [http-nio-8080-exec-2] o.s.web.servlet.DispatcherServlet : Completed initialization in 3 ms
+2023-09-28 10:53:54.450 INFO  10025 --- [http-nio-8080-exec-2] u.a.backend.api.AccountCompanyApi : Starting the API call to get account company
+2023-09-28 10:53:54.450 INFO  10025 --- [http-nio-8080-exec-2] u.a.backend.api.AccountCompanyApi : GET /api/v1/accounts/{accountdId}/companies/{companyId}
+2023-09-28 10:53:54.451 INFO  10025 --- [http-nio-8080-exec-2] ucb.accounting.backend.bl.AccountBl : Starting the business logic to get account company
+2023-09-28 10:53:54.451 INFO  10025 --- [http-nio-8080-exec-2] ucb.accounting.backend.bl.AccountBl : BL call to get account company
+2023-09-28 10:53:54.465 ERROR 10025 --- [http-nio-8080-exec-2] o.a.c.c.C.[.[.[.[dispatcherServlet] : Servlet.service() for servlet [dispatcherServlet] in context with path [] threw exception [Request processing failed; nested exception is java.lang.NullPointerException] with root cause
+java.lang.NullPointerException: null
+	at ucb.accounting.backend.bl.AccountBl.getAccountCompany(AccountBl.kt:103)
+	at ucb.accounting.backend.api.AccountCompanyApi.getAccountCompany(AccountCompanyApi.kt:36)
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:77)
+	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:568)
+	at org.springframework.web.method.support.InvocableHandlerMethod.doInvoke(InvocableHandlerMethod.java:205)
+	at org.springframework.web.method.support.InvocableHandlerMethod.invokeForRequest(InvocableHandlerMethod.java:150)
+	at org.springframework.web.servlet.mvc.method.annotation.ServletInvocableHandlerMethod.invokeAndHandle(ServletInvocableHandlerMethod.java:117)
+	at org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter.invokeHandlerMethod(RequestMappingHandlerAdapter.java:895)
+	at org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter.handleInternal(RequestMappingHandlerAdapter.java:808)
+	at org.springframework.web.servlet.mvc.method.AbstractHandlerMethodAdapter.handle(AbstractHandlerMethodAdapter.java:87)
+	at org.springframework.web.servlet.DispatcherServlet.doDispatch(DispatcherServlet.java:1072)
+	at org.springframework.web.servlet.DispatcherServlet.doService(DispatcherServlet.java:965)
+	at org.springframework.web.servlet.FrameworkServlet.processRequest(FrameworkServlet.java:1006)
+	at org.springframework.web.servlet.FrameworkServlet.doGet(FrameworkServlet.java:898)
+	at javax.servlet.http.HttpServlet.service(HttpServlet.java:529)
+	at org.springframework.web.servlet.FrameworkServlet.service(FrameworkServlet.java:883)
+	at javax.servlet.http.HttpServlet.service(HttpServlet.java:623)
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:209)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:153)
+	at org.apache.tomcat.websocket.server.WsFilter.doFilter(WsFilter.java:51)
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:178)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:153)
+	at org.springframework.web.filter.CorsFilter.doFilterInternal(CorsFilter.java:91)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:117)
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:178)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:153)
+	at org.springframework.web.filter.RequestContextFilter.doFilterInternal(RequestContextFilter.java:100)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:117)
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:178)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:153)
+	at org.springframework.web.filter.FormContentFilter.doFilterInternal(FormContentFilter.java:93)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:117)
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:178)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:153)
+	at org.springframework.web.filter.CharacterEncodingFilter.doFilterInternal(CharacterEncodingFilter.java:201)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:117)
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:178)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:153)
+	at org.apache.catalina.core.StandardWrapperValve.invoke(StandardWrapperValve.java:168)
+	at org.apache.catalina.core.StandardContextValve.invoke(StandardContextValve.java:90)
+	at org.keycloak.adapters.tomcat.AbstractAuthenticatedActionsValve.invoke(AbstractAuthenticatedActionsValve.java:67)
+	at org.apache.catalina.authenticator.AuthenticatorBase.invoke(AuthenticatorBase.java:481)
+	at org.keycloak.adapters.tomcat.AbstractKeycloakAuthenticatorValve.invoke(AbstractKeycloakAuthenticatorValve.java:181)
+	at org.apache.catalina.core.StandardHostValve.invoke(StandardHostValve.java:130)
+	at org.apache.catalina.valves.ErrorReportValve.invoke(ErrorReportValve.java:93)
+	at org.apache.catalina.core.StandardEngineValve.invoke(StandardEngineValve.java:74)
+	at org.apache.catalina.connector.CoyoteAdapter.service(CoyoteAdapter.java:343)
+	at org.apache.coyote.http11.Http11Processor.service(Http11Processor.java:390)
+	at org.apache.coyote.AbstractProcessorLight.process(AbstractProcessorLight.java:63)
+	at org.apache.coyote.AbstractProtocol$ConnectionHandler.process(AbstractProtocol.java:926)
+	at org.apache.tomcat.util.net.NioEndpoint$SocketProcessor.doRun(NioEndpoint.java:1790)
+	at org.apache.tomcat.util.net.SocketProcessorBase.run(SocketProcessorBase.java:52)
+	at org.apache.tomcat.util.threads.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1191)
+	at org.apache.tomcat.util.threads.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:659)
+	at org.apache.tomcat.util.threads.TaskThread$WrappingRunnable.run(TaskThread.java:61)
+	at java.base/java.lang.Thread.run(Thread.java:833)
+2023-09-28 10:56:52.805 INFO  10025 --- [SpringApplicationShutdownHook] o.s.o.j.LocalContainerEntityManagerFactoryBean : Closing JPA EntityManagerFactory for persistence unit 'default'

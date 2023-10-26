@@ -1,6 +1,8 @@
 package ucb.accounting.backend.service
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import okhttp3.Connection
+import okhttp3.ConnectionPool
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import okhttp3.Request
@@ -8,6 +10,7 @@ import okhttp3.RequestBody.Companion.toRequestBody
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
 import ucb.accounting.backend.dto.pdf_turtle.ReportOptions
+import java.util.concurrent.TimeUnit
 
 @Service
 class PdfTurtleService {
@@ -15,7 +18,11 @@ class PdfTurtleService {
     @Value("\${pdf-turtle.url}")
     private lateinit var pdfTurtleUrl: String
 
-    private val client = OkHttpClient()
+    private val client = OkHttpClient.Builder()
+        .readTimeout(60, TimeUnit.SECONDS)
+        .connectionPool(ConnectionPool(5, 5, TimeUnit.MINUTES))
+        .build()
+
     private val objectMapper = ObjectMapper()
 
     fun generatePdf(

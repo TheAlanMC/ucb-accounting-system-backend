@@ -9,6 +9,6 @@ data class JournalBookReportDto (
     val gloss: String?,
     val description: String?,
     val transactionDate: Date?,
-    val attachments: List<AttachmentDownloadDto>?,
+    val attachments: List<AttachmentDto>?,
     val transactionDetails: List<JournalBookTransactionDetailDto>?
 )
