@@ -476,16 +476,20 @@ class ReportBl @Autowired constructor(
 //        val journalBookData = journalEntryRepository.getJournalBookData(companyId.toInt(), documentTypeId.toInt(), startDate, endDate)
         val journalBookData = journalEntryRepository.getJournalBookData(companyId.toInt(), startDate, endDate)
 
+        if (startDate.after(endDate)) {
+            throw UasException("400-15")
+        }
+
         val sdf = SimpleDateFormat("dd/MM/yyyy")
         val locale = Locale("en", "EN")
         val format = DecimalFormat("#,##0.00", DecimalFormatSymbols(locale))
 
-        val journalBookList = journalBookData.groupBy { it["fecha"] }.map { (fecha, rows) ->
+        val journalBookList = journalBookData.groupBy { it["numero_comprobante"] }.map { (fecha, rows) ->
             val numeroComprobante = "Comprobante de ingreso Nro. ${rows.first()["numero_comprobante"]}"
             val transacciones = rows.map {
                 mapOf(
                     "codigo" to it["codigo"],
-                    "detalle" to it["detalle"],
+                    "detalle" to it["nombre"],
                     "debe" to format.format(it["debe"] as Number),
                     "haber" to format.format(it["haber"] as Number)
                 )
@@ -494,7 +498,6 @@ class ReportBl @Autowired constructor(
             val totalHaber = format.format(rows.sumOf { (it["haber"] as Number).toDouble() })
 
 
-//            val fechaEnMilis = (fecha as Timestamp).time
             mapOf(
                 "fecha" to sdf.format(fecha),
                 "numeroDeComprobante" to numeroComprobante,
@@ -506,10 +509,13 @@ class ReportBl @Autowired constructor(
         //TODO: obtain icono from company
 
         return mapOf(
-            "empresa" to companyEntity.companyName + "\nNIT:" + companyEntity.companyNit ,
-            "subtitulo" to "Libro Diario\nDEL ${sdf.format(startDate)} al ${sdf.format(endDate)}",
+            "empresa" to companyEntity.companyName,
+            "subtitulo" to "Libro Diario",
             "icono" to "https://cdn-icons-png.flaticon.com/512/5741/5741196.png",
             "expresadoEn" to "Expresado en Bolivianos",
+            "ciudad" to "La Paz - Bolivia",
+            "nit" to companyEntity.companyNit,
+            "periodo" to "Del ${sdf.format(startDate)} al ${sdf.format(endDate)}",
             "libroDiario" to journalBookList
         )
     }
