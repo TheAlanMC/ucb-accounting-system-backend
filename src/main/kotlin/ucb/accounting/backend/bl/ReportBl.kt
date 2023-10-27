@@ -484,8 +484,9 @@ class ReportBl @Autowired constructor(
         val locale = Locale("en", "EN")
         val format = DecimalFormat("#,##0.00", DecimalFormatSymbols(locale))
 
-        val journalBookList = journalBookData.groupBy { it["numero_comprobante"] }.map { (fecha, rows) ->
-            val numeroComprobante = "Comprobante de ingreso Nro. ${rows.first()["numero_comprobante"]}"
+        val journalBookList = journalBookData.groupBy { it["fecha"] to it["numero_comprobante"]}.map { (key, rows) ->
+            val (fecha, numeroComprobante) = key
+            val numeroComprobanteTexto = "Comprobante de ingreso Nro. ${rows.first()["numero_comprobante"]}"
             val transacciones = rows.map {
                 mapOf(
                     "codigo" to it["codigo"],
@@ -500,7 +501,7 @@ class ReportBl @Autowired constructor(
 
             mapOf(
                 "fecha" to sdf.format(fecha),
-                "numeroDeComprobante" to numeroComprobante,
+                "numeroDeComprobante" to numeroComprobanteTexto,
                 "transacciones" to transacciones,
                 "totales" to mapOf("debe" to totalDebe, "haber" to totalHaber)
             )
