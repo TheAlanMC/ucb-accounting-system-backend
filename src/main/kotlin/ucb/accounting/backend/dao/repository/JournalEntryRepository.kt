@@ -72,6 +72,7 @@ interface JournalEntryRepository: PagingAndSortingRepository<JournalEntry, Long>
             "je.journal_entry_number AS numero_comprobante, " +
             "s.subaccount_code AS codigo, " +
             "s.subaccount_name AS nombre, " +
+            "t.description AS detalle, " +
             "td.debit_amount_bs AS debe, " +
             "td.credit_amount_bs AS haber " +
             "FROM journal_entry je " +

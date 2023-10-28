@@ -5,6 +5,9 @@
 		.unbold-heading {
 			font-weight: normal;
 		}
+		.detalle{
+			white-space: pre;
+		}
 	</style>
 </head>
 
@@ -31,14 +34,14 @@
 			{{range .transacciones }}
 			<tr>
 				<td align="center">{{ .codigo }}</td>
-				<td align="center">{{ .detalle }}</td>
+				<td class="detalle">{{ .detalle }}</td>
 				<td class="nowrap right">{{ .debe }}</td>
 				<td class="nowrap right">{{ .haber }}</td>
 			</tr>
 			{{end}}
 			<tr>
 				<td align="center" style="font-weight: bold; border-bottom: 2px solid black;">Totales</td>
-				<td style="border-bottom: 2px solid black;"></td>
+				<td style="border-bottom: 2px solid black;">{{ .glosa}}</td>
 				<td class="nowrap right" style="border-bottom: 2px solid black;">{{ .totales.debe }}</td>
 				<td class="nowrap right" style="border-bottom: 2px solid black;">{{ .totales.haber }}</td>
 			</tr>

@@ -469,6 +469,10 @@ class ReportBl @Autowired constructor(
         documentTypeId: Long
     ):Map<String, Any>{
         val companyEntity = companyRepository.findByCompanyIdAndStatusIsTrue(companyId) ?: throw UasException("404-05")
+
+        val s3Object: S3Object = s3ObjectRepository.findByS3ObjectIdAndStatusIsTrue(companyEntity.s3CompanyLogo.toLong())!!
+        val presignedUrl: String = minioService.getPreSignedUrl(s3Object.bucket, s3Object.filename)
+        logger.info("company logo url: $presignedUrl")
         // Validation of user belongs to company
         val kcUuid = KeycloakSecurityContextHolder.getSubject()!!
         kcUserCompanyRepository.findAllByKcUser_KcUuidAndCompany_CompanyIdAndStatusIsTrue(kcUuid, companyId) ?: throw UasException("403-19")
@@ -486,22 +490,26 @@ class ReportBl @Autowired constructor(
 
         val journalBookList = journalBookData.groupBy { it["fecha"] to it["numero_comprobante"]}.map { (key, rows) ->
             val (fecha, numeroComprobante) = key
-            val numeroComprobanteTexto = "Comprobante de ingreso Nro. ${rows.first()["numero_comprobante"]}"
+            val numeroComprobanteTexto = "Comprobante de ingreso Nro. $numeroComprobante"
             val transacciones = rows.map {
+
+                val tabulacion = if ((it["haber"] as Number).toDouble() != 0.00) "\t" else ""
+
                 mapOf(
                     "codigo" to it["codigo"],
-                    "detalle" to it["nombre"],
+                    "detalle" to tabulacion + it["nombre"],
                     "debe" to format.format(it["debe"] as Number),
                     "haber" to format.format(it["haber"] as Number)
                 )
             }
             val totalDebe = format.format(rows.sumOf { (it["debe"] as Number).toDouble() })
             val totalHaber = format.format(rows.sumOf { (it["haber"] as Number).toDouble() })
-
+            val glosa = rows.first()["detalle"]
 
             mapOf(
                 "fecha" to sdf.format(fecha),
                 "numeroDeComprobante" to numeroComprobanteTexto,
+                "glosa" to glosa,
                 "transacciones" to transacciones,
                 "totales" to mapOf("debe" to totalDebe, "haber" to totalHaber)
             )
@@ -512,7 +520,7 @@ class ReportBl @Autowired constructor(
         return mapOf(
             "empresa" to companyEntity.companyName,
             "subtitulo" to "Libro Diario",
-            "icono" to "https://cdn-icons-png.flaticon.com/512/5741/5741196.png",
+            "icono" to  presignedUrl,
             "expresadoEn" to "Expresado en Bolivianos",
             "ciudad" to "La Paz - Bolivia",
             "nit" to companyEntity.companyNit,
