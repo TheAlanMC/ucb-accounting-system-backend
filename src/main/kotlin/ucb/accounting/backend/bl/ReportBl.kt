@@ -477,7 +477,6 @@ class ReportBl @Autowired constructor(
         val kcUuid = KeycloakSecurityContextHolder.getSubject()!!
         kcUserCompanyRepository.findAllByKcUser_KcUuidAndCompany_CompanyIdAndStatusIsTrue(kcUuid, companyId) ?: throw UasException("403-19")
 
-//        val journalBookData = journalEntryRepository.getJournalBookData(companyId.toInt(), documentTypeId.toInt(), startDate, endDate)
         val journalBookData = journalEntryRepository.getJournalBookData(companyId.toInt(), startDate, endDate)
 
         if (startDate.after(endDate)) {
@@ -548,115 +547,101 @@ class ReportBl @Autowired constructor(
         return pdfTurtleService.generatePdf(footerHtmlTemplate, headerHtmlTemplate, htmlTemplate, model, options, templateEngine)
     }
 
-    fun generateModelForJournalBookByMonth(
-        companyId: Long,
-        month: Int,
-        documentTypeId: Long
-    ):Map<String, Any>{
-        companyRepository.findByCompanyIdAndStatusIsTrue(companyId) ?: throw UasException("404-05")
-        // Validation of user belongs to company
-        val kcUuid = KeycloakSecurityContextHolder.getSubject()!!
-        kcUserCompanyRepository.findAllByKcUser_KcUuidAndCompany_CompanyIdAndStatusIsTrue(kcUuid, companyId) ?: throw UasException("403-19")
-
-        val journalEntries = journalEntryRepository.findByCompanyIdAndDocumentTypeIdAndMonth(companyId.toInt(), documentTypeId.toInt() , month)
-        logger.info("journalEntries:\n$journalEntries")
-
-        val journalBookList = journalEntries.map {
-                journalEntry ->
-            val transaction = journalEntry.transaction
-            val transactionDetails = transaction?.transactionDetails ?: emptyList()
-
-            val journalBookEntry = mapOf(
-                "numero" to journalEntry.journalEntryNumber,
-                "fecha" to journalEntry.txDate.toString(),
-                "codigo" to journalEntry.journalEntryNumber,
-                "nombre" to "Activo",
-                "referencia" to journalEntry.gloss,
-                "debe" to transactionDetails.sumOf { it.debitAmountBs },
-                "haber" to transactionDetails.sumOf { it.creditAmountBs }
-            )
-            journalBookEntry
-        }
-        return mapOf(
-            "titulo" to "ProfitWave",
-            "subtitulo" to "Reporte de Libro Diario",
-            "libroDiario" to journalBookList
-        )
-    }
-
-    fun generateJournalBookByMonth(
-        companyId: Long,
-        month: Int,
-        documentTypeId: Long
-    ): ByteArray {
-        logger.info("Generating Journal Book report")
-        logger.info("GET api/v1/report/journal-book/companies/${companyId}?month=${month}&documentTypeId=${documentTypeId}")
-        val footerHtmlTemplate = "<string>"
-        val headerHtmlTemplate = "<string>"
-        val htmlTemplate = "<!DOCTYPE html><html><head><style>.report {font-family: Arial, sans-serif;}.title {font-size: 24px;font-weight: bold;text-align: center;}.subtitle {font-size: 18px;text-align: center;}table {width: 100%;border-collapse: collapse;margin-top: 20px;}table, th, td {border: 1px solid black;}th, td {padding: 8px;text-align: left;}th {background-color: #f2f2f2;}</style></head><body class=\"report\"><h1 class=\"title\">{{ .titulo }}</h1><h2 class=\"subtitle\">{{ .subtitulo }}</h2><table><tr><th>Número</th><th>Fecha</th><th>Código</th><th>Nombre</th><th>Referencia</th><th>Debe</th><th>Haber</th></tr>{{range .libroDiario}}<tr><td>{{ .numero }}</td><td>{{ .fecha }}</td><td>{{ .codigo }}</td><td>{{ .nombre }}</td><td>{{ .referencia }}</td><td>{{ .debe }}</td><td>{{ .haber }}</td></tr>{{end}}</table></body></html>"
-        val model = generateModelForJournalBookByMonth(companyId,month, documentTypeId)
-
-        logger.info("model:\n$model")
-        return pdfTurtleService.generatePdf(footerHtmlTemplate, headerHtmlTemplate, htmlTemplate, model, options, templateEngine)
-    }
-
     fun generateModelForLedgerAccountReport(
         companyId: Long,
         startDate: Date,
         endDate: Date,
-        accountCode: Int,
-        currency: String,
-        withBalance: Boolean
+        subaccountIds: List<String>,
     ):Map<String, Any>{
-        companyRepository.findByCompanyIdAndStatusIsTrue(companyId) ?: throw UasException("404-05")
+        val companyEntity = companyRepository.findByCompanyIdAndStatusIsTrue(companyId) ?: throw UasException("404-05")
+
+        val s3Object: S3Object = s3ObjectRepository.findByS3ObjectIdAndStatusIsTrue(companyEntity.s3CompanyLogo.toLong())!!
+        val presignedUrl: String = minioService.getPreSignedUrl(s3Object.bucket, s3Object.filename)
         // Validation of user belongs to company
         val kcUuid = KeycloakSecurityContextHolder.getSubject()!!
         kcUserCompanyRepository.findAllByKcUser_KcUuidAndCompany_CompanyIdAndStatusIsTrue(kcUuid, companyId) ?: throw UasException("403-19")
 
-        //TODO: implement generation of model to ledger account report
+        if (startDate.after(endDate)) {
+            throw UasException("400-15")
+        }
 
-        //val journalEntries = journalEntryRepository.findByCompanyIdAndAccountCodeAndTxDate(companyId.toInt(), accountCode, startDate, endDate)
+        val newSubaccountIds: List<Int> = subaccountIds.map { it.toInt() }
+        // Validation of subaccountIds
 
-        /*val ledgerAccountReportList = journalEntries.map {
-                journalEntry ->
-            val transaction = journalEntry.transaction
-            val transactionDetails = transaction?.transactionDetails ?: emptyList()
+        val  ledgerAccountData = subaccountRepository.getJournalBookData(companyId.toInt(), startDate, endDate, newSubaccountIds)
 
-            val ledgerAccountReportEntry = mapOf(
-                "numero" to journalEntry.journalEntryNumber,
-                "fecha" to journalEntry.txDate.toString(),
-                "codigo" to journalEntry.journalEntryNumber,
-                "nombre" to "Activo",
-                "referencia" to journalEntry.gloss,
-                "debe" to transactionDetails.sumOf { it.debitAmountBs },
-                "haber" to transactionDetails.sumOf { it.creditAmountBs }
+        val sdf = SimpleDateFormat("dd/MM/yyyy")
+        val locale = Locale("en", "EN")
+        val format = DecimalFormat("#,##0.00", DecimalFormatSymbols(locale))
+
+        val ledgerAccountModel = ledgerAccountData.groupBy { it["codigoDeCuenta"] }.map { (codigoDeCuenta, rows) ->
+            val nombreDeCuenta = rows.first()["nombreDeCuenta"]
+            val transacciones = rows.map { transaction ->
+                mapOf(
+                    "fecha" to sdf.format(transaction["fecha"]),
+                    "descripcion" to transaction["descripcion"],
+                    "debe" to format.format(transaction["debe"] as Number),
+                    "haber" to format.format(transaction["haber"] as Number),
+                    "saldo" to format.format(transaction["saldo"] as Number),
+                )
+            }
+            val totalDebe = format.format(rows.sumOf { (it["debe"] as Number).toDouble() })
+            val totalHaber = format.format(rows.sumOf { (it["debe"] as Number).toDouble() })
+
+            mapOf(
+                "codigoDeCuenta" to codigoDeCuenta,
+                "nombreDeCuenta" to nombreDeCuenta,
+                "transacciones" to transacciones,
+                "totales" to mapOf("debe" to totalDebe, "haber" to totalHaber)
             )
-            ledgerAccountReportEntry
-        }*/
-        return mapOf(
-            "titulo" to "ProfitWave",
-            "subtitulo" to "Reporte de Libro Diario",
-            //"libroDiario" to ledgerAccountReportList
+        }
+
+        // Construir el modelo final
+        val model = mapOf(
+            "empresa" to companyEntity.companyName,
+            "subtitulo" to "Libro Mayor",
+            "icono" to presignedUrl,
+            "expresadoEn" to "Expresado en Bolivianos",
+            "ciudad" to "La Paz - Bolivia",
+            "nit" to companyEntity.companyNit,
+            "periodo" to "Del ${sdf.format(startDate)} al ${sdf.format(endDate)}",
+            "libroMayor" to ledgerAccountModel
         )
+
+        return model
     }
 
     fun generateLedgerAccountReport(
         companyId: Long,
         startDate: Date,
         endDate: Date,
-        accountCode: Int,
-        currency: String,
-        withBalance: Boolean
+        subaccountIds: List<String>
     ): ByteArray {
         logger.info("Generating Ledger Account report")
-        logger.info("GET api/v1/report/ledger-account-report/companies/${companyId}?startDate=${startDate}&endDate=${endDate}&accountCode=${accountCode}&currency=${currency}&withBalance=${withBalance}")
-        val footerHtmlTemplate = "<string>"
-        val headerHtmlTemplate = "<string>"
-        val htmlTemplate = "<!DOCTYPE html><html><head><style>.report {font-family: Arial, sans-serif;}.title {font-size: 24px;font-weight: bold;text-align: center;}.subtitle {font-size: 18px;text-align: center;}table {width: 100%;border-collapse: collapse;margin-top: 20px;}table, th, td {border: 1px solid black;}th, td {padding: 8px;text-align: left;}th {background-color: #f2f2f2;}</style></head><body class=\"report\"><h1 class=\"title\">{{ .titulo }}</h1><h2 class=\"subtitle\">{{ .subtitulo }}</h2><table><tr><th>Número</th><th>Fecha</th><th>Código</th><th>Nombre</th><th>Referencia</th><th>Debe</th><th>Haber</th></tr>{{range .libroDiario}}<tr><td>{{ .numero }}</td><td>{{ .fecha }}</td><td>{{ .codigo }}</td><td>{{ .nombre }}</td><td>{{ .referencia }}</td><td>{{ .debe }}</td><td>{{ .haber }}</td></tr>{{end}}</table></body></html>"
-        val model = generateModelForLedgerAccountReport(companyId, startDate, endDate, accountCode, currency, withBalance)
+        logger.info("GET api/v1/report/ledger-account-report/companies/${companyId}?startDate=${startDate}&endDate=${endDate}&accountCode=${subaccountIds}")
+        val footerHtmlTemplate = readTextFile("src/main/resources/templates/general_ledger_report/Footer.html")
+        val headerHtmlTemplate = readTextFile("src/main/resources/templates/general_ledger_report/Header.html")
+        val htmlTemplate = readTextFile("src/main/resources/templates/general_ledger_report/Body.html")
+        val model = generateModelForLedgerAccountReport(companyId, startDate, endDate, subaccountIds)
+
+        val customOptions = ReportOptions(
+            false,
+            false,
+            Margins(
+                20,
+                25,
+                25,
+                67
+            ),
+            "A4",
+            PageSize(
+                297,
+                210
+            )
+        )
 
         logger.info("model:\n$model")
-        return pdfTurtleService.generatePdf(footerHtmlTemplate, headerHtmlTemplate, htmlTemplate, model, options, templateEngine)
+        return pdfTurtleService.generatePdf(footerHtmlTemplate, headerHtmlTemplate, htmlTemplate, model, customOptions, templateEngine)
     }
 
     fun saveReport(
