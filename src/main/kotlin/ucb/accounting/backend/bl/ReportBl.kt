@@ -573,21 +573,29 @@ class ReportBl @Autowired constructor(
         val sdf = SimpleDateFormat("dd/MM/yyyy")
         val locale = Locale("en", "EN")
         val format = DecimalFormat("#,##0.00", DecimalFormatSymbols(locale))
+        var saldoActual = 0.0
 
         val ledgerAccountModel = ledgerAccountData.groupBy { it["codigoDeCuenta"] }.map { (codigoDeCuenta, rows) ->
             val nombreDeCuenta = rows.first()["nombreDeCuenta"]
             val transacciones = rows.map { transaction ->
+
+                val debe = (transaction["debe"] as Number).toDouble()
+                val haber = (transaction["haber"] as Number).toDouble()
+                val saldoAnterior = saldoActual
+                saldoActual = saldoAnterior + (debe - haber)
+
                 mapOf(
                     "fecha" to sdf.format(transaction["fecha"]),
                     "descripcion" to transaction["descripcion"],
                     "debe" to format.format(transaction["debe"] as Number),
                     "haber" to format.format(transaction["haber"] as Number),
-                    "saldo" to format.format(transaction["saldo"] as Number),
+                    "saldo" to format.format(saldoActual),
                 )
             }
             val totalDebe = format.format(rows.sumOf { (it["debe"] as Number).toDouble() })
-            val totalHaber = format.format(rows.sumOf { (it["debe"] as Number).toDouble() })
+            val totalHaber = format.format(rows.sumOf { (it["haber"] as Number).toDouble() })
 
+            saldoActual = 0.0
             mapOf(
                 "codigoDeCuenta" to codigoDeCuenta,
                 "nombreDeCuenta" to nombreDeCuenta,
@@ -596,8 +604,7 @@ class ReportBl @Autowired constructor(
             )
         }
 
-        // Construir el modelo final
-        val model = mapOf(
+        return mapOf(
             "empresa" to companyEntity.companyName,
             "subtitulo" to "Libro Mayor",
             "icono" to presignedUrl,
@@ -607,8 +614,6 @@ class ReportBl @Autowired constructor(
             "periodo" to "Del ${sdf.format(startDate)} al ${sdf.format(endDate)}",
             "libroMayor" to ledgerAccountModel
         )
-
-        return model
     }
 
     fun generateLedgerAccountReport(

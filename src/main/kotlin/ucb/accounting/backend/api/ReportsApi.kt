@@ -67,7 +67,7 @@ class ReportsApi @Autowired constructor(
         val downloadReport = fileBl.downloadFile(uploadedReport.attachmentId, companyId)
         //TODO: obtain real values instead of hardcoded
         reportBl.saveReport(companyId, 2, 1, uploadedReport.attachmentId, startDate, endDate, "Ledger Account Report", false)
-        val code = "200-22"
+        val code = "200-23"
         val responseInfo = ResponseCodeUtil.getResponseInfo(code)
         return ResponseEntity(ResponseDto(code, responseInfo.message!!, downloadReport), responseInfo.httpStatus)
     }
