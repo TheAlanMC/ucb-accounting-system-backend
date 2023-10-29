@@ -94,12 +94,4 @@ interface JournalEntryRepository: PagingAndSortingRepository<JournalEntry, Long>
     ): List<Map<String, Any>>
 
 
-
-    @Query("SELECT je FROM JournalEntry je WHERE je.companyId = :companyId AND je.documentTypeId = :documentTypeId AND je.status = true AND MONTH(je.txDate) = :month")
-    fun findByCompanyIdAndDocumentTypeIdAndMonth(
-        @Param("companyId") companyId: Int,
-        @Param("documentTypeId") documentType: Int,
-        @Param("month") month: Int
-    ): List<JournalEntry>
-
 }

@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<style>
+		.unbold-heading {
+			font-weight: normal;
+			margin: 10px;
+		}
+	</style>
+</head>
+
+<body class="pdf-turtle">
+	<h4 class="unbold-heading">NIT: {{ .nit }}</h4>
+	<h2 align="center" class="unbold-heading">{{ .subtitulo }}</h2>
+	<h5 align="center" class="unbold-heading">{{ .fecha }}</h5>
+	<h5 align="center" class="unbold-heading">{{ .expresadoEn }}</h5>
+	
+	<table class="reduced" style="margin-top:3mm; font-size:11pt;">
+		<tr>
+			<th style="border-bottom: 2px solid black;"></th>
+			<th colspan="2" style="border-bottom: 2px solid black;">Balance de comprobación</th>
+			<th colspan="2" style="border-bottom: 2px solid black;">Estado de resultados</th>
+			<th colspan="2" style="border-bottom: 2px solid black;">Balance general</th>
+  	</tr>
+		<tr>
+			<th>Cuenta</th>
+			<th>Deudor(Bs.)</th>
+			<th>Acreedor(Bs.)</th>
+			<th>Egreso(Bs.)</th>
+			<th>Ingreso(Bs.)</th>
+			<th>Activo(Bs.)</th>
+			<th>Pasivo(Bs.)</th>
+		</tr>
+
+		{{range .hojaDeTrabajo }}
+		<tr class="no-page-break-inside">
+			<td align="center">{{ .nombreDeCuenta }}</td>
+			<td class="nowrap right">{{ .debeBalanceDeComprobacion }}</td>
+			<td class="nowrap right">{{ .haberBalanceDeComprobacion }}</td>
+			<td class="nowrap right">{{ .debeEstadoDeResultados }}</td>			
+			<td class="nowrap right">{{ .haberEstadoDeResultados }}</td>
+			<td class="nowrap right">{{ .debeBalanceGeneral }}</td>			
+			<td class="nowrap right">{{ .haberBalanceGeneral }}</td>
+		</tr>
+		{{end}}
+		<tr>
+			<td align="center" style="font-weight: bold; border-bottom: 2px solid black; border-top: 2px solid black;">Total</td>
+			<td class="nowrap right" style="border-bottom: 2px solid black; border-top: 2px solid black;">{{ .totales.totalDebeBalanceDeComprobacion }}</td>
+			<td class="nowrap right" style="border-bottom: 2px solid black; border-top: 2px solid black;">{{ .totales.totalHaberBalanceDeComprobacion }}</td>
+			<td class="nowrap right" style="border-bottom: 2px solid black; border-top: 2px solid black;">{{ .totales.totalDebeEstadoDeResultados }}</td>
+			<td class="nowrap right" style="border-bottom: 2px solid black; border-top: 2px solid black;">{{ .totales.totalHaberEstadoDeResultados }}</td>
+			<td class="nowrap right" style="border-bottom: 2px solid black; border-top: 2px solid black;">{{ .totales.totalDebeBalanceGeneral }}</td>
+			<td class="nowrap right" style="border-bottom: 2px solid black; border-top: 2px solid black;">{{ .totales.totalHaberBalanceGeneral }}</td>
+		</tr>
+	</table>
+</body>
+</html>

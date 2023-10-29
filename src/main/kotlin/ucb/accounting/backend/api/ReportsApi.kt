@@ -72,4 +72,20 @@ class ReportsApi @Autowired constructor(
         return ResponseEntity(ResponseDto(code, responseInfo.message!!, downloadReport), responseInfo.httpStatus)
     }
 
+    @GetMapping("/worksheets/companies/{companyId}")
+    fun generateWorksheetsReportByDates (
+        @PathVariable("companyId") companyId: Long,
+        @RequestParam("startDate") startDate: Date,
+        @RequestParam("endDate") endDate: Date,
+    ): ResponseEntity<ResponseDto<AttachmentDownloadDto>> {
+        logger.info("Generating Worksheets report")
+        logger.info("GET api/v1/report/worksheets/companies/${companyId}")
+        val report: ByteArray = reportBl.generateWorksheetsReport(companyId, startDate, endDate)
+        val uploadedReport = fileBl.uploadFile(report, companyId)
+        val downloadReport = fileBl.downloadFile(uploadedReport.attachmentId, companyId)
+        reportBl.saveReport(companyId, 4, 1, uploadedReport.attachmentId, startDate, endDate, "Worksheets Report", false)
+        val code = "200-25"
+        val responseInfo = ResponseCodeUtil.getResponseInfo(code)
+        return ResponseEntity(ResponseDto(code, responseInfo.message!!, downloadReport), responseInfo.httpStatus)
+    }
 }

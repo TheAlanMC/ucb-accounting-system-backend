@@ -26,6 +26,7 @@ import java.text.DecimalFormat
 import java.text.DecimalFormatSymbols
 import java.text.SimpleDateFormat
 import java.util.*
+import kotlin.math.abs
 
 @Service
 class ReportBl @Autowired constructor(
@@ -575,8 +576,8 @@ class ReportBl @Autowired constructor(
         val format = DecimalFormat("#,##0.00", DecimalFormatSymbols(locale))
         var saldoActual = 0.0
 
-        val ledgerAccountModel = ledgerAccountData.groupBy { it["codigoDeCuenta"] }.map { (codigoDeCuenta, rows) ->
-            val nombreDeCuenta = rows.first()["nombreDeCuenta"]
+        val ledgerAccountModel = ledgerAccountData.groupBy { it["nombreDeCuenta"] }.map { (nombreDeCuenta, rows) ->
+            val codigoDeCuenta = rows.first()["codigoDeCuenta"]
             val transacciones = rows.map { transaction ->
 
                 val debe = (transaction["debe"] as Number).toDouble()
@@ -647,6 +648,126 @@ class ReportBl @Autowired constructor(
 
         logger.info("model:\n$model")
         return pdfTurtleService.generatePdf(footerHtmlTemplate, headerHtmlTemplate, htmlTemplate, model, customOptions, templateEngine)
+    }
+
+    fun generateModelForWorksheetsReport(
+        companyId: Long,
+        startDate: Date,
+        endDate: Date,
+    ): Map<String, Any>{
+        val companyEntity = companyRepository.findByCompanyIdAndStatusIsTrue(companyId) ?: throw UasException("404-05")
+
+        val s3Object: S3Object = s3ObjectRepository.findByS3ObjectIdAndStatusIsTrue(companyEntity.s3CompanyLogo.toLong())!!
+        val presignedUrl: String = minioService.getPreSignedUrl(s3Object.bucket, s3Object.filename)
+        // Validation of user belongs to company
+        val kcUuid = KeycloakSecurityContextHolder.getSubject()!!
+        kcUserCompanyRepository.findAllByKcUser_KcUuidAndCompany_CompanyIdAndStatusIsTrue(kcUuid, companyId) ?: throw UasException("403-19")
+
+        if (startDate.after(endDate)) {
+            throw UasException("400-15")
+        }
+
+        val worksheetData = subaccountRepository.getWorkSheetData(companyId.toInt(), startDate, endDate)
+
+        logger.info("worksheetData: $worksheetData")
+
+        val sdf = SimpleDateFormat("dd/MM/yyyy")
+        val locale = Locale("en", "EN")
+        val format = DecimalFormat("#,##0.00", DecimalFormatSymbols(locale))
+
+        var saldoActual = 0.0
+
+        val worksheet = worksheetData.groupBy { it["nombreDeCuenta"] }.map{(nombreDeCuenta, rows) ->
+            val categoria = rows.first()["categoria"]
+            val transacciones = rows.map { transaction ->
+                val debe = (transaction["debe"] as Number).toDouble()
+                val haber = (transaction["haber"] as Number).toDouble()
+
+                val saldoAnterior = saldoActual
+                saldoActual = saldoAnterior + (debe - haber)
+            }
+
+            val total = saldoActual
+            saldoActual = 0.0
+
+            mapOf(
+                "nombreDeCuenta" to nombreDeCuenta,
+                "debeBalanceDeComprobacion" to if (total>0) format.format(abs(total)) else "",
+                "haberBalanceDeComprobacion" to if (total<0) format.format(abs(total)) else "",
+                "debeEstadoDeResultados" to if(categoria == "INGRESOS") format.format(abs(total)) else "",
+                "haberEstadoDeResultados" to if(categoria == "EGRESOS") format.format(abs(total)) else "",
+                "debeBalanceGeneral" to if(categoria == "ACTIVO") format.format(abs(total)) else "",
+                "haberBalanceGeneral" to if(categoria == "PASIVO") format.format(abs(total)) else "",
+            )
+
+        }
+
+
+        val totalDebeBalanceDeComprobacion = worksheet.sumOf { row ->
+            val value = row["debeBalanceDeComprobacion"] as String
+            value.replace(",", "").toDoubleOrNull() ?: 0.0
+        }
+
+        val totalHaberBalanceDeComprobacion = worksheet.sumOf { row ->
+            val value = row["haberBalanceDeComprobacion"] as String
+            value.replace(",", "").toDoubleOrNull() ?: 0.0
+        }
+
+        val totalDebeEstadoDeResultados = worksheet.sumOf { row ->
+            val value = row["debeEstadoDeResultados"] as String
+            value.replace(",", "").toDoubleOrNull() ?: 0.0
+        }
+
+        val totalHaberEstadoDeResultados = worksheet.sumOf { row ->
+            val value = row["haberEstadoDeResultados"] as String
+            value.replace(",", "").toDoubleOrNull() ?: 0.0
+        }
+
+        val totalDebeBalanceGeneral = worksheet.sumOf { row ->
+            val value = row["debeBalanceGeneral"] as String
+            value.replace(",", "").toDoubleOrNull() ?: 0.0
+        }
+
+        val totalHaberBalanceGeneral = worksheet.sumOf { row ->
+            val value = row["haberBalanceGeneral"] as String
+            value.replace(",", "").toDoubleOrNull() ?: 0.0
+        }
+
+        return mapOf(
+            "empresa" to companyEntity.companyName,
+            "subtitulo" to "Hoja de trabajo",
+            "icono" to presignedUrl,
+            "expresadoEn" to "Expresado en Bolivianos",
+            "ciudad" to "La Paz - Bolivia",
+            "nit" to companyEntity.companyNit,
+            "fecha" to "del ${sdf.format(startDate)} al ${sdf.format(endDate)}",
+            "hojaDeTrabajo" to worksheet,
+            "totales" to mapOf(
+                    "totalDebeBalanceDeComprobacion" to format.format(totalDebeBalanceDeComprobacion),
+                    "totalHaberBalanceDeComprobacion" to format.format(totalHaberBalanceDeComprobacion),
+                    "totalDebeEstadoDeResultados" to format.format(totalDebeEstadoDeResultados),
+                    "totalHaberEstadoDeResultados" to format.format(totalHaberEstadoDeResultados),
+                    "totalDebeBalanceGeneral" to format.format(totalDebeBalanceGeneral),
+                    "totalHaberBalanceGeneral" to format.format(totalHaberBalanceGeneral)
+                )
+        )
+
+    }
+
+    fun generateWorksheetsReport(
+        companyId: Long,
+        startDate: Date,
+        endDate: Date,
+    ): ByteArray{
+        logger.info("Generating Worksheets report")
+        logger.info("GET api/v1/report/worksheets-report/companies/${companyId}?startDate=${startDate}&endDate=${endDate}")
+        val footerHtmlTemplate = readTextFile("src/main/resources/templates/worksheet_report/Footer.html")
+        val headerHtmlTemplate = readTextFile("src/main/resources/templates/worksheet_report/Header.html")
+        val htmlTemplate = readTextFile("src/main/resources/templates/worksheet_report/Body.html")
+        val model = generateModelForWorksheetsReport(companyId, startDate, endDate)
+
+        logger.info("model:\n$model")
+        return pdfTurtleService.generatePdf(footerHtmlTemplate, headerHtmlTemplate, htmlTemplate, model, options, templateEngine)
     }
 
     fun saveReport(
