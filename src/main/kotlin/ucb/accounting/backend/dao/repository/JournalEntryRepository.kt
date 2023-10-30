@@ -14,7 +14,7 @@ interface JournalEntryRepository: PagingAndSortingRepository<JournalEntry, Long>
 
     @Query(value =
     """
-            SELECT *
+        SELECT *
         FROM journal_entry je
         LEFT JOIN sale_transaction st ON st.journal_entry_id = je.journal_entry_id
         LEFT JOIN expense_transaction et ON et.journal_entry_id = je.journal_entry_id

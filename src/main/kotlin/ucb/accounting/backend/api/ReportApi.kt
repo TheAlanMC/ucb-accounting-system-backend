@@ -29,20 +29,18 @@ class ReportApi  @Autowired constructor(private val reportBl: ReportBl) {
     }
 
     @GetMapping("/journal-books/companies/{companyId}")
-    fun getJournalEntries(@PathVariable("companyId") companyId: Int,
-                          @RequestParam(defaultValue = "0") page: Int,
-                          @RequestParam(defaultValue = "10") size: Int,
-                          @RequestParam(defaultValue = "t.transactionDate") sortBy: String,
-                          @RequestParam(defaultValue = "asc") sortType: String,
-                          @RequestParam(required = true) dateFrom: String,
-    @RequestParam(required = true) dateTo: String,
+    fun getJournalEntries(
+        @PathVariable("companyId") companyId: Long,
+        @RequestParam(required = true) dateFrom: String,
+        @RequestParam(required = true) dateTo: String,
     ): ResponseEntity<ResponseDto<ReportDto<List<JournalBookReportDto>>>> {
         logger.info("Starting the API call to get journal entries")
-        val journalBook: Page<ReportDto<List<JournalBookReportDto>>> = reportBl.getJournalBook(companyId, sortBy, sortType, page, size, dateFrom, dateTo)
+        val journalBook: ReportDto<List<JournalBookReportDto>> = reportBl.getJournalBook(companyId, dateFrom, dateTo)
+        logger.info("Sending response")
         val code = "200-22"
         val responseInfo = ResponseCodeUtil.getResponseInfo(code)
         logger.info("Finishing the API call to get journal entries")
-        return ResponseEntity(ResponseDto(code, responseInfo.message!!, journalBook.content[0], journalBook.totalElements), responseInfo.httpStatus)
+        return ResponseEntity(ResponseDto(code, responseInfo.message!!, journalBook), responseInfo.httpStatus)
     }
 
     @GetMapping("/general-ledgers/companies/{companyId}/subaccounts")

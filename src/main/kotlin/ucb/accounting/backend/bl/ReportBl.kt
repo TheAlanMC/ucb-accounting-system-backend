@@ -40,9 +40,9 @@ class ReportBl @Autowired constructor(
     private val subaccountRepository: SubaccountRepository,
     private val journalEntryRepository: JournalEntryRepository,
     private val pdfTurtleService: PdfTurtleService,
-    private val reportRepository: ReportRepository
-
-) {
+    private val reportRepository: ReportRepository,
+    private val journalBookRepository: JournalBookRepository,
+    ) {
     companion object {
         private val logger = LoggerFactory.getLogger(DocumentTypeBl::class.java.name)
     }
@@ -56,25 +56,21 @@ class ReportBl @Autowired constructor(
     }
 
     fun getJournalBook(
-        companyId: Int,
-        sortBy: String,
-        sortType: String,
-        page: Int,
-        size: Int,
+        companyId: Long,
         dateFrom: String,
         dateTo: String,
-    ): Page<ReportDto<List<JournalBookReportDto>>> {
+    ): ReportDto<List<JournalBookReportDto>> {
         // Validate that the company exists
-        val company = companyRepository.findByCompanyIdAndStatusIsTrue(companyId.toLong()) ?: throw UasException("404-05")
+        val company = companyRepository.findByCompanyIdAndStatusIsTrue(companyId) ?: throw UasException("404-05")
 
         // Validation of user belongs to company
         val kcUuid = KeycloakSecurityContextHolder.getSubject()!!
-        kcUserCompanyRepository.findAllByKcUser_KcUuidAndCompany_CompanyIdAndStatusIsTrue(kcUuid, companyId.toLong())
+        kcUserCompanyRepository.findAllByKcUser_KcUuidAndCompany_CompanyIdAndStatusIsTrue(kcUuid, companyId)
             ?: throw UasException("403-22")
         logger.info("User $kcUuid is trying to get journal book report from company $companyId")
 
         // Convert dateFrom and dateTo to Date
-        val format: java.text.DateFormat = java.text.SimpleDateFormat("yyyy-MM-dd")
+        val format: java.text.DateFormat = SimpleDateFormat("yyyy-MM-dd")
         val newDateFrom: Date = format.parse(dateFrom)
         val newDateTo: Date = format.parse(dateTo)
 
@@ -88,32 +84,41 @@ class ReportBl @Autowired constructor(
             currencyCode = currencyTypeEntity.currencyCode,
             currencyName = currencyTypeEntity.currencyName
         )
-        val newSortBy = sortBy.replace(Regex("([a-z])([A-Z]+)"), "$1_$2").lowercase()
-        val pageable: Pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.fromString(sortType), newSortBy))
-        val journalEntriesEntities = journalEntryRepository.findAllByCompanyIdAndStatusIsTrue(companyId, newDateFrom, newDateTo, pageable)
+        val journalBooks = journalBookRepository.findAllByCompanyIdAndStatusIsTrue(companyId.toInt(), newDateFrom, newDateTo)
 
+        // Company info
         val s3Object: S3Object = s3ObjectRepository.findByS3ObjectIdAndStatusIsTrue(company.s3CompanyLogo.toLong())!!
         val preSignedUrl: String = minioService.getPreSignedUrl(s3Object.bucket, s3Object.filename)
         val companyDto = CompanyMapper.entityToDto(company, preSignedUrl)
 
-        val journalBook: List<JournalBookReportDto> = journalEntriesEntities.map { journalEntryEntity ->
-            // Mapear la entidad JournalEntry a un DTO personalizado (JournalEntryDto)
-            JournalBookReportDto (
-                journalEntryId = journalEntryEntity.journalEntryId.toInt(),
-                documentType = DocumentTypeMapper.entityToDto(journalEntryEntity.documentType!!),
-                journalEntryNumber = journalEntryEntity.journalEntryNumber,
-                gloss = journalEntryEntity.gloss,
-                description = journalEntryEntity.transaction!!.description,
-                transactionDate = journalEntryEntity.transaction!!.transactionDate,
-                attachments = journalEntryEntity.transaction!!.transactionAttachments!!.map {
-                    AttachmentMapper.entityToDto(it.attachment!!)
-                },
-                transactionDetails = journalEntryEntity.transaction!!.transactionDetails!!.map {
-                    JournalBookTransactionDetailMapper.entityToDto(it)
-                }
-            )
-        }.content
+        val journalBook: List<JournalBookReportDto> = journalBooks.groupBy { it.journalEntryId }.map { (key, rows) ->
+            val journalBook = rows.first()
 
+                JournalBookReportDto (
+                journalEntryId = journalBook.journalEntryId.toInt(),
+                documentType = DocumentTypeDto(
+                    documentTypeId = journalBook.documentTypeId.toLong(),
+                    documentTypeName = journalBook.documentTypeName,
+                ),
+                journalEntryNumber = journalBook.journalEntryNumber,
+                gloss = journalBook.gloss,
+                description = journalBook.description,
+                transactionDate = journalBook.transactionDate,
+                transactionDetails = rows.map {
+                    JournalBookTransactionDetailDto(
+                        subaccount = SubaccountDto(
+                            subaccountId = it.subaccountId.toLong(),
+                            subaccountCode = it.subaccountCode,
+                            subaccountName = it.subaccountName,
+                        ),
+                        debitAmountBs = it.debitAmountBs,
+                        creditAmountBs = it.creditAmountBs
+                    )
+                },
+                totalDebitAmountBs = rows.sumOf { it.debitAmountBs },
+                totalCreditAmountBs = rows.sumOf { it.creditAmountBs }
+            )
+        }
        val journalBookReport = ReportDto(
             company = companyDto,
             startDate = newDateFrom,
@@ -122,7 +127,7 @@ class ReportBl @Autowired constructor(
             reportData = journalBook
         )
         logger.info("Finishing the BL call to get journal entries")
-        return PageImpl(listOf(journalBookReport), pageable, journalEntriesEntities.totalElements)
+        return journalBookReport
     }
 
     fun getAvailableSubaccounts(companyId: Long, sortBy:String, sortType: String, dateFrom: String, dateTo: String): List<SubaccountDto> {
@@ -402,7 +407,6 @@ class ReportBl @Autowired constructor(
 
                 val balanceDebtor = if (totalDebitAmount > totalCreditAmount) totalDebitAmount - totalCreditAmount else BigDecimal(0.00)
                 val balanceCreditor = if (totalCreditAmount > totalDebitAmount) totalCreditAmount - totalDebitAmount else BigDecimal(0.00)
-//                println("${transactionDetail.value[0].subaccount!!.subaccountCode} ${transactionDetail.value[0].subaccount!!.subaccountName} ${accountCategory.accountCategoryName}")
                 val worksheetDetail = WorksheetReportDetailDto(
                     subaccount = SubaccountMapper.entityToDto(transactionDetail.value[0].subaccount!!),
                     balanceDebtor = balanceDebtor,
@@ -450,14 +454,14 @@ class ReportBl @Autowired constructor(
         false,
         Margins(
             20,
-            25,
-            25,
-            25
+            20,
+            20,
+            20
         ),
-        "A4",
+        "Letter",
         PageSize(
-            297,
-            210
+            279,
+            216
         )
     )
 
@@ -465,47 +469,60 @@ class ReportBl @Autowired constructor(
 
     fun generateModelForJournalBookByDates(
         companyId: Long,
-        startDate: Date,
-        endDate: Date,
-        documentTypeId: Long
+        dateFrom: String,
+        dateTo: String,
     ):Map<String, Any>{
-        val companyEntity = companyRepository.findByCompanyIdAndStatusIsTrue(companyId) ?: throw UasException("404-05")
 
-        val s3Object: S3Object = s3ObjectRepository.findByS3ObjectIdAndStatusIsTrue(companyEntity.s3CompanyLogo.toLong())!!
-        val presignedUrl: String = minioService.getPreSignedUrl(s3Object.bucket, s3Object.filename)
-        logger.info("company logo url: $presignedUrl")
+        // Validate that the company exists
+        val company = companyRepository.findByCompanyIdAndStatusIsTrue(companyId) ?: throw UasException("404-05")
+
         // Validation of user belongs to company
         val kcUuid = KeycloakSecurityContextHolder.getSubject()!!
-        kcUserCompanyRepository.findAllByKcUser_KcUuidAndCompany_CompanyIdAndStatusIsTrue(kcUuid, companyId) ?: throw UasException("403-19")
+        kcUserCompanyRepository.findAllByKcUser_KcUuidAndCompany_CompanyIdAndStatusIsTrue(kcUuid, companyId)
+            ?: throw UasException("403-22")
+        logger.info("User $kcUuid is trying to get journal book report from company $companyId")
 
-        val journalBookData = journalEntryRepository.getJournalBookData(companyId.toInt(), startDate, endDate)
+        // Convert dateFrom and dateTo to Date
+        val formatDate: java.text.DateFormat = SimpleDateFormat("yyyy-MM-dd")
+        val newDateFrom: Date = formatDate.parse(dateFrom)
+        val newDateTo: Date = formatDate.parse(dateTo)
 
-        if (startDate.after(endDate)) {
+        // Validation of dateFrom and dateTo
+        if (newDateFrom.after(newDateTo)) {
             throw UasException("400-15")
         }
+
+        val journalBookData = journalBookRepository.findAllByCompanyIdAndStatusIsTrue(companyId.toInt(), newDateFrom, newDateTo)
+
+        // Company info
+        val s3Object: S3Object = s3ObjectRepository.findByS3ObjectIdAndStatusIsTrue(company.s3CompanyLogo.toLong())!!
+        val preSignedUrl: String = minioService.getPreSignedUrl(s3Object.bucket, s3Object.filename)
+        val companyDto = CompanyMapper.entityToDto(company, preSignedUrl)
+
 
         val sdf = SimpleDateFormat("dd/MM/yyyy")
         val locale = Locale("en", "EN")
         val format = DecimalFormat("#,##0.00", DecimalFormatSymbols(locale))
 
-        val journalBookList = journalBookData.groupBy { it["fecha"] to it["numero_comprobante"]}.map { (key, rows) ->
-            val (fecha, numeroComprobante) = key
-            val numeroComprobanteTexto = "Comprobante de ingreso Nro. $numeroComprobante"
+        val journalBookList = journalBookData.groupBy { it.journalEntryId }.map { (key, rows) ->
+            val journalBook = rows.first()
+            val fecha = journalBook.transactionDate
+            val numeroComprobante = journalBook.journalEntryNumber
+            val tipoDocumento = journalBook.documentTypeName
+
+            val numeroComprobanteTexto = "Comprobante de ${tipoDocumento} No. ${numeroComprobante}"
             val transacciones = rows.map {
-
-                val tabulacion = if ((it["haber"] as Number).toDouble() != 0.00) "\t" else ""
-
+                val tabulacion = if (it.creditAmountBs.compareTo(BigDecimal(0.00)) == 0) "" else "\t"
                 mapOf(
-                    "codigo" to it["codigo"],
-                    "detalle" to tabulacion + it["nombre"],
-                    "debe" to format.format(it["debe"] as Number),
-                    "haber" to format.format(it["haber"] as Number)
+                    "codigo" to it.subaccountCode.toString(),
+                    "detalle" to tabulacion + it.subaccountName,
+                    "debe" to format.format(it.debitAmountBs),
+                    "haber" to format.format(it.creditAmountBs)
                 )
             }
-            val totalDebe = format.format(rows.sumOf { (it["debe"] as Number).toDouble() })
-            val totalHaber = format.format(rows.sumOf { (it["haber"] as Number).toDouble() })
-            val glosa = rows.first()["detalle"]
-
+            val totalDebe = format.format(rows.sumOf { it.debitAmountBs})
+            val totalHaber = format.format(rows.sumOf { it.creditAmountBs})
+            val glosa = journalBook.gloss
             mapOf(
                 "fecha" to sdf.format(fecha),
                 "numeroDeComprobante" to numeroComprobanteTexto,
@@ -514,37 +531,29 @@ class ReportBl @Autowired constructor(
                 "totales" to mapOf("debe" to totalDebe, "haber" to totalHaber)
             )
         }
-
-        //TODO: obtain icono from company
-
         return mapOf(
-            "empresa" to companyEntity.companyName,
+            "empresa" to companyDto.companyName,
             "subtitulo" to "Libro Diario",
-            "icono" to  presignedUrl,
+            "icono" to  preSignedUrl,
             "expresadoEn" to "Expresado en Bolivianos",
             "ciudad" to "La Paz - Bolivia",
-            "nit" to companyEntity.companyNit,
-            "periodo" to "Del ${sdf.format(startDate)} al ${sdf.format(endDate)}",
+            "nit" to company.companyNit,
+            "periodo" to "Del ${sdf.format(newDateFrom)} al ${sdf.format(newDateTo)}",
             "libroDiario" to journalBookList
         )
     }
 
     fun generateJournalBookByDates(
         companyId: Long,
-        startDate: Date,
-        endDate: Date,
-        documentTypeId: Long
+        dateFrom: String,
+        dateTo: String,
     ): ByteArray {
         logger.info("Generating Journal Book report")
-        logger.info("GET api/v1/report/journal-book/companies/${companyId}?startDate=${startDate}&endDate=${endDate}&documentTypeId=${documentTypeId}")
-
-        //TODO: Use resources for html templates
+        logger.info("GET api/v1/report/journal-book/companies/${companyId}?dateFrom=${dateFrom}&dateTo=${dateTo}")
         val footerHtmlTemplate = readTextFile("src/main/resources/templates/journal_book_report/Footer.html")
         val headerHtmlTemplate = readTextFile("src/main/resources/templates/journal_book_report/Header.html")
         val htmlTemplate = readTextFile("src/main/resources/templates/journal_book_report/Body.html")
-        val model = generateModelForJournalBookByDates(companyId, startDate, endDate, documentTypeId)
-
-        logger.info("model:\n$model")
+        val model = generateModelForJournalBookByDates(companyId, dateFrom, dateTo)
         return pdfTurtleService.generatePdf(footerHtmlTemplate, headerHtmlTemplate, htmlTemplate, model, options, templateEngine)
     }
 
@@ -897,19 +906,22 @@ class ReportBl @Autowired constructor(
         reportTypeId: Long,
         currencyTypeId: Long,
         attachmentId: Long,
-        periodStartDate: java.sql.Date,
-        periodEndDate: java.sql.Date,
+        dateFrom: String,
+        dateTo: String,
         description: String,
         isFinancialStatement: Boolean
     ){
+        val format: java.text.DateFormat = java.text.SimpleDateFormat("yyyy-MM-dd")
+        val periodStartDate: Date = format.parse(dateFrom)
+        val periodEndDate: Date = format.parse(dateTo)
         val report = Report()
         logger.info("Saving report")
         report.companyId = companyId.toInt()
         report.reportTypeId = reportTypeId.toInt()
         report.currencyTypeId = currencyTypeId.toInt()
         report.attachmentId = attachmentId.toInt()
-        report.periodStartDate = periodStartDate
-        report.periodEndDate = periodEndDate
+        report.periodStartDate = java.sql.Date(periodStartDate.time)
+        report.periodEndDate = java.sql.Date(periodEndDate.time)
         report.description = description
         report.isFinancialStatement = isFinancialStatement
         reportRepository.save(report)

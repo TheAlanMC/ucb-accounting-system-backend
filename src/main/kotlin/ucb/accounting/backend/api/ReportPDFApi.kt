@@ -2,12 +2,9 @@ package ucb.accounting.backend.api
 
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.format.annotation.DateTimeFormat
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
-import org.springframework.web.bind.annotation.PostMapping
-import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
@@ -20,8 +17,8 @@ import ucb.accounting.backend.util.ResponseCodeUtil
 import java.sql.Date
 
 @RestController
-@RequestMapping("/api/v1/report")
-class ReportsApi @Autowired constructor(
+@RequestMapping("/api/v1/reports")
+class ReportPDFApi @Autowired constructor(
     private val reportBl: ReportBl,
     private val fileBl: FilesBl
 ){
@@ -30,28 +27,27 @@ class ReportsApi @Autowired constructor(
         private val logger = LoggerFactory.getLogger(AccountBl::class.java.name)
     }
 
-    @GetMapping("/journal-book/companies/{companyId}")
+    @GetMapping("/journal-books/companies/{companyId}/pdf")
     fun generateJournalBookReportByDates (
         @PathVariable("companyId") companyId: Long,
-        @RequestParam("startDate") startDate: Date,
-        @RequestParam("endDate") endDate: Date,
-//        @RequestParam("documentTypeId") documentTypeId: Long
+        @RequestParam("dateFrom") dateFrom: String,
+        @RequestParam("dateTo") dateTo: String,
     ): ResponseEntity<ResponseDto<AttachmentDownloadDto>>
     {
         logger.info("Generating Journal Book report")
         logger.info("GET api/v1/report/journal-book/companies/${companyId}")
-//        val report:ByteArray = reportBl.generateJournalBookByDates(companyId, startDate, endDate, documentTypeId)
-        val report:ByteArray = reportBl.generateJournalBookByDates(companyId, startDate, endDate, 1)
-
+        val report:ByteArray = reportBl.generateJournalBookByDates(companyId, dateFrom, dateTo)
         val uploadedReport = fileBl.uploadFile(report, companyId)
         val downloadReport = fileBl.downloadFile(uploadedReport.attachmentId, companyId)
-        reportBl.saveReport(companyId, 1, 1, uploadedReport.attachmentId, startDate, endDate, "Journal Book Report", false)
+        reportBl.saveReport(companyId, 1, 1, uploadedReport.attachmentId, dateFrom, dateTo, "Journal Book Report", false)
+        logger.info("Sending response")
         val code = "200-22"
         val responseInfo = ResponseCodeUtil.getResponseInfo(code)
+        logger.info("Finishing the API call to get journal entries")
         return ResponseEntity(ResponseDto(code, responseInfo.message!!, downloadReport), responseInfo.httpStatus)
     }
 
-    @GetMapping("/general-ledger/companies/{companyId}")
+    @GetMapping("/general-ledgers/companies/{companyId}/pdf")
     fun generateLedgerAccountReportByDates (
         @PathVariable("companyId") companyId: Long,
         @RequestParam("startDate") startDate: Date,
@@ -64,30 +60,13 @@ class ReportsApi @Autowired constructor(
         val report:ByteArray = reportBl.generateLedgerAccountReport(companyId, startDate, endDate, subaccountIds)
         val uploadedReport = fileBl.uploadFile(report, companyId)
         val downloadReport = fileBl.downloadFile(uploadedReport.attachmentId, companyId)
-        reportBl.saveReport(companyId, 2, 1, uploadedReport.attachmentId, startDate, endDate, "Ledger Account Report", false)
+//        reportBl.saveReport(companyId, 2, 1, uploadedReport.attachmentId, startDate, endDate, "Ledger Account Report", false)
         val code = "200-23"
         val responseInfo = ResponseCodeUtil.getResponseInfo(code)
         return ResponseEntity(ResponseDto(code, responseInfo.message!!, downloadReport), responseInfo.httpStatus)
     }
 
-    @GetMapping("/worksheets/companies/{companyId}")
-    fun generateWorksheetsReportByDates (
-        @PathVariable("companyId") companyId: Long,
-        @RequestParam("startDate") startDate: Date,
-        @RequestParam("endDate") endDate: Date,
-    ): ResponseEntity<ResponseDto<AttachmentDownloadDto>> {
-        logger.info("Generating Worksheets report")
-        logger.info("GET api/v1/report/worksheets/companies/${companyId}")
-        val report: ByteArray = reportBl.generateWorksheetsReport(companyId, startDate, endDate)
-        val uploadedReport = fileBl.uploadFile(report, companyId)
-        val downloadReport = fileBl.downloadFile(uploadedReport.attachmentId, companyId)
-        reportBl.saveReport(companyId, 4, 1, uploadedReport.attachmentId, startDate, endDate, "Worksheets Report", false)
-        val code = "200-25"
-        val responseInfo = ResponseCodeUtil.getResponseInfo(code)
-        return ResponseEntity(ResponseDto(code, responseInfo.message!!, downloadReport), responseInfo.httpStatus)
-    }
-
-    @GetMapping("/trial-balances/companies/{companyId}")
+    @GetMapping("/trial-balances/companies/{companyId}/pdf")
     fun generateTrialBalancesReportByDates(
         @PathVariable("companyId") companyId: Long,
         @RequestParam("startDate") startDate: Date,
@@ -98,9 +77,28 @@ class ReportsApi @Autowired constructor(
         val report: ByteArray = reportBl.generateTrialBalancesReportByDates(companyId, startDate, endDate)
         val uploadedReport = fileBl.uploadFile(report, companyId)
         val downloadReport = fileBl.downloadFile(uploadedReport.attachmentId, companyId)
-        reportBl.saveReport(companyId, 3, 1, uploadedReport.attachmentId, startDate, endDate, "Worksheets Report", false)
+//        reportBl.saveReport(companyId, 3, 1, uploadedReport.attachmentId, startDate, endDate, "Worksheets Report", false)
         val code = "200-24"
         val responseInfo = ResponseCodeUtil.getResponseInfo(code)
         return ResponseEntity(ResponseDto(code, responseInfo.message!!, downloadReport), responseInfo.httpStatus)
     }
+
+    @GetMapping("/worksheets/companies/{companyId}/pdf")
+    fun generateWorksheetsReportByDates (
+        @PathVariable("companyId") companyId: Long,
+        @RequestParam("startDate") startDate: Date,
+        @RequestParam("endDate") endDate: Date,
+    ): ResponseEntity<ResponseDto<AttachmentDownloadDto>> {
+        logger.info("Generating Worksheets report")
+        logger.info("GET api/v1/report/worksheets/companies/${companyId}")
+        val report: ByteArray = reportBl.generateWorksheetsReport(companyId, startDate, endDate)
+        val uploadedReport = fileBl.uploadFile(report, companyId)
+        val downloadReport = fileBl.downloadFile(uploadedReport.attachmentId, companyId)
+//        reportBl.saveReport(companyId, 4, 1, uploadedReport.attachmentId, startDate, endDate, "Worksheets Report", false)
+        val code = "200-25"
+        val responseInfo = ResponseCodeUtil.getResponseInfo(code)
+        return ResponseEntity(ResponseDto(code, responseInfo.message!!, downloadReport), responseInfo.httpStatus)
+    }
+
+
 }
