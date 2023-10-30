@@ -50,17 +50,18 @@ class ReportPDFApi @Autowired constructor(
     @GetMapping("/general-ledgers/companies/{companyId}/pdf")
     fun generateLedgerAccountReportByDates (
         @PathVariable("companyId") companyId: Long,
-        @RequestParam("startDate") startDate: Date,
-        @RequestParam("endDate") endDate: Date,
+        @RequestParam("dateFrom") dateFrom: String,
+        @RequestParam("dateTo") dateTo: String,
         @RequestParam(required = true) subaccountIds: List<String>
     ): ResponseEntity<ResponseDto<AttachmentDownloadDto>>
     {
         logger.info("Generating Ledger Account report")
         logger.info("GET api/v1/report/ledger-account-report/companies/${companyId}")
-        val report:ByteArray = reportBl.generateLedgerAccountReport(companyId, startDate, endDate, subaccountIds)
+        val report:ByteArray = reportBl.generateLedgerAccountReport(companyId, dateFrom, dateTo, subaccountIds)
         val uploadedReport = fileBl.uploadFile(report, companyId)
         val downloadReport = fileBl.downloadFile(uploadedReport.attachmentId, companyId)
-//        reportBl.saveReport(companyId, 2, 1, uploadedReport.attachmentId, startDate, endDate, "Ledger Account Report", false)
+        reportBl.saveReport(companyId, 2, 1, uploadedReport.attachmentId, dateFrom, dateTo, "Ledger Account Report", false)
+        logger.info("Sending response")
         val code = "200-23"
         val responseInfo = ResponseCodeUtil.getResponseInfo(code)
         return ResponseEntity(ResponseDto(code, responseInfo.message!!, downloadReport), responseInfo.httpStatus)

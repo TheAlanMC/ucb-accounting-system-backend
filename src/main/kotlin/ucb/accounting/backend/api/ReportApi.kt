@@ -65,15 +65,13 @@ class ReportApi  @Autowired constructor(private val reportBl: ReportBl) {
     @GetMapping("/general-ledgers/companies/{companyId}")
     fun getGeneralLedgers(
         @PathVariable("companyId") companyId: Long,
-        @RequestParam(defaultValue = "subaccountId") sortBy: String,
-        @RequestParam(defaultValue = "asc") sortType: String,
         @RequestParam(required = true) dateFrom: String,
         @RequestParam(required = true) dateTo: String,
         @RequestParam(required = true) subaccountIds: List<String>
     ): ResponseEntity<ResponseDto<ReportDto<List<GeneralLedgerReportDto>>>> {
         logger.info("Starting the API call to get journal book report")
         logger.info("GET /api/v1/reports/general-ledgers/companies/$companyId")
-        val journalBook: ReportDto<List<GeneralLedgerReportDto>> = reportBl.getGeneralLedger(companyId, sortBy, sortType, dateFrom, dateTo, subaccountIds)
+        val journalBook: ReportDto<List<GeneralLedgerReportDto>> = reportBl.getGeneralLedger(companyId, dateFrom, dateTo, subaccountIds)
         logger.info("Sending response")
         val code = "200-23"
         val responseInfo = ResponseCodeUtil.getResponseInfo(code)
@@ -84,14 +82,12 @@ class ReportApi  @Autowired constructor(private val reportBl: ReportBl) {
     @GetMapping("/trial-balances/companies/{companyId}")
     fun getTrialBalances(
         @PathVariable("companyId") companyId: Long,
-        @RequestParam(defaultValue = "subaccountId") sortBy: String,
-        @RequestParam(defaultValue = "asc") sortType: String,
         @RequestParam(required = true) dateFrom: String,
         @RequestParam(required = true) dateTo: String,
     ): ResponseEntity<ResponseDto<ReportDto<List<TrialBalanceReportDto>>>> {
         logger.info("Starting the API call to get trial balance report")
         logger.info("GET /api/v1/reports/trial-balances/companies/$companyId")
-        val trialBalance: ReportDto<List<TrialBalanceReportDto>> = reportBl.getTrialBalance(companyId, sortBy, sortType, dateFrom, dateTo)
+        val trialBalance: ReportDto<List<TrialBalanceReportDto>> = reportBl.getTrialBalance(companyId, dateFrom, dateTo)
         logger.info("Sending response")
         val code = "200-24"
         val responseInfo = ResponseCodeUtil.getResponseInfo(code)
@@ -103,14 +99,12 @@ class ReportApi  @Autowired constructor(private val reportBl: ReportBl) {
     @GetMapping("/worksheets/companies/{companyId}")
     fun getWorksheet(
         @PathVariable("companyId") companyId: Long,
-        @RequestParam(defaultValue = "subaccountId") sortBy: String,
-        @RequestParam(defaultValue = "asc") sortType: String,
         @RequestParam(required = true) dateFrom: String,
         @RequestParam(required = true) dateTo: String,
     ): ResponseEntity<ResponseDto<ReportDto<WorksheetReportDto>>> {
         logger.info("Starting the API call to get worksheet report")
         logger.info("GET /api/v1/reports/worksheet/companies/$companyId")
-        val worksheet: ReportDto<WorksheetReportDto> = reportBl.getWorksheet(companyId, sortBy, sortType, dateFrom, dateTo)
+        val worksheet: ReportDto<WorksheetReportDto> = reportBl.getWorksheet(companyId, dateFrom, dateTo)
         logger.info("Sending response")
         val code = "200-25"
         val responseInfo = ResponseCodeUtil.getResponseInfo(code)
