@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<style>
+		.unbold-heading {
+			font-weight: normal;
+			margin: 10px;
+		}
+	</style>
+</head>
+
+<body class="pdf-turtle">
+	<h4 class="unbold-heading">NIT: {{ .nit }}</h4>
+	<h2 align="center" class="unbold-heading">{{ .subtitulo }}</h2>
+	<h5 align="center" class="unbold-heading">{{ .fecha }}</h5>
+	<h5 align="center" class="unbold-heading">{{ .expresadoEn }}</h5>
+	
+	<table style="margin-top:3mm; font-size:11pt;">
+		<tr>
+			<th style="border: 0px; background: transparent;"></th>
+			<th style="border: 0px; background: transparent;"></th>
+			<th colspan="2" style="border-bottom: 2px solid black; background: transparent;">Sumas</th>
+			<th colspan="2" style="border-bottom: 2px solid black; background: transparent;">Saldos</th>
+  	</tr>
+		<tr>
+			<th style="background: transparent;">Codigo</th>
+			<th style="background: transparent;">Cuenta</th>
+			<th style="background: transparent;">Cargos</th>
+			<th style=" background: transparent;">Abonos</th>
+			<th style="background: transparent;">Deudor</th>
+			<th style="background: transparent;">Acreedor</th>
+		</tr>
+
+		{{range .balanceSumasySaldos }}
+		<tr class="no-page-break-inside">
+			<td align="center">{{ .codigoDeCuenta }}</td>
+			<td align="center">{{ .nombreDeCuenta }}</td>
+			<td class="nowrap right">{{ .cargos }}</td>
+			<td class="nowrap right">{{ .abonos }}</td>			
+			<td class="nowrap right">{{ .deudor }}</td>
+			<td class="nowrap right">{{ .acreedor }}</td>
+		</tr>
+		{{end}}
+		<tr>
+			<td align="center" style="font-weight: bold; border-bottom: 2px solid black; border-top: 2px solid black;">Total</td>
+			<td align="center" style="font-weight: bold; border-bottom: 2px solid black; border-top: 2px solid black;"></td>
+			<td class="nowrap right" style="border-bottom: 2px solid black; border-top: 2px solid black;">{{ .totales.totalCargos }}</td>
+			<td class="nowrap right" style="border-bottom: 2px solid black; border-top: 2px solid black;">{{ .totales.totalAbonos }}</td>
+			<td class="nowrap right" style="border-bottom: 2px solid black; border-top: 2px solid black;">{{ .totales.totalDeudor }}</td>
+			<td class="nowrap right" style="border-bottom: 2px solid black; border-top: 2px solid black;">{{ .totales.totalAcreedor }}</td>
+		</tr>
+	</table>
+</body>
+</html>

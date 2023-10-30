@@ -675,7 +675,8 @@ class ReportBl @Autowired constructor(
         val locale = Locale("en", "EN")
         val format = DecimalFormat("#,##0.00", DecimalFormatSymbols(locale))
 
-        var saldoActual = 0.0
+        var totalDebe = 0.0
+        var totalHaber = 0.0
 
         val worksheet = worksheetData.groupBy { it["nombreDeCuenta"] }.map{(nombreDeCuenta, rows) ->
             val categoria = rows.first()["categoria"]
@@ -683,21 +684,24 @@ class ReportBl @Autowired constructor(
                 val debe = (transaction["debe"] as Number).toDouble()
                 val haber = (transaction["haber"] as Number).toDouble()
 
-                val saldoAnterior = saldoActual
-                saldoActual = saldoAnterior + (debe - haber)
+                totalDebe += debe
+                totalHaber += haber
             }
 
-            val total = saldoActual
-            saldoActual = 0.0
+            val totalDebeFinal = totalDebe
+            val totalHaberFinal = totalHaber
+
+            totalDebe = 0.0
+            totalHaber = 0.0
 
             mapOf(
                 "nombreDeCuenta" to nombreDeCuenta,
-                "debeBalanceDeComprobacion" to if (total>0) format.format(abs(total)) else "",
-                "haberBalanceDeComprobacion" to if (total<0) format.format(abs(total)) else "",
-                "debeEstadoDeResultados" to if(categoria == "INGRESOS") format.format(abs(total)) else "",
-                "haberEstadoDeResultados" to if(categoria == "EGRESOS") format.format(abs(total)) else "",
-                "debeBalanceGeneral" to if(categoria == "ACTIVO") format.format(abs(total)) else "",
-                "haberBalanceGeneral" to if(categoria == "PASIVO") format.format(abs(total)) else "",
+                "debeBalanceDeComprobacion" to if (totalDebeFinal>0) format.format(abs(totalDebeFinal)) else "",
+                "haberBalanceDeComprobacion" to if (totalHaberFinal>0) format.format(abs(totalHaberFinal)) else "",
+                "debeEstadoDeResultados" to if(categoria == "INGRESOS") format.format(abs(totalDebeFinal)) else "",
+                "haberEstadoDeResultados" to if(categoria == "EGRESOS") format.format(abs(totalHaberFinal)) else "",
+                "debeBalanceGeneral" to if(categoria == "ACTIVO") format.format(abs(totalDebeFinal)) else "",
+                "haberBalanceGeneral" to if(categoria == "PASIVO" || categoria == "PATRIMONIO") format.format(abs(totalHaberFinal)) else "",
             )
 
         }
@@ -765,6 +769,124 @@ class ReportBl @Autowired constructor(
         val headerHtmlTemplate = readTextFile("src/main/resources/templates/worksheet_report/Header.html")
         val htmlTemplate = readTextFile("src/main/resources/templates/worksheet_report/Body.html")
         val model = generateModelForWorksheetsReport(companyId, startDate, endDate)
+
+        logger.info("model:\n$model")
+        return pdfTurtleService.generatePdf(footerHtmlTemplate, headerHtmlTemplate, htmlTemplate, model, options, templateEngine)
+    }
+
+    fun generateModelForTrialBalancesReportByDates(
+        companyId: Long,
+        startDate: Date,
+        endDate: Date,
+    ): Map<String, Any>{
+        val companyEntity = companyRepository.findByCompanyIdAndStatusIsTrue(companyId) ?: throw UasException("404-05")
+
+        val s3Object: S3Object = s3ObjectRepository.findByS3ObjectIdAndStatusIsTrue(companyEntity.s3CompanyLogo.toLong())!!
+        val presignedUrl: String = minioService.getPreSignedUrl(s3Object.bucket, s3Object.filename)
+        // Validation of user belongs to company
+        val kcUuid = KeycloakSecurityContextHolder.getSubject()!!
+        kcUserCompanyRepository.findAllByKcUser_KcUuidAndCompany_CompanyIdAndStatusIsTrue(kcUuid, companyId) ?: throw UasException("403-19")
+
+        if (startDate.after(endDate)) {
+            throw UasException("400-15")
+        }
+
+        val trialBalancesData = subaccountRepository.getWorkSheetData(companyId.toInt(), startDate, endDate)
+
+        logger.info("worksheetData: $trialBalancesData")
+
+        val sdf = SimpleDateFormat("dd/MM/yyyy")
+        val locale = Locale("en", "EN")
+        val format = DecimalFormat("#,##0.00", DecimalFormatSymbols(locale))
+
+        var totalDebe = 0.0
+        var totalHaber = 0.0
+
+        val trialBalances = trialBalancesData.groupBy { it["nombreDeCuenta"] }.map{(nombreDeCuenta, rows) ->
+            val codigoDeCuennta = rows.first()["codigoDeCuenta"]
+            val transacciones = rows.map { transaction ->
+                val debe = (transaction["debe"] as Number).toDouble()
+                val haber = (transaction["haber"] as Number).toDouble()
+
+                totalDebe += debe
+                totalHaber += haber
+
+            }
+
+
+            val totalDebeFinal = totalDebe
+            val totalHaberFinal = totalHaber
+
+            val saldo = totalDebeFinal - totalHaberFinal
+
+            totalDebe = 0.0
+            totalHaber = 0.0
+
+            mapOf(
+                "codigoDeCuenta" to codigoDeCuennta,
+                "nombreDeCuenta" to nombreDeCuenta,
+                "cargos" to if (totalDebeFinal>0) format.format(abs(totalDebeFinal)) else "",
+                "abonos" to if (totalHaberFinal>0) format.format(abs(totalHaberFinal)) else "",
+                "deudor" to if (saldo>0) format.format(abs(abs(saldo))) else "",
+                "acreedor" to if (saldo<0) format.format(abs(abs(saldo))) else ""
+            )
+
+
+
+        }
+
+
+        val totalCargos = trialBalances.sumOf { row ->
+            val value = row["cargos"] as String
+            value.replace(",", "").toDoubleOrNull() ?: 0.0
+        }
+
+        val totalAbonos = trialBalances.sumOf { row ->
+            val value = row["abonos"] as String
+            value.replace(",", "").toDoubleOrNull() ?: 0.0
+        }
+        val totalDeudor = trialBalances.sumOf { row ->
+            val value = row["deudor"] as String
+            value.replace(",", "").toDoubleOrNull() ?: 0.0
+        }
+
+        val totalAcreedor = trialBalances.sumOf { row ->
+            val value = row["acreedor"] as String
+            value.replace(",", "").toDoubleOrNull() ?: 0.0
+        }
+
+
+
+        return mapOf(
+            "empresa" to companyEntity.companyName,
+            "subtitulo" to "Balance de sumas y saldos",
+            "icono" to presignedUrl,
+            "expresadoEn" to "Expresado en Bolivianos",
+            "ciudad" to "La Paz - Bolivia",
+            "nit" to companyEntity.companyNit,
+            "fecha" to "del ${sdf.format(startDate)} al ${sdf.format(endDate)}",
+            "balanceSumasySaldos" to trialBalances,
+            "totales" to mapOf(
+                "totalCargos" to format.format(totalCargos),
+                "totalAbonos" to format.format(totalAbonos),
+                "totalDeudor" to format.format(totalDeudor),
+                "totalAcreedor" to format.format(totalAcreedor),
+            )
+        )
+
+    }
+
+    fun generateTrialBalancesReportByDates(
+        copmanyId: Long,
+        startDate: Date,
+        endDate: Date,
+    ): ByteArray{
+        logger.info("Generating Trial Balances report")
+        logger.info("GET api/v1/report/trial-balances-report/companies/${copmanyId}?startDate=${startDate}&endDate=${endDate}")
+        val footerHtmlTemplate = readTextFile("src/main/resources/templates/trial_balances_report/Footer.html")
+        val headerHtmlTemplate = readTextFile("src/main/resources/templates/trial_balances_report/Header.html")
+        val htmlTemplate = readTextFile("src/main/resources/templates/trial_balances_report/Body.html")
+        val model = generateModelForTrialBalancesReportByDates(copmanyId, startDate, endDate)
 
         logger.info("model:\n$model")
         return pdfTurtleService.generatePdf(footerHtmlTemplate, headerHtmlTemplate, htmlTemplate, model, options, templateEngine)
