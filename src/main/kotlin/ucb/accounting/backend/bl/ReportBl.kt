@@ -38,7 +38,8 @@ class ReportBl @Autowired constructor(
     private val reportRepository: ReportRepository,
     private val journalBookRepository: JournalBookRepository,
     private val generalLedgerRepository: GeneralLedgerRepository,
-    private val trialBalanceRepository: TrialBalanceRepository
+    private val trialBalanceRepository: TrialBalanceRepository,
+    private val worksheetRepository: WorksheetRepository,
     ) {
     companion object {
         private val logger = LoggerFactory.getLogger(DocumentTypeBl::class.java.name)
@@ -271,6 +272,7 @@ class ReportBl @Autowired constructor(
             currencyCode = currencyTypeEntity.currencyCode,
             currencyName = currencyTypeEntity.currencyName
         )
+
         val trialBalance: List<TrialBalance> = trialBalanceRepository.findAllByCompanyIdAndStatusIsTrue(companyId.toInt(), newDateFrom, newDateTo)
         // Getting company info
         // Get s3 object for company logo
@@ -282,7 +284,6 @@ class ReportBl @Autowired constructor(
             trialBalance.map { transactionDetail ->
                 val totalCreditAmount = transactionDetail.creditAmountBs
                 val totalDebitAmount = transactionDetail.debitAmountBs
-
                 val balanceDebtor = if (totalDebitAmount > totalCreditAmount) totalDebitAmount - totalCreditAmount else BigDecimal(0.00)
                 val balanceCreditor = if (totalCreditAmount > totalDebitAmount) totalCreditAmount - totalDebitAmount else BigDecimal(0.00)
                 val trialBalanceDetail = TrialBalanceReportDetailDto(
@@ -346,10 +347,7 @@ class ReportBl @Autowired constructor(
             currencyName = currencyTypeEntity.currencyName
         )
 
-        val pageable: Pageable = PageRequest.of(0, Integer.MAX_VALUE, Sort.by(Sort.Direction.fromString("asc"), "sub_account_id"))
-
-        val ledgerBooksPage: Page<TransactionDetail> = transactionDetailRepository.findAll(companyId.toInt(), newDateFrom, newDateTo, pageable)
-        val ledgerBooks: List<TransactionDetail> = ledgerBooksPage.content
+        val worksheet: List<Worksheet> = worksheetRepository.findAllByCompanyIdAndStatusIsTrue(companyId.toInt(), newDateFrom, newDateTo)
 
         // Getting company info
         // Get s3 object for company logo
@@ -358,48 +356,33 @@ class ReportBl @Autowired constructor(
         val companyDto = CompanyMapper.entityToDto(company, preSignedUrl)
 
         val worksheetDetails: List<WorksheetReportDetailDto> =
-            ledgerBooks.groupBy { it.subaccount!!.subaccountId }.map { transactionDetail ->
-                val ledgerBook = transactionDetail.value
-                val transactionDetails = ledgerBook.map {
-                    GeneralLedgerTransactionDetailDto(
-                        transactionDate = it.transaction!!.transactionDate,
-                        gloss = it.transaction!!.journalEntry!!.gloss,
-                        description = it.transaction!!.description,
-                        creditAmount = it.creditAmountBs,
-                        debitAmount = it.debitAmountBs,
-                        balanceAmount = BigDecimal(0.00)
-                    )
-                }
-                val accountCategory =
-                    transactionDetail.value[0].subaccount!!.account!!.accountSubgroup!!.accountGroup!!.accountCategory!!
-                val totalCreditAmount = if (transactionDetails.isNotEmpty()) transactionDetails.map { it.creditAmount }
-                    .reduce { acc, it -> acc + it } else BigDecimal(0.00)
-                val totalDebitAmount = if (transactionDetails.isNotEmpty()) transactionDetails.map { it.debitAmount }
-                    .reduce { acc, it -> acc + it } else BigDecimal(0.00)
-
+            worksheet.map { transactionDetail ->
+                val accountCategoryName = transactionDetail.accountCategoryName
+                val totalDebitAmount = transactionDetail.debitAmountBs
+                val totalCreditAmount = transactionDetail.creditAmountBs
                 val balanceDebtor = if (totalDebitAmount > totalCreditAmount) totalDebitAmount - totalCreditAmount else BigDecimal(0.00)
                 val balanceCreditor = if (totalCreditAmount > totalDebitAmount) totalCreditAmount - totalDebitAmount else BigDecimal(0.00)
                 val worksheetDetail = WorksheetReportDetailDto(
-                    subaccount = SubaccountMapper.entityToDto(transactionDetail.value[0].subaccount!!),
+                    subaccount = SubaccountDto(
+                        subaccountId = transactionDetail.subaccountId.toLong(),
+                        subaccountCode = transactionDetail.subaccountCode,
+                        subaccountName = transactionDetail.subaccountName,
+                    ),
                     balanceDebtor = balanceDebtor,
                     balanceCreditor = balanceCreditor,
-                    incomeStatementExpense = if (accountCategory.accountCategoryName == "EGRESOS") if (totalDebitAmount > totalCreditAmount) balanceDebtor else if (totalCreditAmount > totalDebitAmount) (totalDebitAmount - totalCreditAmount) else BigDecimal(0.00) else BigDecimal(0.00),
-                    incomeStatementIncome = if (accountCategory.accountCategoryName == "INGRESOS") if (totalCreditAmount > totalDebitAmount) balanceCreditor else if (totalDebitAmount > totalCreditAmount) (totalCreditAmount - totalDebitAmount) else BigDecimal(0.00) else BigDecimal(0.00),
-                    balanceSheetAsset = if (accountCategory.accountCategoryName == "ACTIVO") if (totalDebitAmount > totalCreditAmount) balanceDebtor else if (totalCreditAmount > totalDebitAmount) (totalDebitAmount - totalCreditAmount) else BigDecimal(0.00) else BigDecimal(0.00),
-                    balanceSheetLiability = if (accountCategory.accountCategoryName == "PASIVO" || accountCategory.accountCategoryName == "PATRIMONIO") if (totalCreditAmount > totalDebitAmount) balanceCreditor else if (totalDebitAmount > totalCreditAmount) (totalCreditAmount - totalDebitAmount) else BigDecimal(0.00) else BigDecimal(0.00),
+                    incomeStatementExpense = if (accountCategoryName == "EGRESOS") if (totalDebitAmount > totalCreditAmount) balanceDebtor else if (totalCreditAmount > totalDebitAmount) (totalDebitAmount - totalCreditAmount) else BigDecimal(0.00) else BigDecimal(0.00),
+                    incomeStatementIncome = if (accountCategoryName == "INGRESOS") if (totalCreditAmount > totalDebitAmount) balanceCreditor else if (totalDebitAmount > totalCreditAmount) (totalCreditAmount - totalDebitAmount) else BigDecimal(0.00) else BigDecimal(0.00),
+                    balanceSheetAsset = if (accountCategoryName == "ACTIVO") if (totalDebitAmount > totalCreditAmount) balanceDebtor else if (totalCreditAmount > totalDebitAmount) (totalDebitAmount - totalCreditAmount) else BigDecimal(0.00) else BigDecimal(0.00),
+                    balanceSheetLiability = if (accountCategoryName == "PASIVO" || accountCategoryName == "PATRIMONIO") if (totalCreditAmount > totalDebitAmount) balanceCreditor else if (totalDebitAmount > totalCreditAmount) (totalCreditAmount - totalDebitAmount) else BigDecimal(0.00) else BigDecimal(0.00),
                 )
                 worksheetDetail
             }
-        val totalDebtor = worksheetDetails.map { it.balanceDebtor }.reduce { acc, it -> acc + it }
-        val totalCreditor = worksheetDetails.map { it.balanceCreditor }.reduce { acc, it -> acc + it }
-        val totalIncomeStatementIncome = worksheetDetails.map { it.incomeStatementIncome }
-            .reduce { acc, it -> acc + it }
-        val totalIncomeStatementExpense = worksheetDetails.map { it.incomeStatementExpense }
-            .reduce { acc, it -> acc + it }
-        val totalBalanceSheetAsset = worksheetDetails.map { it.balanceSheetAsset }
-            .reduce { acc, it -> acc + it }
-        val totalBalanceSheetLiability = worksheetDetails.map { it.balanceSheetLiability }
-            .reduce { acc, it -> acc + it }
+        val totalDebtor = worksheetDetails.sumOf { it.balanceDebtor }
+        val totalCreditor = worksheetDetails.sumOf { it.balanceCreditor }
+        val totalIncomeStatementIncome = worksheetDetails.sumOf { it.incomeStatementIncome }
+        val totalIncomeStatementExpense = worksheetDetails.sumOf { it.incomeStatementExpense }
+        val totalBalanceSheetAsset = worksheetDetails.sumOf { it.balanceSheetAsset }
+        val totalBalanceSheetLiability = worksheetDetails.sumOf { it.balanceSheetLiability }
         val worksheetReportDto = WorksheetReportDto(
             worksheetDetails = worksheetDetails,
             totalBalanceDebtor = totalDebtor,
@@ -651,58 +634,57 @@ class ReportBl @Autowired constructor(
 
     fun generateModelForWorksheetsReport(
         companyId: Long,
-        dateFrom: Date,
-        dateTo: Date,
+        dateFrom: String,
+        dateTo: String,
     ): Map<String, Any>{
-        val companyEntity = companyRepository.findByCompanyIdAndStatusIsTrue(companyId) ?: throw UasException("404-05")
+        logger.info("Starting the BL call to get worksheet report")
+        // Validate that the company exists
+        val company = companyRepository.findByCompanyIdAndStatusIsTrue(companyId) ?: throw UasException("404-05")
 
-        val s3Object: S3Object = s3ObjectRepository.findByS3ObjectIdAndStatusIsTrue(companyEntity.s3CompanyLogo.toLong())!!
-        val presignedUrl: String = minioService.getPreSignedUrl(s3Object.bucket, s3Object.filename)
         // Validation of user belongs to company
         val kcUuid = KeycloakSecurityContextHolder.getSubject()!!
-        kcUserCompanyRepository.findAllByKcUser_KcUuidAndCompany_CompanyIdAndStatusIsTrue(kcUuid, companyId) ?: throw UasException("403-19")
+        kcUserCompanyRepository.findAllByKcUser_KcUuidAndCompany_CompanyIdAndStatusIsTrue(kcUuid, companyId)
+            ?: throw UasException("403-24")
+        logger.info("User $kcUuid is trying to get journal book report from company $companyId")
 
-        if (dateFrom.after(dateTo)) {
-            throw UasException("400-15")
-        }
+        // Convert dateFrom and dateTo to Date
+        val formatDate: java.text.DateFormat = SimpleDateFormat("yyyy-MM-dd")
+        val newDateFrom: Date = formatDate.parse(dateFrom)
+        val newDateTo: Date = formatDate.parse(dateTo)
 
-        val worksheetData = subaccountRepository.getWorkSheetData(companyId.toInt(), dateFrom, dateTo)
+        // Getting company info
+        // Get s3 object for company logo
+        val s3Object: S3Object = s3ObjectRepository.findByS3ObjectIdAndStatusIsTrue(company.s3CompanyLogo.toLong())!!
+        val preSignedUrl: String = minioService.getPreSignedUrl(s3Object.bucket, s3Object.filename)
+        val companyDto = CompanyMapper.entityToDto(company, preSignedUrl)
+
+
+        val worksheetData = worksheetRepository.findAllByCompanyIdAndStatusIsTrue(companyId.toInt(), newDateFrom, newDateTo)
 
         val sdf = SimpleDateFormat("dd/MM/yyyy")
         val locale = Locale("en", "EN")
         val format = DecimalFormat("#,##0.00", DecimalFormatSymbols(locale))
 
-        var totalDebe = 0.0
-        var totalHaber = 0.0
+        val worksheet = worksheetData.map{
+            val categoria = it.accountCategoryName
+            val codigoDeCuenta = it.subaccountCode.toString()
+            val nombreDeCuenta = it.subaccountName
+            val totalDebeFinal = it.debitAmountBs
+            val totalHaberFinal = it.creditAmountBs
 
-        val worksheet = worksheetData.groupBy { it["nombreDeCuenta"] }.map{(nombreDeCuenta, rows) ->
-            val categoria = rows.first()["categoria"]
-            val transacciones = rows.map { transaction ->
-                val debe = (transaction["debe"] as Number).toDouble()
-                val haber = (transaction["haber"] as Number).toDouble()
-
-                totalDebe += debe
-                totalHaber += haber
-            }
-
-            val totalDebeFinal = totalDebe
-            val totalHaberFinal = totalHaber
-
-            totalDebe = 0.0
-            totalHaber = 0.0
+            val saldoDeudor = if (totalDebeFinal > totalHaberFinal) totalDebeFinal - totalHaberFinal else ""
+            val saldoAcreedor = if (totalHaberFinal > totalDebeFinal) totalHaberFinal - totalDebeFinal else ""
 
             mapOf(
                 "nombreDeCuenta" to nombreDeCuenta,
-                "debeBalanceDeComprobacion" to if (totalDebeFinal>0) format.format(abs(totalDebeFinal)) else "",
-                "haberBalanceDeComprobacion" to if (totalHaberFinal>0) format.format(abs(totalHaberFinal)) else "",
-                "debeEstadoDeResultados" to if(categoria == "INGRESOS") format.format(abs(totalDebeFinal)) else "",
-                "haberEstadoDeResultados" to if(categoria == "EGRESOS") format.format(abs(totalHaberFinal)) else "",
-                "debeBalanceGeneral" to if(categoria == "ACTIVO") format.format(abs(totalDebeFinal)) else "",
-                "haberBalanceGeneral" to if(categoria == "PASIVO" || categoria == "PATRIMONIO") format.format(abs(totalHaberFinal)) else "",
+                "debeBalanceDeComprobacion" to saldoDeudor.toString(),
+                "haberBalanceDeComprobacion" to saldoAcreedor.toString(),
+                "debeEstadoDeResultados" to (if(categoria == "EGRESOS")  if (totalDebeFinal > totalHaberFinal) saldoDeudor else if (totalHaberFinal > totalDebeFinal) (totalDebeFinal - totalHaberFinal) else "" else "").toString(),
+                "haberEstadoDeResultados" to (if(categoria == "INGRESOS") if (totalHaberFinal > totalDebeFinal) saldoAcreedor else if (totalDebeFinal > totalHaberFinal) (totalHaberFinal - totalDebeFinal) else "" else "").toString(),
+                "debeBalanceGeneral" to (if(categoria == "ACTIVO") if (totalDebeFinal > totalHaberFinal) saldoDeudor else if (totalHaberFinal > totalDebeFinal) (totalDebeFinal - totalHaberFinal) else "" else "").toString(),
+                "haberBalanceGeneral" to (if(categoria == "PASIVO" || categoria == "PATRIMONIO") if (totalHaberFinal > totalDebeFinal) saldoAcreedor else if (totalDebeFinal > totalHaberFinal) (totalHaberFinal - totalDebeFinal) else "" else "").toString()
             )
-
         }
-
 
         val totalDebeBalanceDeComprobacion = worksheet.sumOf { row ->
             val value = row["debeBalanceDeComprobacion"] as String
@@ -725,23 +707,26 @@ class ReportBl @Autowired constructor(
         }
 
         val totalDebeBalanceGeneral = worksheet.sumOf { row ->
-            val value = row["debeBalanceGeneral"] as String
+            val value = row["debeBalanceGeneral"].toString()
             value.replace(",", "").toDoubleOrNull() ?: 0.0
         }
 
         val totalHaberBalanceGeneral = worksheet.sumOf { row ->
-            val value = row["haberBalanceGeneral"] as String
+            val value = row["haberBalanceGeneral"].toString()
             value.replace(",", "").toDoubleOrNull() ?: 0.0
         }
 
+        val utilidadEstadoDeResultados = totalHaberEstadoDeResultados - totalDebeEstadoDeResultados
+        val utilidadBalanceGeneral = totalDebeBalanceGeneral - totalHaberBalanceGeneral
+
         return mapOf(
-            "empresa" to companyEntity.companyName,
+            "empresa" to companyDto.companyName,
             "subtitulo" to "Hoja de trabajo",
-            "icono" to presignedUrl,
+            "icono" to preSignedUrl,
             "expresadoEn" to "Expresado en Bolivianos",
             "ciudad" to "La Paz - Bolivia",
-            "nit" to companyEntity.companyNit,
-            "fecha" to "del ${sdf.format(dateFrom)} al ${sdf.format(dateTo)}",
+            "nit" to companyDto.companyNit,
+            "fecha" to "del ${sdf.format(newDateFrom)} al ${sdf.format(newDateTo)}",
             "hojaDeTrabajo" to worksheet,
             "totales" to mapOf(
                     "totalDebeBalanceDeComprobacion" to format.format(totalDebeBalanceDeComprobacion),
@@ -750,15 +735,17 @@ class ReportBl @Autowired constructor(
                     "totalHaberEstadoDeResultados" to format.format(totalHaberEstadoDeResultados),
                     "totalDebeBalanceGeneral" to format.format(totalDebeBalanceGeneral),
                     "totalHaberBalanceGeneral" to format.format(totalHaberBalanceGeneral)
-                )
+                ),
+            "utilidadEstadoDeResultados" to format.format(utilidadEstadoDeResultados),
+            "utilidadBalanceGeneral" to format.format(utilidadBalanceGeneral)
         )
 
     }
 
     fun generateWorksheetsReport(
         companyId: Long,
-        dateFrom: Date,
-        dateTo: Date,
+        dateFrom: String,
+        dateTo: String,
     ): ByteArray{
         logger.info("Generating Worksheets report")
         logger.info("GET api/v1/report/worksheets-report/companies/${companyId}?dateFrom=${dateFrom}&dateTo=${dateTo}")
@@ -766,8 +753,6 @@ class ReportBl @Autowired constructor(
         val headerHtmlTemplate = readTextFile("src/main/resources/templates/worksheet_report/Header.html")
         val htmlTemplate = readTextFile("src/main/resources/templates/worksheet_report/Body.html")
         val model = generateModelForWorksheetsReport(companyId, dateFrom, dateTo)
-
-        logger.info("model:\n$model")
         return pdfTurtleService.generatePdf(footerHtmlTemplate, headerHtmlTemplate, htmlTemplate, model, options, templateEngine)
     }
 
@@ -872,8 +857,6 @@ class ReportBl @Autowired constructor(
         val headerHtmlTemplate = readTextFile("src/main/resources/templates/trial_balances_report/Header.html")
         val htmlTemplate = readTextFile("src/main/resources/templates/trial_balances_report/Body.html")
         val model = generateModelForTrialBalancesReportByDates(copmanyId, dateFrom, dateTo)
-
-        logger.info("model:\n$model")
         return pdfTurtleService.generatePdf(footerHtmlTemplate, headerHtmlTemplate, htmlTemplate, model, options, templateEngine)
     }
 

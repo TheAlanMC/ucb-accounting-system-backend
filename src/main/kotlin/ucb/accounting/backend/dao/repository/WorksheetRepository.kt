@@ -9,14 +9,16 @@ import org.springframework.data.repository.query.Param
 import ucb.accounting.backend.dao.GeneralLedger
 import ucb.accounting.backend.dao.JournalBook
 import ucb.accounting.backend.dao.TrialBalance
+import ucb.accounting.backend.dao.Worksheet
 import java.util.Date
 
-interface TrialBalanceRepository: JpaRepository<TrialBalance, Long> {
+interface WorksheetRepository: JpaRepository<Worksheet, Long> {
 
     @Query(value =
     """
             SELECT  DISTINCT ON (s.subaccount_id)
                     ROW_NUMBER() OVER (ORDER BY s.subaccount_id) AS id,
+                    ac.account_category_name As account_category_name,
                     s.subaccount_id as subaccount_id,
                     s.subaccount_code as subaccount_code,
                     s.subaccount_name as subaccount_name,
@@ -26,16 +28,20 @@ interface TrialBalanceRepository: JpaRepository<TrialBalance, Long> {
             JOIN transaction_detail td ON s.subaccount_id = td.subaccount_id
             JOIN transaction t ON td.transaction_id = t.transaction_id
             JOIN journal_entry je ON t.journal_entry_id = je.journal_entry_id
+            JOIN account a ON s.account_id = a.account_id  
+            JOIN account_subgroup asg ON a.account_subgroup_id = asg.account_subgroup_id  
+            JOIN account_group ag ON asg.account_group_id = ag.account_group_id  
+            JOIN account_category ac ON ag.account_category_id = ac.account_category_id  
             AND je.journal_entry_accepted = TRUE
             AND je.status = TRUE
             AND je.company_id = :companyId
             AND (t.transaction_date BETWEEN :dateFrom AND :dateTo OR CAST(:dateFrom AS DATE) IS NULL OR CAST(:dateTo AS DATE) IS NULL)
-            GROUP BY s.subaccount_id, s.subaccount_code, s.subaccount_name
+            GROUP BY s.subaccount_id, s.subaccount_code, s.subaccount_name, ac.account_category_name
             ORDER BY s.subaccount_id
     """, nativeQuery = true)
     fun findAllByCompanyIdAndStatusIsTrue (
         @Param("companyId") companyId: Int,
         @Param("dateFrom") dateFrom: Date?,
         @Param("dateTo") dateTo: Date?,
-    ): List<TrialBalance>
+    ): List<Worksheet>
 }

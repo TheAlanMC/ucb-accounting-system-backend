@@ -5,6 +5,7 @@ import io.minio.MinioClient
 import io.minio.PutObjectArgs
 import io.minio.http.Method
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
 import org.springframework.web.multipart.MultipartFile
 import ucb.accounting.backend.dto.NewFileDto
@@ -14,6 +15,8 @@ import java.util.*
 class MinioService @Autowired constructor(
     private val minioClient: MinioClient
 ) {
+    @Value("\${minio.url}")
+    private lateinit var minioUrl: String
 
     fun uploadFile(file: MultipartFile, bucket: String): NewFileDto {
         // file name
@@ -32,6 +35,8 @@ class MinioService @Autowired constructor(
     }
 
     fun getPreSignedUrl(bucket: String, filename: String): String {
+        if (bucket == "pictures")
+            return "$minioUrl/$bucket/$filename"
         return minioClient.getPresignedObjectUrl(
             GetPresignedObjectUrlArgs.builder()
                 .method(Method.GET)
