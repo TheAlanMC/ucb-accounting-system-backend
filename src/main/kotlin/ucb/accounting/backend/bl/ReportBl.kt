@@ -2,8 +2,10 @@ package ucb.accounting.backend.bl
 
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.core.io.ClassPathResource
 import org.springframework.data.domain.*
 import org.springframework.stereotype.Service
+import org.springframework.util.StreamUtils
 import ucb.accounting.backend.dao.*
 import ucb.accounting.backend.dao.repository.*
 import ucb.accounting.backend.dto.*
@@ -16,6 +18,7 @@ import ucb.accounting.backend.service.MinioService
 import ucb.accounting.backend.service.PdfTurtleService
 import ucb.accounting.backend.util.KeycloakSecurityContextHolder
 import java.math.BigDecimal
+import java.nio.charset.StandardCharsets
 import java.nio.file.Files
 import java.nio.file.Paths
 import java.text.DecimalFormat
@@ -28,7 +31,7 @@ import kotlin.math.abs
 class ReportBl @Autowired constructor(
     private val companyRepository: CompanyRepository,
     private val currencyTypeRepository: CurrencyTypeRepository,
-    private val transactionDetailRepository: TransactionDetailRepository,
+    private val subaccountPartialRepository: SubaccountPartialRepository,
     private val kcUserCompanyRepository: KcUserCompanyRepository,
     private val minioService: MinioService,
     private val reportTypeRepository: ReportTypeRepository,
@@ -128,7 +131,7 @@ class ReportBl @Autowired constructor(
         return journalBookReport
     }
 
-    fun getAvailableSubaccounts(companyId: Long, sortBy:String, sortType: String, dateFrom: String, dateTo: String): List<SubaccountDto> {
+    fun getAvailableSubaccounts(companyId: Long, dateFrom: String, dateTo: String): List<SubaccountDto> {
         logger.info("Starting the BL call to get available subaccounts")
         // Validate that the company exists
         companyRepository.findByCompanyIdAndStatusIsTrue(companyId) ?: throw UasException("404-05")
@@ -147,15 +150,17 @@ class ReportBl @Autowired constructor(
         if (newDateFrom.after(newDateTo)) {
             throw UasException("400-16")
         }
-
-        val newSortBy = sortBy.replace(Regex("([a-z])([A-Z]+)"), "$1_$2").lowercase()
-        val pageable: Pageable = PageRequest.of(0, Integer.MAX_VALUE, Sort.by(Sort.Direction.fromString(sortType), newSortBy))
-        val ledgerBooks: Page<TransactionDetail> = transactionDetailRepository.findAllSubaccounts(companyId.toInt(), newDateFrom, newDateTo, pageable)
-        val subaccounts: List<SubaccountDto> = ledgerBooks.map { SubaccountMapper.entityToDto(it.subaccount!!) }.content
+        val subaccounts: List<SubaccountPartial> = subaccountPartialRepository.findAllSubaccounts(companyId.toInt(), newDateFrom, newDateTo)
 
         logger.info("Found ${subaccounts.size} subaccounts")
         logger.info("Finishing the BL call to get available subaccounts")
-        return subaccounts
+        return subaccounts.map {
+            SubaccountDto(
+                subaccountId = it.subaccountId,
+                subaccountCode = it.subaccountCode,
+                subaccountName = it.subaccountName,
+            )
+        }
     }
 
     fun getGeneralLedger(
@@ -505,9 +510,9 @@ class ReportBl @Autowired constructor(
     ): ByteArray {
         logger.info("Generating Journal Book report")
         logger.info("GET api/v1/report/journal-book/companies/${companyId}?dateFrom=${dateFrom}&dateTo=${dateTo}")
-        val footerHtmlTemplate = readTextFile("src/main/resources/templates/journal_book_report/Footer.html")
-        val headerHtmlTemplate = readTextFile("src/main/resources/templates/journal_book_report/Header.html")
-        val htmlTemplate = readTextFile("src/main/resources/templates/journal_book_report/Body.html")
+        val footerHtmlTemplate = readResourceAsString("templates/journal_book_report/Footer.html")
+        val headerHtmlTemplate = readResourceAsString("templates/journal_book_report/Header.html")
+        val htmlTemplate = readResourceAsString("templates/journal_book_report/Body.html")
         val model = generateModelForJournalBookByDates(companyId, dateFrom, dateTo)
         return pdfTurtleService.generatePdf(footerHtmlTemplate, headerHtmlTemplate, htmlTemplate, model, options, templateEngine)
     }
@@ -610,9 +615,9 @@ class ReportBl @Autowired constructor(
     ): ByteArray {
         logger.info("Generating Ledger Account report")
         logger.info("GET api/v1/report/ledger-account-report/companies/${companyId}?dateFrom=${dateFrom}&dateTo=${dateTo}&accountCode=${subaccountIds}")
-        val footerHtmlTemplate = readTextFile("src/main/resources/templates/general_ledger_report/Footer.html")
-        val headerHtmlTemplate = readTextFile("src/main/resources/templates/general_ledger_report/Header.html")
-        val htmlTemplate = readTextFile("src/main/resources/templates/general_ledger_report/Body.html")
+        val footerHtmlTemplate = readResourceAsString("templates/general_ledger_report/Footer.html")
+        val headerHtmlTemplate = readResourceAsString("templates/general_ledger_report/Header.html")
+        val htmlTemplate = readResourceAsString("templates/general_ledger_report/Body.html")
         val model = generateModelForLedgerAccountReport(companyId, dateFrom, dateTo, subaccountIds)
         val customOptions = ReportOptions(
             false,
@@ -749,9 +754,9 @@ class ReportBl @Autowired constructor(
     ): ByteArray{
         logger.info("Generating Worksheets report")
         logger.info("GET api/v1/report/worksheets-report/companies/${companyId}?dateFrom=${dateFrom}&dateTo=${dateTo}")
-        val footerHtmlTemplate = readTextFile("src/main/resources/templates/worksheet_report/Footer.html")
-        val headerHtmlTemplate = readTextFile("src/main/resources/templates/worksheet_report/Header.html")
-        val htmlTemplate = readTextFile("src/main/resources/templates/worksheet_report/Body.html")
+        val footerHtmlTemplate = readResourceAsString("templates/worksheet_report/Footer.html")
+        val headerHtmlTemplate = readResourceAsString("templates/worksheet_report/Header.html")
+        val htmlTemplate = readResourceAsString("templates/worksheet_report/Body.html")
         val model = generateModelForWorksheetsReport(companyId, dateFrom, dateTo)
         return pdfTurtleService.generatePdf(footerHtmlTemplate, headerHtmlTemplate, htmlTemplate, model, options, templateEngine)
     }
@@ -853,9 +858,9 @@ class ReportBl @Autowired constructor(
     ): ByteArray{
         logger.info("Generating Trial Balances report")
         logger.info("GET api/v1/report/trial-balances-report/companies/${copmanyId}?dateFrom=${dateFrom}&dateTo=${dateTo}")
-        val footerHtmlTemplate = readTextFile("src/main/resources/templates/trial_balances_report/Footer.html")
-        val headerHtmlTemplate = readTextFile("src/main/resources/templates/trial_balances_report/Header.html")
-        val htmlTemplate = readTextFile("src/main/resources/templates/trial_balances_report/Body.html")
+        val footerHtmlTemplate = readResourceAsString("templates/trial_balances_report/Footer.html")
+        val headerHtmlTemplate = readResourceAsString("templates/trial_balances_report/Header.html")
+        val htmlTemplate = readResourceAsString("templates/trial_balances_report/Body.html")
         val model = generateModelForTrialBalancesReportByDates(copmanyId, dateFrom, dateTo)
         return pdfTurtleService.generatePdf(footerHtmlTemplate, headerHtmlTemplate, htmlTemplate, model, options, templateEngine)
     }
@@ -892,7 +897,20 @@ class ReportBl @Autowired constructor(
             val bytes = Files.readAllBytes(Paths.get(filePath))
             return String(bytes, Charsets.UTF_8)
         }catch (e: Exception){
-            throw UasException("404-05")
+            throw UasException("500-00")
+        }
+    }
+    private fun readResourceAsString(resourcePath: String): String {
+        try {
+            val resource = ClassPathResource(resourcePath)
+            // Get an InputStream from the ClassPathResource
+            val inputStream = resource.inputStream
+
+            // Convert the InputStream to a String using StreamUtils from Spring
+            return StreamUtils.copyToString(inputStream, StandardCharsets.UTF_8)
+        } catch (e: Exception) {
+            e.printStackTrace()
+            throw UasException("500-00")
         }
     }
 }

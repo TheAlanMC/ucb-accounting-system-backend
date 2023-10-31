@@ -46,14 +46,12 @@ class ReportApi  @Autowired constructor(private val reportBl: ReportBl) {
     @GetMapping("/general-ledgers/companies/{companyId}/subaccounts")
     fun getAvailableSubaccounts(
         @PathVariable("companyId") companyId: Long,
-        @RequestParam(defaultValue = "subaccountId") sortBy: String,
-        @RequestParam(defaultValue = "asc") sortType: String,
         @RequestParam(required = true) dateFrom: String,
         @RequestParam(required = true) dateTo: String,
     ): ResponseEntity<ResponseDto<List<SubaccountDto>>> {
         logger.info("Starting the API call to get available subaccounts")
         logger.info("GET /api/v1/reports/general-ledgers/companies/$companyId/subaccounts")
-        val subaccounts: List<SubaccountDto> = reportBl.getAvailableSubaccounts(companyId, sortBy, sortType, dateFrom, dateTo)
+        val subaccounts: List<SubaccountDto> = reportBl.getAvailableSubaccounts(companyId, dateFrom, dateTo)
         logger.info("Sending response")
         val code = "200-22"
         val responseInfo = ResponseCodeUtil.getResponseInfo(code)
