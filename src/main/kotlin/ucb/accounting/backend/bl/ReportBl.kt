@@ -94,7 +94,6 @@ class ReportBl @Autowired constructor(
 
         val journalBook: List<JournalBookReportDto> = journalBooks.groupBy { it.journalEntryId }.map { (key, rows) ->
             val journalBook = rows.first()
-
                 JournalBookReportDto (
                 journalEntryId = journalBook.journalEntryId.toInt(),
                 documentType = DocumentTypeDto(
@@ -491,6 +490,8 @@ class ReportBl @Autowired constructor(
                 "totales" to mapOf("debe" to totalDebe, "haber" to totalHaber)
             )
         }
+        val totalDebe = format.format(journalBookData.sumOf { it.debitAmountBs })
+        val totalHaber = format.format(journalBookData.sumOf { it.creditAmountBs })
         return mapOf(
             "empresa" to companyDto.companyName,
             "subtitulo" to "Libro Diario",
@@ -499,7 +500,8 @@ class ReportBl @Autowired constructor(
             "ciudad" to "La Paz - Bolivia",
             "nit" to company.companyNit,
             "periodo" to "Del ${sdf.format(newDateFrom)} al ${sdf.format(newDateTo)}",
-            "libroDiario" to journalBookList
+            "libroDiario" to journalBookList,
+            "totales" to mapOf("debe" to totalDebe, "haber" to totalHaber)
         )
     }
 
