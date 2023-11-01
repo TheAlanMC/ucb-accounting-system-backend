@@ -1,6 +1,8 @@
 package ucb.accounting.backend.dto
 
-import java.sql.Date
+import java.math.BigDecimal
+import java.util.*
+
 
 data class JournalBookReportDto (
     val journalEntryId: Int?,
@@ -9,6 +11,7 @@ data class JournalBookReportDto (
     val gloss: String?,
     val description: String?,
     val transactionDate: Date?,
-    val attachments: List<AttachmentDownloadDto>?,
-    val transactionDetails: List<JournalBookTransactionDetailDto>?
+    val transactionDetails: List<JournalBookTransactionDetailDto>?,
+    val totalDebitAmountBs: BigDecimal?,
+    val totalCreditAmountBs: BigDecimal?
 )

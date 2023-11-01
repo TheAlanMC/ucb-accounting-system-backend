@@ -57,5 +57,18 @@ class TaxApi @Autowired constructor(private val taxBl: TaxBl) {
         return ResponseEntity(ResponseDto(code, responseInfo.message!!, subaccountTaxTypes), responseInfo.httpStatus)
     }
 
+    @PutMapping("/companies/{companyId}")
+    fun updateSubaccountTaxTypeRate(
+        @PathVariable("companyId") companyId: Long,
+        @RequestBody subaccountTaxTypeDto: SubaccountTaxTypeDto
+    ): ResponseEntity<ResponseDto<TaxTypeDto>> {
+        logger.info("Starting the API call to update subaccount associated with tax type")
+        logger.info("PUT /api/v1/taxes/companies/$companyId")
+        taxBl.updateSubaccountTaxTypeRate(companyId, subaccountTaxTypeDto)
+        val code = "200-45"
+        val responseInfo = ResponseCodeUtil.getResponseInfo(code)
+        logger.info("Code: $code - ${responseInfo.message}")
+        return ResponseEntity(ResponseDto(code, responseInfo.message!!, null), responseInfo.httpStatus)
+    }
 }
 

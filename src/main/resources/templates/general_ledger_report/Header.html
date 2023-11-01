@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <style>
+    .header-container {
+      padding-top: 12mm;
+      display: flex;
+      align-items: center;
+      gap: 4mm;
+    }
+		.unbold-heading {
+			font-weight: normal;
+			margin: 3px;
+		}
+    </style>
+  </head>
+
+	<div style="display: flex; flex-direction: column">
+		<div class="header-container">
+			<img width="50" height="50" src="{{ .icono }}"> 
+			<h1>{{ .empresa }}</h1>
+			<div style="flex-grow: 1;"></div>
+			<h3>{{ .ciudad }}</h3>
+		</div>
+	<h4 class="unbold-heading">NIT: {{ .nit }}</h4>
+	<h2 align="center" class="unbold-heading">{{ .subtitulo }}</h2>
+	<h5 align="center" class="unbold-heading">{{ .periodo }}</h5>
+	<h5 align="center" class="unbold-heading">{{ .expresadoEn }}</h5>
+	</div>
+  
+</html>

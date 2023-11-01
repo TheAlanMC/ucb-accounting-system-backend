@@ -55,8 +55,6 @@ class TaxBl @Autowired constructor(
         // Validation that subaccount is not associated with tax type
         if (subaccountTaxTypeRepository.findBySubaccount_SubaccountIdAndTaxType_TaxTypeIdAndStatusIsTrue(subaccountTaxTypeDto.subaccountId, subaccountTaxTypeDto.taxTypeId) != null) throw UasException("409-07")
 
-
-
         // Validation that subaccount belongs to company
         if (subaccountEntity.companyId != companyId.toInt()) throw UasException("403-38")
 
@@ -83,10 +81,44 @@ class TaxBl @Autowired constructor(
         kcUserCompanyRepository.findAllByKcUser_KcUuidAndCompany_CompanyIdAndStatusIsTrue(kcUuid, companyId) ?: throw UasException("403-39")
         logger.info("User $kcUuid is uploading file to company $companyId")
 
-        val subaccountTaxTypes = subaccountTaxTypeRepository.findAllByCompanyIdAndStatusIsTrue(companyId.toInt())
+        val subaccountTaxTypes = subaccountTaxTypeRepository.findAllByCompanyIdAndStatusIsTrueOrderBySubaccountTaxTypeIdAsc(companyId.toInt())
         logger.info("Found ${subaccountTaxTypes.size} subaccount associated with tax type")
 
         logger.info("Finishing the BL call to get all subaccount associated with tax type")
         return subaccountTaxTypes.map { SubaccountTaxTypePartialMapper.entityToDto(it) }
+    }
+
+    fun updateSubaccountTaxTypeRate(companyId: Long, subaccountTaxTypeDto: SubaccountTaxTypeDto){
+        logger.info("Starting the BL call to update subaccount associated with tax type")
+        // Validate that all fields are not null
+        if (subaccountTaxTypeDto.taxTypeId == null || subaccountTaxTypeDto.subaccountId == null || subaccountTaxTypeDto.taxRate == null) throw UasException("400-29")
+
+        // Validation that company exists
+        companyRepository.findByCompanyIdAndStatusIsTrue(companyId) ?: throw UasException("404-05")
+
+        // Validation of user belongs to company
+        val kcUuid = KeycloakSecurityContextHolder.getSubject()!!
+        kcUserCompanyRepository.findAllByKcUser_KcUuidAndCompany_CompanyIdAndStatusIsTrue(kcUuid, companyId) ?: throw UasException("403-48")
+        logger.info("User $kcUuid is uploading file to company $companyId")
+
+        // Validation that subaccount exists
+        val subaccountEntity = subaccountRepository.findBySubaccountIdAndStatusIsTrue(subaccountTaxTypeDto.subaccountId) ?: throw UasException("404-10")
+
+        // Validation that tax type exists
+        val taxTypeEntity = taxTypeRepository.findByTaxTypeIdAndStatusIsTrue(subaccountTaxTypeDto.taxTypeId) ?: throw UasException("404-16")
+
+        // Validation that subaccount is associated with tax type
+        val subaccountTaxTypeEntity = subaccountTaxTypeRepository.findBySubaccount_SubaccountIdAndTaxType_TaxTypeIdAndStatusIsTrue(subaccountTaxTypeDto.subaccountId, subaccountTaxTypeDto.taxTypeId) ?: throw UasException("404-20")
+
+        // Validation that subaccount belongs to company
+        if (subaccountEntity.companyId != companyId.toInt()) throw UasException("403-48")
+
+        logger.info("User $kcUuid is updating subaccount associated with tax type")
+
+        subaccountTaxTypeEntity.taxRate = subaccountTaxTypeDto.taxRate
+
+        logger.info("Saving subaccount associated with tax type")
+        subaccountTaxTypeRepository.save(subaccountTaxTypeEntity)
+        logger.info("Subaccount associated with tax type saved")
     }
 }

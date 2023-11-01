@@ -29,33 +29,29 @@ class ReportApi  @Autowired constructor(private val reportBl: ReportBl) {
     }
 
     @GetMapping("/journal-books/companies/{companyId}")
-    fun getJournalEntries(@PathVariable("companyId") companyId: Int,
-                          @RequestParam(defaultValue = "0") page: Int,
-                          @RequestParam(defaultValue = "10") size: Int,
-                          @RequestParam(defaultValue = "t.transactionDate") sortBy: String,
-                          @RequestParam(defaultValue = "asc") sortType: String,
-                          @RequestParam(required = true) dateFrom: String,
-    @RequestParam(required = true) dateTo: String,
+    fun getJournalEntries(
+        @PathVariable("companyId") companyId: Long,
+        @RequestParam(required = true) dateFrom: String,
+        @RequestParam(required = true) dateTo: String,
     ): ResponseEntity<ResponseDto<ReportDto<List<JournalBookReportDto>>>> {
         logger.info("Starting the API call to get journal entries")
-        val journalBook: Page<ReportDto<List<JournalBookReportDto>>> = reportBl.getJournalBook(companyId, sortBy, sortType, page, size, dateFrom, dateTo)
+        val journalBook: ReportDto<List<JournalBookReportDto>> = reportBl.getJournalBook(companyId, dateFrom, dateTo)
+        logger.info("Sending response")
         val code = "200-22"
         val responseInfo = ResponseCodeUtil.getResponseInfo(code)
         logger.info("Finishing the API call to get journal entries")
-        return ResponseEntity(ResponseDto(code, responseInfo.message!!, journalBook.content[0], journalBook.totalElements), responseInfo.httpStatus)
+        return ResponseEntity(ResponseDto(code, responseInfo.message!!, journalBook), responseInfo.httpStatus)
     }
 
     @GetMapping("/general-ledgers/companies/{companyId}/subaccounts")
     fun getAvailableSubaccounts(
         @PathVariable("companyId") companyId: Long,
-        @RequestParam(defaultValue = "subaccountId") sortBy: String,
-        @RequestParam(defaultValue = "asc") sortType: String,
         @RequestParam(required = true) dateFrom: String,
         @RequestParam(required = true) dateTo: String,
     ): ResponseEntity<ResponseDto<List<SubaccountDto>>> {
         logger.info("Starting the API call to get available subaccounts")
         logger.info("GET /api/v1/reports/general-ledgers/companies/$companyId/subaccounts")
-        val subaccounts: List<SubaccountDto> = reportBl.getAvailableSubaccounts(companyId, sortBy, sortType, dateFrom, dateTo)
+        val subaccounts: List<SubaccountDto> = reportBl.getAvailableSubaccounts(companyId, dateFrom, dateTo)
         logger.info("Sending response")
         val code = "200-22"
         val responseInfo = ResponseCodeUtil.getResponseInfo(code)
@@ -67,15 +63,13 @@ class ReportApi  @Autowired constructor(private val reportBl: ReportBl) {
     @GetMapping("/general-ledgers/companies/{companyId}")
     fun getGeneralLedgers(
         @PathVariable("companyId") companyId: Long,
-        @RequestParam(defaultValue = "subaccountId") sortBy: String,
-        @RequestParam(defaultValue = "asc") sortType: String,
         @RequestParam(required = true) dateFrom: String,
         @RequestParam(required = true) dateTo: String,
         @RequestParam(required = true) subaccountIds: List<String>
     ): ResponseEntity<ResponseDto<ReportDto<List<GeneralLedgerReportDto>>>> {
         logger.info("Starting the API call to get journal book report")
         logger.info("GET /api/v1/reports/general-ledgers/companies/$companyId")
-        val journalBook: ReportDto<List<GeneralLedgerReportDto>> = reportBl.getGeneralLedger(companyId, sortBy, sortType, dateFrom, dateTo, subaccountIds)
+        val journalBook: ReportDto<List<GeneralLedgerReportDto>> = reportBl.getGeneralLedger(companyId, dateFrom, dateTo, subaccountIds)
         logger.info("Sending response")
         val code = "200-23"
         val responseInfo = ResponseCodeUtil.getResponseInfo(code)
@@ -86,14 +80,12 @@ class ReportApi  @Autowired constructor(private val reportBl: ReportBl) {
     @GetMapping("/trial-balances/companies/{companyId}")
     fun getTrialBalances(
         @PathVariable("companyId") companyId: Long,
-        @RequestParam(defaultValue = "subaccountId") sortBy: String,
-        @RequestParam(defaultValue = "asc") sortType: String,
         @RequestParam(required = true) dateFrom: String,
         @RequestParam(required = true) dateTo: String,
     ): ResponseEntity<ResponseDto<ReportDto<List<TrialBalanceReportDto>>>> {
         logger.info("Starting the API call to get trial balance report")
         logger.info("GET /api/v1/reports/trial-balances/companies/$companyId")
-        val trialBalance: ReportDto<List<TrialBalanceReportDto>> = reportBl.getTrialBalance(companyId, sortBy, sortType, dateFrom, dateTo)
+        val trialBalance: ReportDto<List<TrialBalanceReportDto>> = reportBl.getTrialBalance(companyId, dateFrom, dateTo)
         logger.info("Sending response")
         val code = "200-24"
         val responseInfo = ResponseCodeUtil.getResponseInfo(code)
@@ -105,14 +97,12 @@ class ReportApi  @Autowired constructor(private val reportBl: ReportBl) {
     @GetMapping("/worksheets/companies/{companyId}")
     fun getWorksheet(
         @PathVariable("companyId") companyId: Long,
-        @RequestParam(defaultValue = "subaccountId") sortBy: String,
-        @RequestParam(defaultValue = "asc") sortType: String,
         @RequestParam(required = true) dateFrom: String,
         @RequestParam(required = true) dateTo: String,
     ): ResponseEntity<ResponseDto<ReportDto<WorksheetReportDto>>> {
         logger.info("Starting the API call to get worksheet report")
         logger.info("GET /api/v1/reports/worksheet/companies/$companyId")
-        val worksheet: ReportDto<WorksheetReportDto> = reportBl.getWorksheet(companyId, sortBy, sortType, dateFrom, dateTo)
+        val worksheet: ReportDto<WorksheetReportDto> = reportBl.getWorksheet(companyId, dateFrom, dateTo)
         logger.info("Sending response")
         val code = "200-25"
         val responseInfo = ResponseCodeUtil.getResponseInfo(code)

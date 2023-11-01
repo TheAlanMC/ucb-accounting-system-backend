@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<style>
+		.unbold-heading {
+			font-weight: normal;
+		}
+		.detalle{
+			white-space: pre;
+		}
+	</style>
+</head>
+
+<body class="pdf-turtle">
+	<h4 class="unbold-heading">NIT: {{ .nit }}</h4>
+	<h2 align="center" class="unbold-heading">{{ .subtitulo }}</h2>
+	<h5 align="center" class="unbold-heading">{{ .periodo }}</h5>
+	<h5 align="center" class="unbold-heading">{{ .expresadoEn }}</h5>
+
+	<table class="reduced" style="margin-top:3mm; font-size:10pt;">
+		<tr>
+			<th>Fecha/Codigo</th>
+			<th>Detalle</th>
+			<th>Debe(Bs.)</th>
+			<th>Haber(Bs.)</th>
+		</tr>
+
+		{{range .libroDiario}}
+		<tr class="no-page-break-inside" style="margin-top: 1000px;">
+			<td align="center" style="font-weight: bold;">{{ .fecha }}</td>
+			<td align="center" style="font-weight: bold;">{{ .numeroDeComprobante }}</td>
+			<td></td>
+			<td></td>
+			{{range .transacciones }}
+			<tr>
+				<td align="center">{{ .codigo }}</td>
+				<td class="detalle">{{ .detalle }}</td>
+				<td class="nowrap right">{{ .debe }}</td>
+				<td class="nowrap right">{{ .haber }}</td>
+			</tr>
+			{{end}}
+			<tr>
+				<td align="center" style="font-weight: bold; border-bottom: 2px solid black;">Totales</td>
+				<td style="border-bottom: 2px solid black;">{{ .glosa}}</td>
+				<td class="nowrap right" style="border-bottom: 2px solid black;">{{ .totales.debe }}</td>
+				<td class="nowrap right" style="border-bottom: 2px solid black;">{{ .totales.haber }}</td>
+			</tr>
+		</tr>
+		<tr>
+    	<td style="border-bottom: 0px;" colspan="2">&nbsp;</td>
+  	</tr>
+		{{end}}
+		<tr>
+			<td align="center" style="font-weight: bold; border-bottom: 2px solid black;">Totales</td>
+			<td style="border-bottom: 2px solid black;"></td>
+			<td class="nowrap right" style="border-bottom: 2px solid black;">{{ .totales.debe }}</td>
+			<td class="nowrap right" style="border-bottom: 2px solid black;">{{ .totales.haber }}</td>
+		</tr>
+	</table>
+</body>
+</html>
