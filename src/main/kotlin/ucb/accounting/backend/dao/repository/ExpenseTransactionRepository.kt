@@ -19,4 +19,10 @@ interface ExpenseTransactionRepository: PagingAndSortingRepository<ExpenseTransa
     fun findByJournalEntryIdAndCompanyIdAndStatusIsTrue(journalEntryId: Int, companyId: Int): Long?
 
     fun findByJournalEntryIdAndStatusIsTrue(journalEntryId: Int): ExpenseTransaction?
+
+    @Query(value = "SELECT description, COUNT(*) as count FROM expense_transaction " +
+            "WHERE company_id = :companyId AND status = true " +
+            "GROUP BY description", nativeQuery = true)
+    fun countExpensesByDescription(companyId: Int): List<Map<String, Any>>
+
 }
