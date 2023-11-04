@@ -3,10 +3,7 @@ package ucb.accounting.backend.api
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.ResponseEntity
-import org.springframework.web.bind.annotation.GetMapping
-import org.springframework.web.bind.annotation.PathVariable
-import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.bind.annotation.*
 import ucb.accounting.backend.bl.SaleDashboardBl
 import ucb.accounting.backend.dto.ExpenseDashboardDto
 import ucb.accounting.backend.dto.ResponseDto
@@ -24,10 +21,12 @@ class SaleDashboardApi @Autowired constructor(
     }
 
     @GetMapping("/client/{companyId}")
-    fun getSaleDashboardDataByClient(@PathVariable companyId: Long): ResponseEntity<ResponseDto<SaleDashboardDto>> {
+    fun getSaleDashboardDataByClient(@PathVariable companyId: Long,
+                                     @RequestParam(required = true) dateFrom: String,
+                                     @RequestParam(required = true) dateTo: String): ResponseEntity<ResponseDto<SaleDashboardDto>> {
         logger.info("Starting the API call to get sale dashboard data")
         logger.info("GET /sale-dashboard")
-        val saleDashboardData: SaleDashboardDto = saleDashboardBl.getSaleByClient(companyId)
+        val saleDashboardData: SaleDashboardDto = saleDashboardBl.getSaleByClient(companyId, dateFrom, dateTo)
         logger.info("Sending response")
         val code = "200-20"
         val responseInfo = ResponseCodeUtil.getResponseInfo(code)
@@ -36,10 +35,12 @@ class SaleDashboardApi @Autowired constructor(
     }
 
     @GetMapping("/subaccount/{companyId}")
-    fun getSaleDashboardDataBySubaccount(@PathVariable companyId: Long): ResponseEntity<ResponseDto<SaleDashboardDto>> {
+    fun getSaleDashboardDataBySubaccount(@PathVariable companyId: Long,
+                                         @RequestParam (required = true) dateFrom: String,
+                                         @RequestParam (required = true) dateTo: String): ResponseEntity<ResponseDto<SaleDashboardDto>> {
         logger.info("Starting the API call to get sale dashboard data")
         logger.info("GET /sale-dashboard")
-        val saleDashboardData: SaleDashboardDto = saleDashboardBl.getSaleBySubaccount(companyId)
+        val saleDashboardData: SaleDashboardDto = saleDashboardBl.getSaleBySubaccount(companyId, dateFrom, dateTo)
         logger.info("Sending response")
         val code = "200-20"
         val responseInfo = ResponseCodeUtil.getResponseInfo(code)

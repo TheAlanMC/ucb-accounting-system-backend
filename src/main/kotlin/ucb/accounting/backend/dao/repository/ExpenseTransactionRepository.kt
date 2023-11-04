@@ -27,10 +27,13 @@ interface ExpenseTransactionRepository: PagingAndSortingRepository<ExpenseTransa
     JOIN subaccount s ON s.subaccount_id = et.subaccount_id
     JOIN expense_transaction_detail etd ON etd.expense_transaction_id = et.expense_transaction_id
     WHERE et.company_id = :companyId
+    AND (et.expense_transaction_date BETWEEN :dateFrom AND :dateTo OR CAST(:dateFrom AS DATE) IS NULL OR CAST(:dateTo AS DATE) IS NULL) 
     GROUP BY s.subaccount_name
     ORDER BY total DESC
     """, nativeQuery = true)
-    fun countExpensesBySupplier(@Param ("companyId") companyId: Int): List<Map<String, Any>>
+    fun countExpensesBySupplier(@Param ("companyId") companyId: Int,
+                                @Param ("dateFrom") dateFrom: Date?,
+                                @Param ("dateTo") dateTo: Date?): List<Map<String, Any>>
 
     @Query(value = """
         SELECT  s.subaccount_name as name,
@@ -39,11 +42,13 @@ interface ExpenseTransactionRepository: PagingAndSortingRepository<ExpenseTransa
     JOIN expense_transaction_detail etd ON etd.expense_transaction_id = et.expense_transaction_id
     JOIN subaccount s ON s.subaccount_id = etd.subaccount_id
     WHERE et.company_id = :companyId
-    AND et.expense_transaction_date BETWEEN '2023-10-01' AND '2023-10-31'
+    AND (et.expense_transaction_date BETWEEN :dateFrom AND :dateTo OR CAST(:dateFrom AS DATE) IS NULL OR CAST(:dateTo AS DATE) IS NULL) 
     GROUP BY s.subaccount_name
     ORDER BY total DESC
     LIMIT 10;
     """, nativeQuery = true)
-    fun countExpensesBySubaccount(@Param ("companyId") companyId: Int): List<Map<String, Any>>
+    fun countExpensesBySubaccount(@Param ("companyId") companyId: Int,
+                                  @Param ("dateFrom") dateFrom: Date?,
+                                  @Param ("dateTo") dateTo: Date?): List<Map<String, Any>>
 
 }
