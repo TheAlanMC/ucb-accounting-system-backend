@@ -93,5 +93,7 @@ interface JournalEntryRepository: PagingAndSortingRepository<JournalEntry, Long>
         @Param("endDate") endDate: Date
     ): List<Map<String, Any>>
 
+    fun findByJournalEntryNumberAndGlossAndCompanyIdAndStatusIsTrue(journalEntryNumber: Int, gloss: String, companyId: Int): JournalEntry?
+
 
 }
