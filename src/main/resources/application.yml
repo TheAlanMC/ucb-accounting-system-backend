@@ -172,3 +172,14 @@ keycloak:
             - /api/v1/report/*
           methods:
             - GET
+# Opening Balance Api
+    - auth-roles:
+        - journal-entry-recorder
+      security-collections:
+        - name: Opening Balance CRUD
+          patterns:
+            - /api/v1/opening-balances/*
+          methods:
+            - POST
+            - GET
+            - PUT

@@ -9,6 +9,11 @@ import org.springframework.util.StreamUtils
 import ucb.accounting.backend.dao.*
 import ucb.accounting.backend.dao.repository.*
 import ucb.accounting.backend.dto.*
+import ucb.accounting.backend.dto.Account
+import ucb.accounting.backend.dto.AccountCategory
+import ucb.accounting.backend.dto.AccountGroup
+import ucb.accounting.backend.dto.AccountSubgroup
+import ucb.accounting.backend.dto.Subaccount
 import ucb.accounting.backend.dto.pdf_turtle.Margins
 import ucb.accounting.backend.dto.pdf_turtle.PageSize
 import ucb.accounting.backend.dto.pdf_turtle.ReportOptions
@@ -43,6 +48,7 @@ class ReportBl @Autowired constructor(
     private val generalLedgerRepository: GeneralLedgerRepository,
     private val trialBalanceRepository: TrialBalanceRepository,
     private val worksheetRepository: WorksheetRepository,
+    private val financialStatementRepository: FinancialStatementRepository,
     ) {
     companion object {
         private val logger = LoggerFactory.getLogger(DocumentTypeBl::class.java.name)
@@ -270,7 +276,10 @@ class ReportBl @Autowired constructor(
         val format: java.text.DateFormat = SimpleDateFormat("yyyy-MM-dd")
         val newDateFrom: Date = format.parse(dateFrom)
         val newDateTo: Date = format.parse(dateTo)
-
+        // Validation of dateFrom and dateTo
+        if (newDateFrom.after(newDateTo)) {
+            throw UasException("400-17")
+        }
         val currencyTypeEntity: CurrencyType = currencyTypeRepository.findByCurrencyCodeAndStatusIsTrue("Bs")!!
         val currencyType = CurrencyTypeDto(
             currencyCode = currencyTypeEntity.currencyCode,
@@ -344,7 +353,10 @@ class ReportBl @Autowired constructor(
         val format: java.text.DateFormat = SimpleDateFormat("yyyy-MM-dd")
         val newDateFrom: Date = format.parse(dateFrom)
         val newDateTo: Date = format.parse(dateTo)
-
+        // Validation of dateFrom and dateTo
+        if (newDateFrom.after(newDateTo)) {
+            throw UasException("400-18")
+        }
         val currencyTypeEntity: CurrencyType = currencyTypeRepository.findByCurrencyCodeAndStatusIsTrue("Bs")!!
         val currencyType = CurrencyTypeDto(
             currencyCode = currencyTypeEntity.currencyCode,
@@ -406,6 +418,183 @@ class ReportBl @Autowired constructor(
             currencyType = currencyType,
             reportData = worksheetReportDto
         )
+    }
+
+    fun getIncomeStatement(
+        companyId: Long,
+        dateFrom: String,
+        dateTo: String,
+    ): ReportDto<FinancialStatementReportDto> {
+        logger.info("Starting the BL call to get income statement report")
+        // Validate that the company exists
+        val company = companyRepository.findByCompanyIdAndStatusIsTrue(companyId) ?: throw UasException("404-05")
+
+        // Validation of user belongs to company
+        val kcUuid = KeycloakSecurityContextHolder.getSubject()!!
+        kcUserCompanyRepository.findAllByKcUser_KcUuidAndCompany_CompanyIdAndStatusIsTrue(kcUuid, companyId)
+            ?: throw UasException("403-25")
+        logger.info("User $kcUuid is trying to get financial statement report from company $companyId")
+
+        // Convert dateFrom and dateTo to Date
+        val format: java.text.DateFormat = SimpleDateFormat("yyyy-MM-dd")
+        val newDateFrom: Date = format.parse(dateFrom)
+        val newDateTo: Date = format.parse(dateTo)
+        // Validation of dateFrom and dateTo
+        if (newDateFrom.after(newDateTo)) {
+            throw UasException("400-19")
+        }
+        val currencyTypeEntity: CurrencyType = currencyTypeRepository.findByCurrencyCodeAndStatusIsTrue("Bs")!!
+        val currencyType = CurrencyTypeDto(
+            currencyCode = currencyTypeEntity.currencyCode,
+            currencyName = currencyTypeEntity.currencyName
+        )
+
+        // Getting company info
+        // Get s3 object for company logo
+        val s3Object: S3Object = s3ObjectRepository.findByS3ObjectIdAndStatusIsTrue(company.s3CompanyLogo.toLong())!!
+        val preSignedUrl: String = minioService.getPreSignedUrl(s3Object.bucket, s3Object.filename)
+        val companyDto = CompanyMapper.entityToDto(company, preSignedUrl)
+
+        val accountCategoryNames: List<String> = listOf("INGRESOS", "EGRESOS")
+        val descriptions: List<String> = listOf("TOTAL CUENTAS DE INGRESOS", "TOTAL CUENTAS DE EGRESOS")
+
+        val incomeStatementReportDetailDto: List<FinancialStatementReportDetailDto> = getFinancialStatement(companyId, newDateFrom, newDateTo, accountCategoryNames, descriptions)
+        logger.info("Found income statement report")
+        return ReportDto(
+            company = companyDto,
+            startDate = newDateFrom,
+            endDate = newDateTo,
+            currencyType = currencyType,
+            reportData = FinancialStatementReportDto(
+                financialStatementDetails = incomeStatementReportDetailDto,
+                description = "UTILIDADES ESTADO DE RESULTADOS",
+                totalAmountBs = incomeStatementReportDetailDto[0].totalAmountBs - incomeStatementReportDetailDto[1].totalAmountBs
+            )
+        )
+    }
+
+    fun getBalanceSheet(
+        companyId: Long,
+        dateFrom: String,
+        dateTo: String,
+    ): ReportDto<FinancialStatementReportDto> {
+        logger.info("Starting the BL call to get balance sheet report")
+        // Validate that the company exists
+        val company = companyRepository.findByCompanyIdAndStatusIsTrue(companyId) ?: throw UasException("404-05")
+
+        // Validation of user belongs to company
+        val kcUuid = KeycloakSecurityContextHolder.getSubject()!!
+        kcUserCompanyRepository.findAllByKcUser_KcUuidAndCompany_CompanyIdAndStatusIsTrue(kcUuid, companyId)
+            ?: throw UasException("403-26")
+        logger.info("User $kcUuid is trying to get balance sheet report from company $companyId")
+
+        // Convert dateFrom and dateTo to Date
+        val format: java.text.DateFormat = SimpleDateFormat("yyyy-MM-dd")
+        val newDateFrom: Date = format.parse(dateFrom)
+        val newDateTo: Date = format.parse(dateTo)
+        // Validation of dateFrom and dateTo
+        if (newDateFrom.after(newDateTo)) {
+            throw UasException("400-20")
+        }
+
+        val currencyTypeEntity: CurrencyType = currencyTypeRepository.findByCurrencyCodeAndStatusIsTrue("Bs")!!
+        val currencyType = CurrencyTypeDto(
+            currencyCode = currencyTypeEntity.currencyCode,
+            currencyName = currencyTypeEntity.currencyName
+        )
+
+        // Getting company info
+        // Get s3 object for company logo
+        val s3Object: S3Object = s3ObjectRepository.findByS3ObjectIdAndStatusIsTrue(company.s3CompanyLogo.toLong())!!
+        val preSignedUrl: String = minioService.getPreSignedUrl(s3Object.bucket, s3Object.filename)
+        val companyDto = CompanyMapper.entityToDto(company, preSignedUrl)
+
+        val accountCategoryNames: List<String> = listOf("ACTIVO", "PASIVO", "PATRIMONIO")
+        val descriptions: List<String> = listOf("TOTAL CUENTAS DE ACTIVO", "TOTAL CUENTAS DE PASIVO", "TOTAL CUENTAS DE PATRIMONIO")
+
+        val incomeStatementReportDetailDto: List<FinancialStatementReportDetailDto> = getFinancialStatement(companyId, newDateFrom, newDateTo, accountCategoryNames, descriptions)
+        // TODO ADD RESULTADOS DE GESTION
+        logger.info("Found balance sheet report")
+        return ReportDto(
+            company = companyDto,
+            startDate = newDateFrom,
+            endDate = newDateTo,
+            currencyType = currencyType,
+            reportData = FinancialStatementReportDto(
+                financialStatementDetails = incomeStatementReportDetailDto,
+                description = "UTILIDADES ESTADO DE RESULTADOS",
+                totalAmountBs = incomeStatementReportDetailDto[0].totalAmountBs - incomeStatementReportDetailDto[1].totalAmountBs - incomeStatementReportDetailDto[2].totalAmountBs
+            )
+        )
+    }
+
+    fun getFinancialStatement(companyId: Long, dateFrom: Date, dateTo: Date, accountCategoryNames: List<String>, descriptions: List<String>): List<FinancialStatementReportDetailDto> {
+        val financialStatement: List<FinancialStatement> = financialStatementRepository.findAllByCompanyIdAndStatusIsTrue(companyId.toInt(), dateFrom, dateTo, accountCategoryNames)
+        var index = 0
+        val financialStatementReportDetailDto: List<FinancialStatementReportDetailDto> = financialStatement.groupBy { it.accountCategoryId }.map { (key, rows) ->
+            val accountGroup = rows.groupBy { it.accountGroupId }.map { (key, rows) ->
+                val accountSubgroup = rows.groupBy { it.accountSubgroupId }.map { (key, rows) ->
+                    val account = rows.groupBy { it.accountId }.map { (key, rows) ->
+                        val subaccount = rows.groupBy { it.subaccountId }.map { (key, rows) ->
+                            val totalDebitAmount = rows.first().debitAmountBs
+                            val totalCreditAmount = rows.first().creditAmountBs
+                            val accountCategoryName = accountCategoryNames[index]
+                            val balanceDebtor = if (totalDebitAmount > totalCreditAmount) totalDebitAmount - totalCreditAmount else BigDecimal(0.00)
+                            val balanceCreditor = if (totalCreditAmount > totalDebitAmount) totalCreditAmount - totalDebitAmount else BigDecimal(0.00)
+                            val incomeStatementExpense = if (accountCategoryName == "EGRESOS") if (totalDebitAmount > totalCreditAmount) balanceDebtor else if (totalCreditAmount > totalDebitAmount) (totalDebitAmount - totalCreditAmount) else BigDecimal(0.00) else BigDecimal(0.00);
+                            val incomeStatementIncome = if (accountCategoryName == "INGRESOS") if (totalCreditAmount > totalDebitAmount) balanceCreditor else if (totalDebitAmount > totalCreditAmount) (totalCreditAmount - totalDebitAmount) else BigDecimal(0.00) else BigDecimal(0.00);
+                            val balanceSheetAsset = if (accountCategoryName == "ACTIVO") if (totalDebitAmount > totalCreditAmount) balanceDebtor else if (totalCreditAmount > totalDebitAmount) (totalDebitAmount - totalCreditAmount) else BigDecimal(0.00) else BigDecimal(0.00);
+                            val balanceSheetLiability = if (accountCategoryName == "PASIVO" || accountCategoryName == "PATRIMONIO") if (totalCreditAmount > totalDebitAmount) balanceCreditor else if (totalDebitAmount > totalCreditAmount) (totalCreditAmount - totalDebitAmount) else BigDecimal(0.00) else BigDecimal(0.00);
+                            val subaccount = Subaccount(
+                                subaccountId = rows.first().subaccountId.toLong(),
+                                subaccountCode = rows.first().subaccountCode,
+                                subaccountName = rows.first().subaccountName,
+                                totalAmountBs = incomeStatementExpense + incomeStatementIncome + balanceSheetAsset + balanceSheetLiability
+                            )
+                            subaccount
+                        }
+                        val account = Account(
+                            accountId = rows.first().accountId.toLong(),
+                            accountCode = rows.first().accountCode,
+                            accountName = rows.first().accountName,
+                            subaccounts = subaccount,
+                            totalAmountBs = subaccount.sumOf { it.totalAmountBs }
+                        )
+                        account
+                    }
+                    val accountSubgroup = AccountSubgroup(
+                        accountSubgroupId = rows.first().accountSubgroupId.toLong(),
+                        accountSubgroupCode = rows.first().accountSubgroupCode,
+                        accountSubgroupName = rows.first().accountSubgroupName,
+                        accounts = account,
+                        totalAmountBs = account.sumOf { it.totalAmountBs }
+                    )
+                    accountSubgroup
+                }
+                val accountGroup = AccountGroup(
+                    accountGroupId = rows.first().accountGroupId.toLong(),
+                    accountGroupCode = rows.first().accountGroupCode,
+                    accountGroupName = rows.first().accountGroupName,
+                    accountSubgroups = accountSubgroup,
+                    totalAmountBs = accountSubgroup.sumOf { it.totalAmountBs }
+                )
+                accountGroup
+            }
+            val accountCategory = AccountCategory(
+                accountCategoryId = rows.first().accountCategoryId.toLong(),
+                accountCategoryCode = rows.first().accountCategoryCode,
+                accountCategoryName = rows.first().accountCategoryName,
+                accountGroups = accountGroup,
+                totalAmountBs = accountGroup.sumOf { it.totalAmountBs }
+            )
+            val totalAmountBs = accountCategory.totalAmountBs
+            FinancialStatementReportDetailDto(
+                accountCategory = accountCategory,
+                description = descriptions[index++],
+                totalAmountBs = totalAmountBs
+            )
+        }
+        return financialStatementReportDetailDto
     }
 
     private val options = ReportOptions(

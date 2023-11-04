@@ -65,6 +65,7 @@ class ResponseCodeUtil (var httpStatus: HttpStatus, message: String, messageTran
                 "201-12" -> ResponseCodeUtil(HttpStatus.CREATED, "The new supplier has been successfully created.")
                 "201-13" -> ResponseCodeUtil(HttpStatus.CREATED, "An expense transaction has been successfully created.")
                 "201-14" -> ResponseCodeUtil(HttpStatus.CREATED, "Tax associated with subaccount has been successfully created.")
+                "201-15" -> ResponseCodeUtil(HttpStatus.CREATED, "The opening balance has been successfully created.")
                 "400-01" -> ResponseCodeUtil(HttpStatus.BAD_REQUEST, "The required information to create the accountant user was not provided.")
                 "400-02" -> ResponseCodeUtil(HttpStatus.BAD_REQUEST, "The required information to create the accounting assistant user was not provided.")
                 "400-03" -> ResponseCodeUtil(HttpStatus.BAD_REQUEST, "The required information to create the client user was not provided.")
@@ -95,6 +96,7 @@ class ResponseCodeUtil (var httpStatus: HttpStatus, message: String, messageTran
                 "400-28" -> ResponseCodeUtil(HttpStatus.BAD_REQUEST, "The required information to create an expense transaction was not provided.")
                 "400-29" -> ResponseCodeUtil(HttpStatus.BAD_REQUEST, "The required information to create a tax associated with subaccount was not provided.")
                 "400-30" -> ResponseCodeUtil(HttpStatus.BAD_REQUEST, "The required information to update the tax associated with subaccount was not provided.")
+                "400-31" -> ResponseCodeUtil(HttpStatus.BAD_REQUEST, "The required information to create the opening balance was not provided.")
                 "403-01" -> ResponseCodeUtil(HttpStatus.FORBIDDEN, "You don't have permission to view user information.")
                 "403-02" -> ResponseCodeUtil(HttpStatus.FORBIDDEN, "You don't have permission to update user information.")
                 "403-03" -> ResponseCodeUtil(HttpStatus.FORBIDDEN, "You don't have permission to view company information.")
@@ -143,6 +145,7 @@ class ResponseCodeUtil (var httpStatus: HttpStatus, message: String, messageTran
                 "403-46" -> ResponseCodeUtil(HttpStatus.FORBIDDEN, "You don't have the necessary permissions to view the list of transactions.")
                 "403-47" -> ResponseCodeUtil(HttpStatus.FORBIDDEN, "You don't have the necessary permissions to update the journal entry.")
                 "403-48" -> ResponseCodeUtil(HttpStatus.FORBIDDEN, "You don't have the necessary permissions to update the tax associated with subaccount.")
+                "403-49" -> ResponseCodeUtil(HttpStatus.FORBIDDEN, "You don't have the necessary permissions to create the opening balance.")
                 "404-01" -> ResponseCodeUtil(HttpStatus.NOT_FOUND, "User not found.")
                 "404-02" -> ResponseCodeUtil(HttpStatus.NOT_FOUND, "Accountant user not found.")
                 "404-03" -> ResponseCodeUtil(HttpStatus.NOT_FOUND, "Industry not found.")
@@ -169,6 +172,7 @@ class ResponseCodeUtil (var httpStatus: HttpStatus, message: String, messageTran
                 "409-05" -> ResponseCodeUtil(HttpStatus.CONFLICT, "A sale transaction with the same number already exists in the system.")
                 "409-06" -> ResponseCodeUtil(HttpStatus.CONFLICT, "An expense transaction with the same number already exists in the system.")
                 "409-07" -> ResponseCodeUtil(HttpStatus.CONFLICT, "A tax associated with the subaccount already exists in the system.")
+                "409-08" -> ResponseCodeUtil(HttpStatus.CONFLICT, "The opening balance already exists in the system.")
                 else -> ResponseCodeUtil(HttpStatus.INTERNAL_SERVER_ERROR, "An unexpected error occurred.")
             }
         }
