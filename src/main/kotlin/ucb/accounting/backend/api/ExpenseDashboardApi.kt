@@ -19,14 +19,26 @@ class ExpenseDashboardApi @Autowired constructor(
 ){
 
     companion object {
-        private val logger = LoggerFactory.getLogger(DocumentTypeApi::class.java.name)
+        private val logger = LoggerFactory.getLogger(ExpenseDashboardApi::class.java.name)
     }
 
-    @GetMapping("/{companyId}")
-    fun getExpenseDashboardData(@PathVariable companyId: Long): ResponseEntity<ResponseDto<ExpenseDashboardDto>> {
+    @GetMapping("/supplier/{companyId}")
+    fun getExpenseDashboardDataBySupplier(@PathVariable companyId: Long): ResponseEntity<ResponseDto<ExpenseDashboardDto>> {
         logger.info("Starting the API call to get expense dashboard data")
         logger.info("GET /expense-dashboard")
-        val expenseDashboardData: ExpenseDashboardDto = expenseDashboardBl.getExpenseDashboardData(companyId)
+        val expenseDashboardData: ExpenseDashboardDto = expenseDashboardBl.getExpenseBySupplier(companyId)
+        logger.info("Sending response")
+        val code = "200-20"
+        val responseInfo = ResponseCodeUtil.getResponseInfo(code)
+        logger.info("Code: $code - ${responseInfo.message}")
+        return ResponseEntity(ResponseDto(code, responseInfo.message!!, expenseDashboardData), responseInfo.httpStatus)
+    }
+
+    @GetMapping("/subaccount/{companyId}")
+    fun getExpenseDashboardDataBySubaccount(@PathVariable companyId: Long): ResponseEntity<ResponseDto<ExpenseDashboardDto>> {
+        logger.info("Starting the API call to get expense dashboard data")
+        logger.info("GET /expense-dashboard")
+        val expenseDashboardData: ExpenseDashboardDto = expenseDashboardBl.getExpenseBySubaccount(companyId)
         logger.info("Sending response")
         val code = "200-20"
         val responseInfo = ResponseCodeUtil.getResponseInfo(code)

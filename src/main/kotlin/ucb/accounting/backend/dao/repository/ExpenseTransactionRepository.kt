@@ -20,9 +20,30 @@ interface ExpenseTransactionRepository: PagingAndSortingRepository<ExpenseTransa
 
     fun findByJournalEntryIdAndStatusIsTrue(journalEntryId: Int): ExpenseTransaction?
 
-    @Query(value = "SELECT description, COUNT(*) as count FROM expense_transaction " +
-            "WHERE company_id = :companyId AND status = true " +
-            "GROUP BY description", nativeQuery = true)
-    fun countExpensesByDescription(companyId: Int): List<Map<String, Any>>
+    @Query(value = """
+        SELECT  s.subaccount_name as name,
+        SUM((etd.quantity * etd.unit_price_bs) + etd.amount_bs) AS total
+    FROM expense_transaction et
+    JOIN subaccount s ON s.subaccount_id = et.subaccount_id
+    JOIN expense_transaction_detail etd ON etd.expense_transaction_id = et.expense_transaction_id
+    WHERE et.company_id = :companyId
+    GROUP BY s.subaccount_name
+    ORDER BY total DESC
+    """, nativeQuery = true)
+    fun countExpensesBySupplier(@Param ("companyId") companyId: Int): List<Map<String, Any>>
+
+    @Query(value = """
+        SELECT  s.subaccount_name as name,
+        SUM((etd.quantity * etd.unit_price_bs) + etd.amount_bs) AS total
+    FROM expense_transaction et
+    JOIN expense_transaction_detail etd ON etd.expense_transaction_id = et.expense_transaction_id
+    JOIN subaccount s ON s.subaccount_id = etd.subaccount_id
+    WHERE et.company_id = :companyId
+    AND et.expense_transaction_date BETWEEN '2023-10-01' AND '2023-10-31'
+    GROUP BY s.subaccount_name
+    ORDER BY total DESC
+    LIMIT 10;
+    """, nativeQuery = true)
+    fun countExpensesBySubaccount(@Param ("companyId") companyId: Int): List<Map<String, Any>>
 
 }

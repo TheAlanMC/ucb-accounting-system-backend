@@ -5,6 +5,8 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import ucb.accounting.backend.dao.repository.ExpenseTransactionRepository
 import ucb.accounting.backend.dto.ExpenseDashboardDto
+import ucb.accounting.backend.dto.ExpensesDto
+import java.math.BigDecimal
 
 @Service
 class ExpenseDashboardBl @Autowired constructor(
@@ -15,15 +17,20 @@ class ExpenseDashboardBl @Autowired constructor(
         private val logger = LoggerFactory.getLogger(ExpenseDashboardBl::class.java.name)
     }
 
-    fun getExpenseDashboardData(companyId: Long): ExpenseDashboardDto {
-        val descriptionCountList = expenseTransactionRepository.countExpensesByDescription(companyId.toInt())
-        val descriptionList = mutableListOf<String>()
-        val countList = mutableListOf<Int>()
-        descriptionCountList.forEach {
-            descriptionList.add(it["description"].toString())
-            countList.add(it["count"].toString().toInt())
+    fun getExpenseBySupplier(companyId: Long): ExpenseDashboardDto {
+        val supplierTotalList = expenseTransactionRepository.countExpensesBySupplier(companyId.toInt())
+        val expenseSupplier: List<ExpensesDto> = supplierTotalList.map {
+            ExpensesDto(it["name"].toString(), BigDecimal.valueOf(it["total"].toString().toDouble()))
         }
-        return ExpenseDashboardDto(descriptionList, countList)
+        return ExpenseDashboardDto(expenseSupplier)
+    }
+
+    fun getExpenseBySubaccount(companyId: Long): ExpenseDashboardDto {
+        val subaccountTotalList = expenseTransactionRepository.countExpensesBySubaccount(companyId.toInt())
+        val expenseSubaccount: List<ExpensesDto> = subaccountTotalList.map {
+            ExpensesDto(it["name"].toString(), BigDecimal.valueOf(it["total"].toString().toDouble()))
+        }
+        return ExpenseDashboardDto(expenseSubaccount)
     }
 
 }
