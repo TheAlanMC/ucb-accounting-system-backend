@@ -946,6 +946,28 @@ class ReportBl @Autowired constructor(
 
     }
 
+    fun getGeneratedReportById(
+        companyId: Long,
+        reportId: Long
+    ):AttachmentDto{
+        logger.info("Starting the BL call to get generated reports")
+        // Validate that the company exists
+        companyRepository.findByCompanyIdAndStatusIsTrue(companyId) ?: throw UasException("404-05")
+
+        val kcUuid = KeycloakSecurityContextHolder.getSubject()!!
+        val kcUserCompany = kcUserCompanyRepository.findAllByKcUser_KcUuidAndCompany_CompanyIdAndStatusIsTrue(kcUuid, companyId)
+            ?: throw UasException("403-23")
+        logger.info("User $kcUuid is trying to get generated reports from company $companyId")
+
+        val report = reportRepository.findByReportIdAndCompanyIdAndStatusIsTrue(reportId, companyId.toInt()) ?: throw UasException("404-11")
+
+        return AttachmentDto(
+            attachmentId = report.attachment!!.attachmentId,
+            contentType = report.attachment!!.contentType,
+            filename = report.attachment!!.filename
+        )
+    }
+
     fun readTextFile(filePath: String): String{
         try{
             val bytes = Files.readAllBytes(Paths.get(filePath))

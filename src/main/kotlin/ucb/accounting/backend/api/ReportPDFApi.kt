@@ -121,5 +121,17 @@ class ReportPDFApi @Autowired constructor(
         return ResponseEntity(ResponseDto(code, responseInfo.message!!,reportPage.content, reportPage.totalElements), responseInfo.httpStatus)
     }
 
+    @GetMapping("/generated-reports/companies/{companyId}/pdf/{reportId}")
+    fun generatedReportById(
+        @PathVariable("companyId") companyId: Long,
+        @PathVariable("reportId") reportId: Long,
+    ): ResponseEntity<ResponseDto<AttachmentDownloadDto>>{
+        val report = reportBl.getGeneratedReportById(companyId, reportId)
+        val downloadReport = fileBl.downloadFile(report.attachmentId, companyId)
+        val code = "200-47"
+        val responseInfo = ResponseCodeUtil.getResponseInfo(code)
+        return ResponseEntity(ResponseDto(code, responseInfo.message!!, downloadReport), responseInfo.httpStatus)
+    }
+
 
 }

@@ -16,4 +16,6 @@ interface ReportRepository:JpaRepository<Report, Long> {
         pageable: Pageable
     ): Page<Report>
 
+    fun findByReportIdAndCompanyIdAndStatusIsTrue(reportId: Long, companyId: Int): Report
+
 }
