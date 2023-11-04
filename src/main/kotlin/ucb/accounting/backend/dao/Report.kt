@@ -63,6 +63,6 @@ class Report {
     var currencyType: CurrencyType? = null
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "attachment_id", referencedColumnName = "attachment_id", insertable = false, updatable = false)
+    @JoinColumn(name = "atattachment_id", referencedColumnName = "attachment_id", insertable = false, updatable = false)
     var attachment: Attachment? = null
 }
