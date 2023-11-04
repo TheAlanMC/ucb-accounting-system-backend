@@ -126,19 +126,19 @@ class ReportApi  @Autowired constructor(private val reportBl: ReportBl) {
         return ResponseEntity(ResponseDto(code, responseInfo.message!!, incomeStatement), responseInfo.httpStatus)
     }
 
-//    @GetMapping("/balance-sheets/companies/{companyId}")
-//    fun getBalanceSheets(
-//        @PathVariable("companyId") companyId: Long,
-//        @RequestParam(required = true) dateFrom: String,
-//        @RequestParam(required = true) dateTo: String,
-//    ): ResponseEntity<ResponseDto<ReportDto<FinancialStatementReportDto>>> {
-//        logger.info("Starting the API call to get balance sheet report")
-//        logger.info("GET /api/v1/reports/balance-sheets/companies/$companyId")
-//        val balanceSheet: ReportDto<FinancialStatementReportDto> = reportBl.getBalanceSheet(companyId, dateFrom, dateTo)
-//        logger.info("Sending response")
-//        val code = "200-27"
-//        val responseInfo = ResponseCodeUtil.getResponseInfo(code)
-//        logger.info("Code: $code - ${responseInfo.message}")
-//        return ResponseEntity(ResponseDto(code, responseInfo.message!!, balanceSheet), responseInfo.httpStatus)
-//    }
+    @GetMapping("/balance-sheets/companies/{companyId}")
+    fun getBalanceSheets(
+        @PathVariable("companyId") companyId: Long,
+        @RequestParam(required = true) dateFrom: String,
+        @RequestParam(required = true) dateTo: String,
+    ): ResponseEntity<ResponseDto<ReportDto<FinancialStatementReportDto>>> {
+        logger.info("Starting the API call to get balance sheet report")
+        logger.info("GET /api/v1/reports/balance-sheets/companies/$companyId")
+        val balanceSheet: ReportDto<FinancialStatementReportDto> = reportBl.getBalanceSheet(companyId, dateFrom, dateTo)
+        logger.info("Sending response")
+        val code = "200-27"
+        val responseInfo = ResponseCodeUtil.getResponseInfo(code)
+        logger.info("Code: $code - ${responseInfo.message}")
+        return ResponseEntity(ResponseDto(code, responseInfo.message!!, balanceSheet), responseInfo.httpStatus)
+    }
 }
