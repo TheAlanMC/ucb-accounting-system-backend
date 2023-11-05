@@ -54,8 +54,8 @@ interface ExpenseTransactionRepository: PagingAndSortingRepository<ExpenseTransa
 
     @Query(value = """
         SELECT
-    year,
-    month,
+    CAST (year AS INTEGER) AS year,
+    CAST (month AS INTEGER) AS month,
     SUM(expenses) AS expenses,
     SUM(sales) AS sales
     FROM (
@@ -86,6 +86,6 @@ interface ExpenseTransactionRepository: PagingAndSortingRepository<ExpenseTransa
     """, nativeQuery = true)
     fun countExpensesAndSalesByMonth(@Param ("companyId") companyId: Int,
                                      @Param ("dateFrom") dateFrom: Date?,
-                                     @Param ("dateTo") dateTo: Date?): List<Map<String, Any>>
+                                     @Param ("dateTo") dateTo: Date?): List<Map<Any, Any>>
 
 }

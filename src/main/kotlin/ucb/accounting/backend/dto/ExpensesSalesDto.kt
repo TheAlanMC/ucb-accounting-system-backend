@@ -5,6 +5,6 @@ import java.math.BigDecimal
 data class ExpensesSalesDto (
     val year: Int,
     val month: Int,
-    val expenses: Int,
-    val sales: Int
+    val expenses: BigDecimal,
+    val sales: BigDecimal
 )

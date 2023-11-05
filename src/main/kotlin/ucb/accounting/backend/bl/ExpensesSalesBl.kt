@@ -37,12 +37,12 @@ class ExpensesSalesBl @Autowired constructor(
             throw UasException("400-15")
         }
         val expensesSalesList = expenseTransactionRepository.countExpensesAndSalesByMonth(companyId.toInt(), newDateFrom, newDateTo)
-        val expensesSales: List<ExpensesSalesDto> = expensesSalesList.map {
+        val expensesSales: List<ExpensesSalesDto> = expensesSalesList.map { resultMap ->
             ExpensesSalesDto(
-                it["year"].toString().toInt(),
-                it["month"].toString().toInt(),
-                it["totalExpenses"].toString().toInt(),
-                it["totalSales"].toString().toInt()
+                (resultMap["year"] as? Int) ?: 0,  // Manejar valor nulo de manera segura
+                (resultMap["month"] as? Int) ?: 0,  // Manejar valor nulo de manera segura
+                (resultMap["expenses"] as? BigDecimal) ?: BigDecimal.ZERO,  // Manejar valor nulo de manera segura
+                (resultMap["sales"] as? BigDecimal) ?: BigDecimal.ZERO  // Manejar valor nulo de manera segura
             )
         }
         return ExpenseSaleDashboardDto(expensesSales)

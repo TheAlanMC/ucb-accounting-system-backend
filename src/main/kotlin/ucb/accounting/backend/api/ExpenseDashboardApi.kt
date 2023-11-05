@@ -14,7 +14,7 @@ import ucb.accounting.backend.dto.ResponseDto
 import ucb.accounting.backend.util.ResponseCodeUtil
 
 @RestController
-@RequestMapping("/api/v1/expense-dashboard")
+@RequestMapping("/api/v1/expense-dashboards")
 class ExpenseDashboardApi @Autowired constructor(
     private val expenseDashboardBl: ExpenseDashboardBl
 ){
@@ -23,7 +23,7 @@ class ExpenseDashboardApi @Autowired constructor(
         private val logger = LoggerFactory.getLogger(ExpenseDashboardApi::class.java.name)
     }
 
-    @GetMapping("/supplier/{companyId}")
+    @GetMapping("/companies/{companyId}/suppliers")
     fun getExpenseDashboardDataBySupplier(@PathVariable companyId: Long,
                                           @RequestParam (required = true) dateFrom: String,
                                           @RequestParam (required = true) dateTo: String): ResponseEntity<ResponseDto<ExpenseDashboardDto>> {
@@ -37,7 +37,7 @@ class ExpenseDashboardApi @Autowired constructor(
         return ResponseEntity(ResponseDto(code, responseInfo.message!!, expenseDashboardData), responseInfo.httpStatus)
     }
 
-    @GetMapping("/subaccount/{companyId}")
+    @GetMapping("/companies/{companyId}/subaccounts")
     fun getExpenseDashboardDataBySubaccount(@PathVariable companyId: Long,
                                             @RequestParam (required = true) dateFrom: String,
                                             @RequestParam (required = true) dateTo: String): ResponseEntity<ResponseDto<ExpenseDashboardDto>> {

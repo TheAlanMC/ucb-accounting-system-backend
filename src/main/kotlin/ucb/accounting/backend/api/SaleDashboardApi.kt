@@ -11,7 +11,7 @@ import ucb.accounting.backend.dto.SaleDashboardDto
 import ucb.accounting.backend.util.ResponseCodeUtil
 
 @RestController
-@RequestMapping("/api/v1/sale-dashboard")
+@RequestMapping("/api/v1/sale-dashboards")
 class SaleDashboardApi @Autowired constructor(
     private val saleDashboardBl: SaleDashboardBl
 ){
@@ -20,7 +20,7 @@ class SaleDashboardApi @Autowired constructor(
         private val logger = LoggerFactory.getLogger(SaleDashboardApi::class.java.name)
     }
 
-    @GetMapping("/client/{companyId}")
+    @GetMapping("/companies/{companyId}/clients")
     fun getSaleDashboardDataByClient(@PathVariable companyId: Long,
                                      @RequestParam(required = true) dateFrom: String,
                                      @RequestParam(required = true) dateTo: String): ResponseEntity<ResponseDto<SaleDashboardDto>> {
@@ -34,7 +34,7 @@ class SaleDashboardApi @Autowired constructor(
         return ResponseEntity(ResponseDto(code, responseInfo.message!!, saleDashboardData), responseInfo.httpStatus)
     }
 
-    @GetMapping("/subaccount/{companyId}")
+    @GetMapping("/companies/{companyId}/subaccounts")
     fun getSaleDashboardDataBySubaccount(@PathVariable companyId: Long,
                                          @RequestParam (required = true) dateFrom: String,
                                          @RequestParam (required = true) dateTo: String): ResponseEntity<ResponseDto<SaleDashboardDto>> {
