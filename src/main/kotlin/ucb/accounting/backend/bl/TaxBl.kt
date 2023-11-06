@@ -12,6 +12,7 @@ import ucb.accounting.backend.exception.UasException
 import ucb.accounting.backend.mapper.SubaccountTaxTypePartialMapper
 import ucb.accounting.backend.mapper.TaxTypeMapper
 import ucb.accounting.backend.util.KeycloakSecurityContextHolder
+import java.math.BigDecimal
 
 @Service
 class TaxBl @Autowired constructor(
@@ -82,6 +83,7 @@ class TaxBl @Autowired constructor(
         logger.info("User $kcUuid is getting all subaccount associated with tax type from company $companyId")
 
         val subaccountTaxTypes = subaccountTaxTypeRepository.findAllByCompanyIdAndStatusIsTrueOrderByTaxTypeIdAsc(companyId.toInt())
+        // Remove some of the tax types
         logger.info("Found ${subaccountTaxTypes.size} subaccount associated with tax type")
 
         logger.info("Finishing the BL call to get all subaccount associated with tax type")
@@ -105,7 +107,7 @@ class TaxBl @Autowired constructor(
         val subaccountEntity = subaccountRepository.findBySubaccountIdAndStatusIsTrue(subaccountTaxTypeDto.subaccountId) ?: throw UasException("404-10")
 
         // Validation that tax type exists
-        val taxTypeEntity = taxTypeRepository.findByTaxTypeIdAndStatusIsTrue(subaccountTaxTypeDto.taxTypeId) ?: throw UasException("404-16")
+        taxTypeRepository.findByTaxTypeIdAndStatusIsTrue(subaccountTaxTypeDto.taxTypeId) ?: throw UasException("404-16")
 
         // Validation that subaccount is associated with tax type
         val subaccountTaxTypeEntity = subaccountTaxTypeRepository.findBySubaccount_SubaccountIdAndTaxType_TaxTypeIdAndStatusIsTrue(subaccountTaxTypeDto.subaccountId, subaccountTaxTypeDto.taxTypeId) ?: throw UasException("404-20")
@@ -113,12 +115,19 @@ class TaxBl @Autowired constructor(
         // Validation that subaccount belongs to company
         if (subaccountEntity.companyId != companyId.toInt()) throw UasException("403-48")
 
-        logger.info("User $kcUuid is updating subaccount associated with tax type")
+        // Validation that taxRate is less than 100
+        if (subaccountTaxTypeDto.taxRate > BigDecimal(100)) throw UasException("400-30")
 
-        subaccountTaxTypeEntity.taxRate = subaccountTaxTypeDto.taxRate
+        logger.info("User $kcUuid is updating subaccount associated with tax type")
+        if (!(subaccountTaxTypeEntity.taxType!!.taxTypeName == "Impuesto a las Transacciones" || subaccountTaxTypeEntity.taxType!!.taxTypeName == "Impuesto I.T. por Pagar")){
+            subaccountTaxTypeEntity.taxRate = subaccountTaxTypeDto.taxRate
+            subaccountTaxTypeRepository.save(subaccountTaxTypeEntity)
+        } else {
+            logger.error("User $kcUuid is trying to update a tax type that is not allowed")
+            throw UasException("400-30")
+        }
 
         logger.info("Saving subaccount associated with tax type")
-        subaccountTaxTypeRepository.save(subaccountTaxTypeEntity)
         logger.info("Subaccount associated with tax type saved")
     }
 
