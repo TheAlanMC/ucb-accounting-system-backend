@@ -2,6 +2,7 @@ package ucb.accounting.backend.api
 
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.data.domain.Page
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
@@ -12,6 +13,7 @@ import ucb.accounting.backend.bl.AccountBl
 import ucb.accounting.backend.bl.FilesBl
 import ucb.accounting.backend.bl.ReportBl
 import ucb.accounting.backend.dto.AttachmentDownloadDto
+import ucb.accounting.backend.dto.GeneratedReportDto
 import ucb.accounting.backend.dto.ResponseDto
 import ucb.accounting.backend.util.ResponseCodeUtil
 import java.sql.Date
@@ -78,7 +80,7 @@ class ReportPDFApi @Autowired constructor(
         val report: ByteArray = reportBl.generateTrialBalancesReportByDates(companyId, dateFrom, dateTo)
         val uploadedReport = fileBl.uploadFile(report, companyId)
         val downloadReport = fileBl.downloadFile(uploadedReport.attachmentId, companyId)
-        reportBl.saveReport(companyId, 3, 1, uploadedReport.attachmentId, dateFrom, dateTo, "Worksheets Report", false)
+        reportBl.saveReport(companyId, 3, 1, uploadedReport.attachmentId, dateFrom, dateTo, "Trial Balance Report", false)
         val code = "200-24"
         val responseInfo = ResponseCodeUtil.getResponseInfo(code)
         return ResponseEntity(ResponseDto(code, responseInfo.message!!, downloadReport), responseInfo.httpStatus)
@@ -101,5 +103,33 @@ class ReportPDFApi @Autowired constructor(
         return ResponseEntity(ResponseDto(code, responseInfo.message!!, downloadReport), responseInfo.httpStatus)
     }
 
+    @GetMapping("/generated-reports/companies/{companyId}/pdf")
+    fun generatedReports(
+        @PathVariable("companyId") companyId: Long,
+        @RequestParam("dateFrom") dateFrom: String,
+        @RequestParam("dateTo") dateTo: String,
+        @RequestParam(defaultValue = "reportId") sortBy: String,
+        @RequestParam(defaultValue = "asc") sortType: String,
+        @RequestParam(defaultValue = "0") page: Int,
+        @RequestParam(defaultValue = "10") size: Int
+    ): ResponseEntity<ResponseDto<List<GeneratedReportDto>>> {
+        logger.info("Getting generated reports")
+        logger.info("GET api/v1/report/generated-reports/companies/${companyId}")
+        val reportPage: Page<GeneratedReportDto> = reportBl.getGeneratedReports(companyId, dateFrom, dateTo, sortBy, sortType, page, size)
+        val code = "200-48"
+        val responseInfo = ResponseCodeUtil.getResponseInfo(code)
+        return ResponseEntity(ResponseDto(code, responseInfo.message!!,reportPage.content, reportPage.totalElements), responseInfo.httpStatus)
+    }
 
+    @GetMapping("/generated-reports/companies/{companyId}/pdf/{reportId}")
+    fun generatedReportById(
+        @PathVariable("companyId") companyId: Long,
+        @PathVariable("reportId") reportId: Long,
+    ): ResponseEntity<ResponseDto<AttachmentDownloadDto>>{
+        val report = reportBl.getGeneratedReportById(companyId, reportId)
+        val downloadReport = fileBl.downloadFile(report.attachmentId, companyId)
+        val code = "200-48"
+        val responseInfo = ResponseCodeUtil.getResponseInfo(code)
+        return ResponseEntity(ResponseDto(code, responseInfo.message!!, downloadReport), responseInfo.httpStatus)
+    }
 }

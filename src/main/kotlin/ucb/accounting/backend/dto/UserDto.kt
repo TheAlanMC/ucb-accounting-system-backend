@@ -7,4 +7,6 @@ data class UserDto (
     val email: String?,
     val s3ProfilePictureId: Long?,
     val profilePicture: String?
-)
+){
+    constructor(firstName: String, lastName: String, email: String) : this(null, firstName, lastName, email, null, null)
+}

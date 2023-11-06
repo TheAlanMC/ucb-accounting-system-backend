@@ -5,4 +5,5 @@ import ucb.accounting.backend.dao.ReportType
 
 interface ReportTypeRepository: JpaRepository<ReportType, Long> {
     fun findAllByStatusIsTrue(): List<ReportType>
+    fun findByReportTypeIdAndStatusIsTrue(reportTypeId: Long): ReportType?
 }

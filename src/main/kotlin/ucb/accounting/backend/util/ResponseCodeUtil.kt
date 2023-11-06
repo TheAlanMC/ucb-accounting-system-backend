@@ -53,6 +53,7 @@ class ResponseCodeUtil (var httpStatus: HttpStatus, message: String, messageTran
                 "200-45" -> ResponseCodeUtil(HttpStatus.OK, "Tax associated with sub accounts has been successfully updated.")
                 "200-46" -> ResponseCodeUtil(HttpStatus.OK, "Sale tax types retrieved successfully.")
                 "200-47" -> ResponseCodeUtil(HttpStatus.OK, "Expense tax types retrieved successfully.")
+                "200-48" -> ResponseCodeUtil(HttpStatus.OK, "Generated reports retrieved successfully.")
                 "201-01" -> ResponseCodeUtil(HttpStatus.CREATED, "The new accountant user has been successfully created.")
                 "201-02" -> ResponseCodeUtil(HttpStatus.CREATED, "The new accounting assistant user has been successfully created.")
                 "201-03" -> ResponseCodeUtil(HttpStatus.CREATED, "The new client user has been successfully created.")

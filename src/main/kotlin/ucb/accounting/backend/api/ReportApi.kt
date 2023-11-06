@@ -141,4 +141,5 @@ class ReportApi  @Autowired constructor(private val reportBl: ReportBl) {
         logger.info("Code: $code - ${responseInfo.message}")
         return ResponseEntity(ResponseDto(code, responseInfo.message!!, balanceSheet), responseInfo.httpStatus)
     }
+
 }

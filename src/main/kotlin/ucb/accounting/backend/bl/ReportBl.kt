@@ -26,6 +26,7 @@ import java.math.BigDecimal
 import java.nio.charset.StandardCharsets
 import java.nio.file.Files
 import java.nio.file.Paths
+import java.sql.Timestamp
 import java.text.DecimalFormat
 import java.text.DecimalFormatSymbols
 import java.text.SimpleDateFormat
@@ -49,6 +50,7 @@ class ReportBl @Autowired constructor(
     private val trialBalanceRepository: TrialBalanceRepository,
     private val worksheetRepository: WorksheetRepository,
     private val financialStatementRepository: FinancialStatementRepository,
+    private val kcUserRepository: KcUserRepository
     ) {
     companion object {
         private val logger = LoggerFactory.getLogger(DocumentTypeBl::class.java.name)
@@ -604,7 +606,7 @@ class ReportBl @Autowired constructor(
             20,
             20,
             20,
-            20
+            30
         ),
         "Letter",
         PageSize(
@@ -1081,6 +1083,78 @@ class ReportBl @Autowired constructor(
         report.isFinancialStatement = isFinancialStatement
         reportRepository.save(report)
         logger.info("Report saved")
+    }
+
+    fun getGeneratedReports(
+        companyId: Long,
+        dateFrom: String,
+        dateTo: String,
+        sortBy: String,
+        sortType: String,
+        page: Int,
+        size: Int
+    ): Page<GeneratedReportDto>{
+        logger.info("Starting the BL call to get generated reports")
+        // Validate that the company exists
+        companyRepository.findByCompanyIdAndStatusIsTrue(companyId) ?: throw UasException("404-05")
+
+        val kcUuid = KeycloakSecurityContextHolder.getSubject()!!
+        val kcUserCompany = kcUserCompanyRepository.findAllByKcUser_KcUuidAndCompany_CompanyIdAndStatusIsTrue(kcUuid, companyId)
+            ?: throw UasException("403-23")
+        logger.info("User $kcUuid is trying to get generated reports from company $companyId")
+
+        val format = SimpleDateFormat("yyyy-MM-dd")
+        val perioddateFrom = Timestamp(format.parse(dateFrom).time)
+        val perioddateTo = Timestamp(format.parse(dateTo).time)
+
+        val pageable: Pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.fromString(sortType), sortBy))
+        val reportsEntities: Page<Report> = reportRepository.findAllByCompanyIdAndStatusIsTrueAndTxDateBetween(companyId.toInt(), perioddateFrom, perioddateTo, pageable)
+
+        val generatedReports: List<GeneratedReportDto> = reportsEntities.content.map { report ->
+            val reportType = reportTypeRepository.findByReportTypeIdAndStatusIsTrue(report.reportTypeId.toLong())!!
+            val user = kcUserRepository.findByKcUuidAndStatusIsTrue(kcUuid)!!
+            val generatedReport = GeneratedReportDto(
+                reportId = report.reportId,
+                dateTime = report.txDate,
+                reportDescription = report.description,
+                reportType = ReportTypeDto(
+                    reportTypeId = reportType.reportTypeId,
+                    reportName = reportType.reportName,
+                ),
+               user = UserDto(
+                   firstName = user.firstName,
+                   lastName = user.lastName,
+                   email = user.email,
+               ),
+                isFinancialStatement = report.isFinancialStatement
+            )
+            generatedReport
+        }
+
+        return PageImpl(generatedReports, pageable, reportsEntities.totalElements)
+
+    }
+
+    fun getGeneratedReportById(
+        companyId: Long,
+        reportId: Long
+    ):AttachmentDto{
+        logger.info("Starting the BL call to get generated reports")
+        // Validate that the company exists
+        companyRepository.findByCompanyIdAndStatusIsTrue(companyId) ?: throw UasException("404-05")
+
+        val kcUuid = KeycloakSecurityContextHolder.getSubject()!!
+        val kcUserCompany = kcUserCompanyRepository.findAllByKcUser_KcUuidAndCompany_CompanyIdAndStatusIsTrue(kcUuid, companyId)
+            ?: throw UasException("403-23")
+        logger.info("User $kcUuid is trying to get generated reports from company $companyId")
+
+        val report = reportRepository.findByReportIdAndCompanyIdAndStatusIsTrue(reportId, companyId.toInt()) ?: throw UasException("404-11")
+
+        return AttachmentDto(
+            attachmentId = report.attachment!!.attachmentId,
+            contentType = report.attachment!!.contentType,
+            filename = report.attachment!!.filename
+        )
     }
 
     fun readTextFile(filePath: String): String{
