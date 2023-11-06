@@ -177,60 +177,31 @@ class   JournalEntryBl @Autowired constructor(
         val journalEntriesPage = transactionEntryRepository.findAll(companyId, searchKeyword, pageable)
 
         val transactionsList: List<TransactionDto> = journalEntriesPage.content.map {
-            if(it.transactionTypeId != 3) {
-                val transaction = TransactionDto(
-                    it.journalEntryId.toInt(),
-                    it.transactionNumber,
-                    ClientPartialDto(
-                        it.clientId,
-                        it.displayName,
-                        it.companyName,
-                        it.companyPhoneNumber,
-                        Date(it.clientCreationDate.time)
-                    ),
-                    it.transactionAccepted,
-                    DocumentTypeDto(
-                        it.documentTypeId.toLong(),
-                        it.documentTypeName
-                    ),
-                    TransactionTypeDto(
-                        it.transactionTypeId,
-                        it.transactionTypeName
-                    ),
-                    it.totalAmountBs,
-                    Date(it.creationDate.time),
-                    it.transactionDate,
-                    it.description
-                )
-                transaction
-            } else {
-                val journalEntry = journalEntryRepository.findByJournalEntryIdAndStatusIsTrue(it.journalEntryId.toLong())
-                val transaction = TransactionDto(
-                    it.journalEntryId.toInt(),
-                    it.transactionNumber,
-                    ClientPartialDto(
-                        it.clientId,
-                        it.displayName,
-                        it.companyName,
-                        it.companyPhoneNumber,
-                        Date(it.clientCreationDate.time)
-                    ),
-                    it.transactionAccepted,
-                    DocumentTypeDto(
-                        it.documentTypeId.toLong(),
-                        it.documentTypeName
-                    ),
-                    TransactionTypeDto(
-                        it.transactionTypeId,
-                        it.transactionTypeName
-                    ),
-                    journalEntry!!.transaction!!.transactionDetails?.sumOf { td -> td.debitAmountBs } ?: BigDecimal.ZERO,
-                    Date(journalEntry.transaction!!.txDate.time),
-                    journalEntry.transaction!!.transactionDate,
-                    journalEntry.transaction!!.description
-                )
-                transaction
-            }
+            val transaction = TransactionDto(
+                it.journalEntryId.toInt(),
+                it.transactionNumber,
+                ClientPartialDto(
+                    it.clientId,
+                    it.displayName,
+                    it.companyName,
+                    it.companyPhoneNumber,
+                    Date(it.clientCreationDate.time)
+                ),
+                it.transactionAccepted,
+                DocumentTypeDto(
+                    it.documentTypeId.toLong(),
+                    it.documentTypeName
+                ),
+                TransactionTypeDto(
+                    it.transactionTypeId,
+                    it.transactionTypeName
+                ),
+                it.totalAmountBs,
+                Date(it.creationDate.time),
+                it.transactionDate,
+                it.description
+            )
+            transaction
         }
         logger.info("List of transactions retrieved successfully")
         return PageImpl(transactionsList, pageable, journalEntriesPage.totalElements)
@@ -265,10 +236,12 @@ class   JournalEntryBl @Autowired constructor(
         // Get journal entry
         val journalEntryPartialDto = JournalEntryPartialDto(
             journalEntryId = journalEntryEntity.journalEntryId.toInt(),
-            transactionNumber = saleTransaction?.saleTransactionNumber ?: expenseTransaction?.expenseTransactionNumber,
+            transactionNumber = if (saleTransaction?.saleTransactionNumber != null || expenseTransaction?.expenseTransactionNumber != null)
+                saleTransaction?.saleTransactionNumber ?: expenseTransaction?.expenseTransactionNumber
+            else journalEntryEntity.journalEntryNumber,
             client = ClientPartialDto(
                 saleTransaction?.customer?.customerId ?: expenseTransaction?.supplier?.supplierId,
-                saleTransaction?.customer?.displayName ?: expenseTransaction?.supplier?.displayName,
+                saleTransaction?.customer?.displayName ?: expenseTransaction?.supplier?.displayName ?: "N/A",
                 saleTransaction?.customer?.companyName ?: expenseTransaction?.supplier?.companyName,
                 saleTransaction?.customer?.companyPhoneNumber ?: expenseTransaction?.supplier?.companyPhoneNumber,
                 Date(saleTransaction?.customer?.txDate?.time ?: expenseTransaction?.supplier?.txDate?.time ?: 0)
@@ -278,7 +251,7 @@ class   JournalEntryBl @Autowired constructor(
             transactionType = if (saleTransaction?.transactionType == null && expenseTransaction?.transactionType ==null)
                     TransactionTypeDto(
                         3,
-                        "Comprobante de Diario"
+                        "Libro Diario"
                     ) else
                     (TransactionTypeMapper.entityToDto(
                 saleTransaction?.transactionType ?: expenseTransaction?.transactionType!!

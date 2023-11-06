@@ -55,31 +55,27 @@ interface TransactionEntryRepository: PagingAndSortingRepository<TransactionEntr
                     ELSE CONCAT('Comprobante Contable')
                     END
                     AS transaction_type_name,
-                CASE
-                    WHEN (CONCAT(SUM((etd.quantity * etd.unit_price_bs) + etd.amount_bs), SUM((std.quantity * std.unit_price_bs) + std.amount_bs)) != '') THEN CONCAT(SUM((etd.quantity * etd.unit_price_bs) + etd.amount_bs), SUM((std.quantity * std.unit_price_bs) + std.amount_bs))
-                    ELSE CONCAT(0)
-                    END
-                    AS total_amount_bs,
+                CONCAT (SUM(td.debit_amount_bs)) AS total_amount_bs,
                 CASE
                     WHEN (CONCAT(et.tx_date, st.tx_date) != '') THEN CONCAT(et.tx_date, st.tx_date)
-                    ELSE CONCAT(je.tx_date)
+                    ELSE CONCAT(t.tx_date)
                     END
                     AS creation_date,
                 CASE
                     WHEN (CONCAT(et.expense_transaction_date, st.sale_transaction_date) != '') THEN CONCAT(et.expense_transaction_date, st.sale_transaction_date)
-                    ELSE CONCAT(je.tx_date)
+                    ELSE CONCAT(t.transaction_date)
                     END
                     AS transaction_date,
                 CASE
                     WHEN (CONCAT(et.description, st.description) != '') THEN CONCAT(et.description, st.description)
-                    ELSE CONCAT('N/A')
+                    ELSE CONCAT(t.description)
                     END
                     AS description
         FROM journal_entry je
+        LEFT JOIN  transaction t ON t.journal_entry_id = je.journal_entry_id
+        LEFT JOIN  transaction_detail td ON td.transaction_id = t.transaction_id
         LEFT JOIN  expense_transaction et ON et.journal_entry_id = je.journal_entry_id
-        LEFT JOIN  expense_transaction_detail etd ON etd.expense_transaction_id = et.expense_transaction_id
         LEFT JOIN  sale_transaction st ON st.journal_entry_id = je.journal_entry_id
-        LEFT JOIN  sale_transaction_detail std ON std.sale_transaction_id = st.sale_transaction_id
         LEFT JOIN  customer c ON c.customer_id = st.customer_id
         LEFT JOIN  supplier s ON s.supplier_id = et.supplier_id
         LEFT JOIN  document_type dt ON dt.document_type_id = je.document_type_id
@@ -104,7 +100,7 @@ interface TransactionEntryRepository: PagingAndSortingRepository<TransactionEntr
                  ELSE LOWER(CONCAT(je.journal_entry_number))
                  END
              LIKE LOWER(CONCAT('%', :keyword, '%')))
-        GROUP BY je.journal_entry_id, et.expense_transaction_number, st.sale_transaction_number, c.customer_id, s.supplier_id, c.display_name, s.display_name, c.company_name, s.company_name, c.company_phone_number, s.company_phone_number, c.tx_date, s.tx_date, je.journal_entry_accepted, dt.document_type_id, dt.document_type_name, tt1.transaction_type_id, tt1.transaction_type_name, tt2.transaction_type_id, tt2.transaction_type_name, et.tx_date, st.tx_date, et.expense_transaction_date, st.sale_transaction_date, et.description, st.description
+        GROUP BY je.journal_entry_id, et.expense_transaction_number, st.sale_transaction_number, c.customer_id, s.supplier_id, c.display_name, s.display_name, c.company_name, s.company_name, c.company_phone_number, s.company_phone_number, c.tx_date, s.tx_date, je.journal_entry_accepted, dt.document_type_id, dt.document_type_name, tt1.transaction_type_id, tt1.transaction_type_name, tt2.transaction_type_id, tt2.transaction_type_name, et.tx_date, st.tx_date, t.tx_date, et.expense_transaction_date, st.sale_transaction_date, t.transaction_date, et.description, st.description, t.description
         """
         , nativeQuery = true
     )
