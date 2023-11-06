@@ -28,7 +28,7 @@ class SaleDashboardApi @Autowired constructor(
         logger.info("GET /sale-dashboard")
         val saleDashboardData: SaleDashboardDto = saleDashboardBl.getSaleByClient(companyId, dateFrom, dateTo)
         logger.info("Sending response")
-        val code = "200-20"
+        val code = "200-49"
         val responseInfo = ResponseCodeUtil.getResponseInfo(code)
         logger.info("Code: $code - ${responseInfo.message}")
         return ResponseEntity(ResponseDto(code, responseInfo.message!!, saleDashboardData), responseInfo.httpStatus)
@@ -42,7 +42,7 @@ class SaleDashboardApi @Autowired constructor(
         logger.info("GET /sale-dashboard")
         val saleDashboardData: SaleDashboardDto = saleDashboardBl.getSaleBySubaccount(companyId, dateFrom, dateTo)
         logger.info("Sending response")
-        val code = "200-20"
+        val code = "200-49"
         val responseInfo = ResponseCodeUtil.getResponseInfo(code)
         logger.info("Code: $code - ${responseInfo.message}")
         return ResponseEntity(ResponseDto(code, responseInfo.message!!, saleDashboardData), responseInfo.httpStatus)

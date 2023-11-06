@@ -27,10 +27,10 @@ class ExpenseDashboardBl @Autowired constructor(
 
     fun getExpenseBySupplier(companyId: Long, dateFrom: String, dateTo: String): ExpenseDashboardDto {
         // Validation of user belongs to company
-//        val kcUuid = KeycloakSecurityContextHolder.getSubject()!!
-//        kcUserCompanyRepository.findAllByKcUser_KcUuidAndCompany_CompanyIdAndStatusIsTrue(kcUuid, companyId)
-//            ?: throw UasException("403-22")
-//        logger.info("User $kcUuid is trying to get journal book report from company $companyId")
+        val kcUuid = KeycloakSecurityContextHolder.getSubject()!!
+        kcUserCompanyRepository.findAllByKcUser_KcUuidAndCompany_CompanyIdAndStatusIsTrue(kcUuid, companyId)
+            ?: throw UasException("403-50")
+        logger.info("User $kcUuid is trying to get journal book report from company $companyId")
 
         // Convert dateFrom and dateTo to Date
         val format: java.text.DateFormat = SimpleDateFormat("yyyy-MM-dd")
@@ -49,11 +49,11 @@ class ExpenseDashboardBl @Autowired constructor(
     }
 
     fun getExpenseBySubaccount(companyId: Long, dateFrom: String, dateTo: String): ExpenseDashboardDto {
-//        // Validation of user belongs to company
-//        val kcUuid = KeycloakSecurityContextHolder.getSubject()!!
-//        kcUserCompanyRepository.findAllByKcUser_KcUuidAndCompany_CompanyIdAndStatusIsTrue(kcUuid, companyId)
-//            ?: throw UasException("403-22")
-//        logger.info("User $kcUuid is trying to get journal book report from company $companyId")
+        // Validation of user belongs to company
+        val kcUuid = KeycloakSecurityContextHolder.getSubject()!!
+        kcUserCompanyRepository.findAllByKcUser_KcUuidAndCompany_CompanyIdAndStatusIsTrue(kcUuid, companyId)
+            ?: throw UasException("403-50")
+        logger.info("User $kcUuid is trying to get journal book report from company $companyId")
 
         // Convert dateFrom and dateTo to Date
         val format: java.text.DateFormat = SimpleDateFormat("yyyy-MM-dd")

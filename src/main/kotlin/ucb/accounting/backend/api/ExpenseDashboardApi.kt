@@ -31,7 +31,7 @@ class ExpenseDashboardApi @Autowired constructor(
         logger.info("GET /expense-dashboard")
         val expenseDashboardData: ExpenseDashboardDto = expenseDashboardBl.getExpenseBySupplier(companyId, dateFrom, dateTo)
         logger.info("Sending response")
-        val code = "200-20"
+        val code = "200-50"
         val responseInfo = ResponseCodeUtil.getResponseInfo(code)
         logger.info("Code: $code - ${responseInfo.message}")
         return ResponseEntity(ResponseDto(code, responseInfo.message!!, expenseDashboardData), responseInfo.httpStatus)
@@ -45,7 +45,7 @@ class ExpenseDashboardApi @Autowired constructor(
         logger.info("GET /expense-dashboard")
         val expenseDashboardData: ExpenseDashboardDto = expenseDashboardBl.getExpenseBySubaccount(companyId, dateFrom, dateTo)
         logger.info("Sending response")
-        val code = "200-20"
+        val code = "200-50"
         val responseInfo = ResponseCodeUtil.getResponseInfo(code)
         logger.info("Code: $code - ${responseInfo.message}")
         return ResponseEntity(ResponseDto(code, responseInfo.message!!, expenseDashboardData), responseInfo.httpStatus)

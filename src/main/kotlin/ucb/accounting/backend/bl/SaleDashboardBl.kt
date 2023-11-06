@@ -3,17 +3,20 @@ package ucb.accounting.backend.bl
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
+import ucb.accounting.backend.dao.repository.KcUserCompanyRepository
 import ucb.accounting.backend.dao.repository.SaleTransactionRepository
 import ucb.accounting.backend.dto.SaleDashboardDto
 import ucb.accounting.backend.dto.SalesDto
 import ucb.accounting.backend.exception.UasException
+import ucb.accounting.backend.util.KeycloakSecurityContextHolder
 import java.math.BigDecimal
 import java.text.SimpleDateFormat
 import java.util.*
 
 @Service
 class SaleDashboardBl @Autowired constructor(
-    private val saleTransactionRepository: SaleTransactionRepository
+    private val saleTransactionRepository: SaleTransactionRepository,
+    private val kcUserCompanyRepository: KcUserCompanyRepository,
 ){
 
     companion object {
@@ -21,11 +24,11 @@ class SaleDashboardBl @Autowired constructor(
     }
 
     fun getSaleByClient(companyId: Long, dateFrom: String, dateTo: String): SaleDashboardDto {
-        //        // Validation of user belongs to company
-//        val kcUuid = KeycloakSecurityContextHolder.getSubject()!!
-//        kcUserCompanyRepository.findAllByKcUser_KcUuidAndCompany_CompanyIdAndStatusIsTrue(kcUuid, companyId)
-//            ?: throw UasException("403-22")
-//        logger.info("User $kcUuid is trying to get journal book report from company $companyId")
+                // Validation of user belongs to company
+        val kcUuid = KeycloakSecurityContextHolder.getSubject()!!
+        kcUserCompanyRepository.findAllByKcUser_KcUuidAndCompany_CompanyIdAndStatusIsTrue(kcUuid, companyId)
+            ?: throw UasException("403-51")
+        logger.info("User $kcUuid is trying to get journal book report from company $companyId")
 
         // Convert dateFrom and dateTo to Date
         val format: java.text.DateFormat = SimpleDateFormat("yyyy-MM-dd")
@@ -44,11 +47,11 @@ class SaleDashboardBl @Autowired constructor(
     }
 
     fun getSaleBySubaccount(companyId: Long, dateFrom: String, dateTo: String): SaleDashboardDto {
-        //        // Validation of user belongs to company
-//        val kcUuid = KeycloakSecurityContextHolder.getSubject()!!
-//        kcUserCompanyRepository.findAllByKcUser_KcUuidAndCompany_CompanyIdAndStatusIsTrue(kcUuid, companyId)
-//            ?: throw UasException("403-22")
-//        logger.info("User $kcUuid is trying to get journal book report from company $companyId")
+                // Validation of user belongs to company
+        val kcUuid = KeycloakSecurityContextHolder.getSubject()!!
+        kcUserCompanyRepository.findAllByKcUser_KcUuidAndCompany_CompanyIdAndStatusIsTrue(kcUuid, companyId)
+            ?: throw UasException("403-51")
+        logger.info("User $kcUuid is trying to get journal book report from company $companyId")
 
         // Convert dateFrom and dateTo to Date
         val format: java.text.DateFormat = SimpleDateFormat("yyyy-MM-dd")

@@ -28,7 +28,7 @@ class ExpensesSalesApi @Autowired constructor(
         logger.info("GET /expenses-sales")
         val expensesSalesData: ExpenseSaleDashboardDto = expensesSalesBl.getExpensesSales(companyId, dateFrom, dateTo)
         logger.info("Sending response")
-        val code = "200-20"
+        val code = "200-51"
         val responseInfo = ResponseCodeUtil.getResponseInfo(code)
         logger.info("Code: $code - ${responseInfo.message}")
         return ResponseEntity(ResponseDto(code, responseInfo.message!!, expensesSalesData), responseInfo.httpStatus)

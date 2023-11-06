@@ -4,16 +4,19 @@ import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import ucb.accounting.backend.dao.repository.ExpenseTransactionRepository
+import ucb.accounting.backend.dao.repository.KcUserCompanyRepository
 import ucb.accounting.backend.dto.ExpenseSaleDashboardDto
 import ucb.accounting.backend.dto.ExpensesSalesDto
 import ucb.accounting.backend.exception.UasException
+import ucb.accounting.backend.util.KeycloakSecurityContextHolder
 import java.math.BigDecimal
 import java.text.SimpleDateFormat
 import java.util.*
 
 @Service
 class ExpensesSalesBl @Autowired constructor(
-    private val expenseTransactionRepository: ExpenseTransactionRepository
+    private val expenseTransactionRepository: ExpenseTransactionRepository,
+    private val kcUserCompanyRepository: KcUserCompanyRepository,
 ){
 
     companion object {
@@ -22,10 +25,10 @@ class ExpensesSalesBl @Autowired constructor(
 
     fun getExpensesSales(companyId: Long, dateFrom: String, dateTo: String): ExpenseSaleDashboardDto {
         // Validation of user belongs to company
-//        val kcUuid = KeycloakSecurityContextHolder.getSubject()!!
-//        kcUserCompanyRepository.findAllByKcUser_KcUuidAndCompany_CompanyIdAndStatusIsTrue(kcUuid, companyId)
-//            ?: throw UasException("403-22")
-//        logger.info("User $kcUuid is trying to get journal book report from company $companyId")
+        val kcUuid = KeycloakSecurityContextHolder.getSubject()!!
+        kcUserCompanyRepository.findAllByKcUser_KcUuidAndCompany_CompanyIdAndStatusIsTrue(kcUuid, companyId)
+            ?: throw UasException("403-52")
+        logger.info("User $kcUuid is trying to get journal book report from company $companyId")
 
         // Convert dateFrom and dateTo to Date
         val format: java.text.DateFormat = SimpleDateFormat("yyyy-MM-dd")
