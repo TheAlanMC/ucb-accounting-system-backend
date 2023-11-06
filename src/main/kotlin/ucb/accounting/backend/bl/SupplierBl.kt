@@ -46,7 +46,7 @@ class SupplierBl @Autowired constructor(
         // Validation of user belongs to company
         val kcUuid = KeycloakSecurityContextHolder.getSubject()!!
         kcUserCompanyRepository.findAllByKcUser_KcUuidAndCompany_CompanyIdAndStatusIsTrue(kcUuid, companyId) ?: throw UasException("403-30")
-        logger.info("User $kcUuid is uploading file to company $companyId")
+        logger.info("User $kcUuid is creating a new supplier")
 
         // Get account for "CUENTAS POR PAGAR PROVEEDORES M/N" account
         val accountEntity = accountRepository.findByAccountNameAndCompanyIdAndStatusIsTrue("CUENTAS POR PAGAR PROVEEDORES M/N", companyId.toInt()) ?: throw UasException("404-09")

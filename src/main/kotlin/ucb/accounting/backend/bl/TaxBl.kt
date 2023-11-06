@@ -44,7 +44,7 @@ class TaxBl @Autowired constructor(
         // Validation of user belongs to company
         val kcUuid = KeycloakSecurityContextHolder.getSubject()!!
         kcUserCompanyRepository.findAllByKcUser_KcUuidAndCompany_CompanyIdAndStatusIsTrue(kcUuid, companyId) ?: throw UasException("403-38")
-        logger.info("User $kcUuid is uploading file to company $companyId")
+        logger.info("User $kcUuid is creating a new subaccount associated with tax type from company $companyId")
 
         // Validation that subaccount exists
         val subaccountEntity = subaccountRepository.findBySubaccountIdAndStatusIsTrue(subaccountTaxTypeDto.subaccountId) ?: throw UasException("404-10")
@@ -79,9 +79,9 @@ class TaxBl @Autowired constructor(
         // Validation of user belongs to company
         val kcUuid = KeycloakSecurityContextHolder.getSubject()!!
         kcUserCompanyRepository.findAllByKcUser_KcUuidAndCompany_CompanyIdAndStatusIsTrue(kcUuid, companyId) ?: throw UasException("403-39")
-        logger.info("User $kcUuid is uploading file to company $companyId")
+        logger.info("User $kcUuid is getting all subaccount associated with tax type from company $companyId")
 
-        val subaccountTaxTypes = subaccountTaxTypeRepository.findAllByCompanyIdAndStatusIsTrueOrderBySubaccountTaxTypeIdAsc(companyId.toInt())
+        val subaccountTaxTypes = subaccountTaxTypeRepository.findAllByCompanyIdAndStatusIsTrueOrderByTaxTypeIdAsc(companyId.toInt())
         logger.info("Found ${subaccountTaxTypes.size} subaccount associated with tax type")
 
         logger.info("Finishing the BL call to get all subaccount associated with tax type")
@@ -99,7 +99,7 @@ class TaxBl @Autowired constructor(
         // Validation of user belongs to company
         val kcUuid = KeycloakSecurityContextHolder.getSubject()!!
         kcUserCompanyRepository.findAllByKcUser_KcUuidAndCompany_CompanyIdAndStatusIsTrue(kcUuid, companyId) ?: throw UasException("403-48")
-        logger.info("User $kcUuid is uploading file to company $companyId")
+        logger.info("User $kcUuid is updating subaccount associated with tax type from company $companyId")
 
         // Validation that subaccount exists
         val subaccountEntity = subaccountRepository.findBySubaccountIdAndStatusIsTrue(subaccountTaxTypeDto.subaccountId) ?: throw UasException("404-10")
@@ -120,5 +120,123 @@ class TaxBl @Autowired constructor(
         logger.info("Saving subaccount associated with tax type")
         subaccountTaxTypeRepository.save(subaccountTaxTypeEntity)
         logger.info("Subaccount associated with tax type saved")
+    }
+
+    fun getSaleTaxType(
+        companyId: Long
+    ): List<TaxTypeDto>{
+        logger.info("Starting the BL call to get sales tax")
+
+        // Validation that company exists
+        companyRepository.findByCompanyIdAndStatusIsTrue(companyId) ?: throw UasException("404-05")
+
+        // Validation of user belongs to company
+        val kcUuid = KeycloakSecurityContextHolder.getSubject()!!
+        kcUserCompanyRepository.findAllByKcUser_KcUuidAndCompany_CompanyIdAndStatusIsTrue(kcUuid, companyId) ?: throw UasException("403-39")
+        logger.info("User $kcUuid is getting all sales tax from company $companyId")
+
+        val subaccountTaxTypeEntities = subaccountTaxTypeRepository.findAllByCompanyIdAndStatusIsTrueOrderByTaxTypeIdAsc(companyId.toInt())
+        val ivaTaxRate = subaccountTaxTypeEntities.first { it.taxType!!.taxTypeName == "I.V.A. - Debito Fiscal" }
+        val itTaxRate = subaccountTaxTypeEntities.first { it.taxType!!.taxTypeName == "Impuesto a las Transacciones" }
+        val taxType = TaxTypeDto(
+            taxTypeId = 1,
+            taxTypeName = ivaTaxRate.taxType!!.description,
+            description = "${ivaTaxRate.taxType!!.taxTypeName} - ${ivaTaxRate.taxRate}%, ${itTaxRate.taxType!!.taxTypeName} - ${itTaxRate.taxRate}%"
+        )
+        logger.info("Found sales tax")
+
+        logger.info("Finishing the BL call to get sales tax")
+        return listOf(taxType)
+    }
+
+    fun getExpenseTaxType(
+        companyId: Long
+    ): List<TaxTypeDto>{
+        logger.info("Starting the BL call to get expense tax")
+
+        // Validation that company exists
+        companyRepository.findByCompanyIdAndStatusIsTrue(companyId) ?: throw UasException("404-05")
+
+        // Validation of user belongs to company
+        val kcUuid = KeycloakSecurityContextHolder.getSubject()!!
+        kcUserCompanyRepository.findAllByKcUser_KcUuidAndCompany_CompanyIdAndStatusIsTrue(kcUuid, companyId) ?: throw UasException("403-39")
+        logger.info("User $kcUuid is getting all expense tax from company $companyId")
+
+        val subaccountTaxTypeEntities = subaccountTaxTypeRepository.findAllByCompanyIdAndStatusIsTrueOrderByTaxTypeIdAsc(companyId.toInt())
+        // Credito Fiscal IVA
+        val ivaTaxRate = subaccountTaxTypeEntities.first { it.taxType!!.taxTypeName == "I.V.A. - Credito Fiscal" }
+        // Retencion por alquileres
+        val rentalRcIvaRetentionTaxRate = subaccountTaxTypeEntities.first { it.taxType!!.taxTypeName == "R.C. - I.V.A. Regimen Complementario IVA" }
+        val rentalItRetentionTaxRate = subaccountTaxTypeEntities.first { it.taxType!!.taxTypeName == "I.T. - Transacciones por Pagar Retenciones" }
+        // Retencion por compras
+        val purchaseIueRetentionTaxRate = subaccountTaxTypeEntities.first { it.taxType!!.taxTypeName == "I.U.E. Retenciones - Compras" }
+        val purchaseItRetentionTaxRate = subaccountTaxTypeEntities.first { it.taxType!!.taxTypeName == "I.T. Retenciones - Compras" }
+        // Retencion por servicios
+        val serviceIueRetentionTaxRate = subaccountTaxTypeEntities.first { it.taxType!!.taxTypeName == "I.U.E. Retenciones - Servicios" }
+        val serviceItRetentionTaxRate = subaccountTaxTypeEntities.first { it.taxType!!.taxTypeName == "I.T. Retenciones - Servicios" }
+        // Retencion RC-IVA
+        val rcIvaRetentionTaxRate = subaccountTaxTypeEntities.first { it.taxType!!.taxTypeName == "R.C. - I.V.A. Retenciones" }
+        // Beneficiarios del exterior
+        val exteriorIueRetentionTaxRate = subaccountTaxTypeEntities.first { it.taxType!!.taxTypeName == "I.U.E. Beneficiario del Exterior" }
+
+        val ivaTaxType = TaxTypeDto(
+            taxTypeId = 1,
+            taxTypeName = ivaTaxRate.taxType!!.description,
+            description = "${ivaTaxRate.taxType!!.taxTypeName} - ${ivaTaxRate.taxRate}%"
+        )
+        val rentalDetainedTaxType = TaxTypeDto(
+            taxTypeId = 2,
+            taxTypeName = "RETENIDO - ${rentalRcIvaRetentionTaxRate.taxType!!.description}",
+            description = "${rentalRcIvaRetentionTaxRate.taxType!!.taxTypeName} - ${rentalRcIvaRetentionTaxRate.taxRate}%, ${rentalItRetentionTaxRate.taxType!!.taxTypeName} - ${rentalItRetentionTaxRate.taxRate}%"
+        )
+        val rentalTakenTaxType = TaxTypeDto(
+            taxTypeId = 3,
+            taxTypeName = "ASUMIDO - ${rentalRcIvaRetentionTaxRate.taxType!!.description}",
+            description = "${rentalRcIvaRetentionTaxRate.taxType!!.taxTypeName} - ${rentalRcIvaRetentionTaxRate.taxRate}%, ${rentalItRetentionTaxRate.taxType!!.taxTypeName} - ${rentalItRetentionTaxRate.taxRate}%"
+        )
+        val purchaseDetainedTaxType = TaxTypeDto(
+            taxTypeId = 4,
+            taxTypeName = "RETENIDO - ${purchaseIueRetentionTaxRate.taxType!!.description}",
+            description = "${purchaseIueRetentionTaxRate.taxType!!.taxTypeName} - ${purchaseIueRetentionTaxRate.taxRate}%, ${purchaseItRetentionTaxRate.taxType!!.taxTypeName} - ${purchaseItRetentionTaxRate.taxRate}%"
+        )
+        val purchaseTakenTaxType = TaxTypeDto(
+            taxTypeId = 5,
+            taxTypeName = "ASUMIDO - ${purchaseIueRetentionTaxRate.taxType!!.description}",
+            description = "${purchaseIueRetentionTaxRate.taxType!!.taxTypeName} - ${purchaseIueRetentionTaxRate.taxRate}%, ${purchaseItRetentionTaxRate.taxType!!.taxTypeName} - ${purchaseItRetentionTaxRate.taxRate}%"
+        )
+        val serviceDetainedTaxType = TaxTypeDto(
+            taxTypeId = 6,
+            taxTypeName = "RETENIDO - ${serviceIueRetentionTaxRate.taxType!!.description}",
+            description = "${serviceIueRetentionTaxRate.taxType!!.taxTypeName} - ${serviceIueRetentionTaxRate.taxRate}%, ${serviceItRetentionTaxRate.taxType!!.taxTypeName} - ${serviceItRetentionTaxRate.taxRate}%"
+        )
+        val serviceTakenTaxType = TaxTypeDto(
+            taxTypeId = 7,
+            taxTypeName = "ASUMIDO - ${serviceIueRetentionTaxRate.taxType!!.description}",
+            description = "${serviceIueRetentionTaxRate.taxType!!.taxTypeName} - ${serviceIueRetentionTaxRate.taxRate}%, ${serviceItRetentionTaxRate.taxType!!.taxTypeName} - ${serviceItRetentionTaxRate.taxRate}%"
+        )
+        val rcIvaDetainedTaxType = TaxTypeDto(
+            taxTypeId = 8,
+            taxTypeName = "RETENIDO - ${rcIvaRetentionTaxRate.taxType!!.description}",
+            description = "${rcIvaRetentionTaxRate.taxType!!.taxTypeName} - ${rcIvaRetentionTaxRate.taxRate}%"
+        )
+        val rcIvaTakenTaxType = TaxTypeDto(
+            taxTypeId = 9,
+            taxTypeName = "ASUMIDO - ${rcIvaRetentionTaxRate.taxType!!.description}",
+            description = "${rcIvaRetentionTaxRate.taxType!!.taxTypeName} - ${rcIvaRetentionTaxRate.taxRate}%"
+        )
+        val exteriorDetainedTaxType = TaxTypeDto(
+            taxTypeId = 10,
+            taxTypeName = "RETENIDO - ${exteriorIueRetentionTaxRate.taxType!!.description}",
+            description = "${exteriorIueRetentionTaxRate.taxType!!.taxTypeName} - ${exteriorIueRetentionTaxRate.taxRate}%"
+        )
+        val exteriorTakenTaxType = TaxTypeDto(
+            taxTypeId = 11,
+            taxTypeName = "ASUMIDO - ${exteriorIueRetentionTaxRate.taxType!!.description}",
+            description = "${exteriorIueRetentionTaxRate.taxType!!.taxTypeName} - ${exteriorIueRetentionTaxRate.taxRate}%"
+        )
+
+        logger.info("Found sales tax")
+        logger.info("Finishing the BL call to get sales tax")
+        return listOf(ivaTaxType, rentalDetainedTaxType, rentalTakenTaxType, purchaseDetainedTaxType, purchaseTakenTaxType, serviceDetainedTaxType, serviceTakenTaxType, rcIvaDetainedTaxType, rcIvaTakenTaxType, exteriorDetainedTaxType, exteriorTakenTaxType)
     }
 }

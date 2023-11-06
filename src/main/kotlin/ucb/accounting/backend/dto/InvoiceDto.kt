@@ -11,5 +11,6 @@ data class InvoiceDto (
     val description: String?,
     val invoiceDate: Date?,
     val attachments: List<AttachmentDto>?,
-    val invoiceDetails: List<InvoiceDetailDto>?
+    val invoiceDetails: List<InvoiceDetailDto>?,
+    val taxTypeName: String?,
 )

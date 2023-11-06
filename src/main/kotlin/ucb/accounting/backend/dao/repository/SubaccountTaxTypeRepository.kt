@@ -5,7 +5,7 @@ import ucb.accounting.backend.dao.SubaccountTaxType
 
 interface SubaccountTaxTypeRepository: JpaRepository<SubaccountTaxType, Long> {
 
-    fun findAllByCompanyIdAndStatusIsTrueOrderBySubaccountTaxTypeIdAsc(companyId: Int): List<SubaccountTaxType>
+    fun findAllByCompanyIdAndStatusIsTrueOrderByTaxTypeIdAsc(companyId: Int): List<SubaccountTaxType>
 
     fun findBySubaccount_SubaccountIdAndTaxType_TaxTypeIdAndStatusIsTrue(subaccountId: Long, taxTypeId: Long): SubaccountTaxType?
 }

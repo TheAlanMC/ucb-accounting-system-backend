@@ -6,15 +6,11 @@ import org.springframework.data.domain.Page
 import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Pageable
 import org.springframework.data.domain.Sort
-import org.springframework.data.jpa.domain.Specification
-import org.springframework.data.repository.query.Param
 import org.springframework.stereotype.Service
 import ucb.accounting.backend.dao.*
 import ucb.accounting.backend.dao.repository.*
-import ucb.accounting.backend.dao.specification.SaleTransactionSpecification
 import ucb.accounting.backend.dto.*
 import ucb.accounting.backend.exception.UasException
-import ucb.accounting.backend.mapper.SaleTransactionMapper
 import ucb.accounting.backend.mapper.SubaccountMapper
 import ucb.accounting.backend.util.KeycloakSecurityContextHolder
 import java.math.BigDecimal
@@ -37,6 +33,7 @@ class SaleTransactionBl @Autowired constructor(
     private val transactionDetailRepository: TransactionDetailRepository,
     private val transactionRepository: TransactionRepository,
     private val transactionTypeRepository: TransactionTypeRepository,
+    private val subaccountTaxTypeRepository: SubaccountTaxTypeRepository
 ) {
     companion object {
         private val logger = LoggerFactory.getLogger(SaleTransactionBl::class.java.name)
@@ -126,24 +123,75 @@ class SaleTransactionBl @Autowired constructor(
         } else {
             logger.info("No attachments were sent")
         }
-
-        logger.info("Saving transaction details, debit")
-        invoiceDto.invoiceDetails.map {
+        if (invoiceDto.taxTypeName == null || invoiceDto.taxTypeName != "Para comprobantes de INGRESO.") {
+            logger.info("Saving transaction details, debit")
+            invoiceDto.invoiceDetails.map {
+                val transactionDetailEntity = TransactionDetail()
+                transactionDetailEntity.transactionId = savedTransaction.transactionId.toInt()
+                transactionDetailEntity.subaccountId = it.subaccountId.toInt()
+                transactionDetailEntity.debitAmountBs = BigDecimal.ZERO
+                transactionDetailEntity.creditAmountBs = it.unitPriceBs.times(it.quantity.toBigDecimal())
+                transactionDetailRepository.save(transactionDetailEntity)
+            }
+            logger.info("Saving the total of the sale transaction, total debit")
             val transactionDetailEntity = TransactionDetail()
             transactionDetailEntity.transactionId = savedTransaction.transactionId.toInt()
-            transactionDetailEntity.subaccountId = it.subaccountId.toInt()
-            transactionDetailEntity.debitAmountBs = BigDecimal.ZERO
-            transactionDetailEntity.creditAmountBs = it.unitPriceBs.times(it.quantity.toBigDecimal())
+            transactionDetailEntity.subaccountId = customerEntity.subaccountId
+            transactionDetailEntity.debitAmountBs =
+                invoiceDto.invoiceDetails.sumOf { it.unitPriceBs.times(it.quantity.toBigDecimal()) }
+            transactionDetailEntity.creditAmountBs = BigDecimal.ZERO
+            transactionDetailRepository.save(transactionDetailEntity)
+        } else {
+            logger.info("Taxes will be applied to the sale transaction")
+            logger.info("Saving transaction details, debit")
+            val subaccountTaxTypeEntities = subaccountTaxTypeRepository.findAllByCompanyIdAndStatusIsTrueOrderByTaxTypeIdAsc(companyId.toInt())
+            val ivaTaxRate = subaccountTaxTypeEntities.first { it.taxType!!.taxTypeName == "I.V.A. - Debito Fiscal" }
+            val itTaxDebitRate = subaccountTaxTypeEntities.first { it.taxType!!.taxTypeName == "Impuesto a las Transacciones" }
+            val itTaxCreditRate = subaccountTaxTypeEntities.first { it.taxType!!.taxTypeName == "Impuesto I.T. por Pagar" }
+            var accumulatedIvaTax = BigDecimal.ZERO
+            var accumulatedItDebitTax = BigDecimal.ZERO
+            var accumulatedItCreditTax = BigDecimal.ZERO
+            invoiceDto.invoiceDetails.map {
+                val unitIvaTax = it.unitPriceBs.times(it.quantity.toBigDecimal()).times(ivaTaxRate.taxRate)/BigDecimal(100)
+                accumulatedIvaTax+=unitIvaTax
+                accumulatedItDebitTax+=it.unitPriceBs.times(it.quantity.toBigDecimal()).times(itTaxDebitRate.taxRate)/BigDecimal(100)
+                accumulatedItCreditTax+=it.unitPriceBs.times(it.quantity.toBigDecimal()).times(itTaxCreditRate.taxRate)/BigDecimal(100)
+                val transactionDetailEntity = TransactionDetail()
+                transactionDetailEntity.transactionId = savedTransaction.transactionId.toInt()
+                transactionDetailEntity.subaccountId = it.subaccountId.toInt()
+                transactionDetailEntity.debitAmountBs = BigDecimal.ZERO
+                transactionDetailEntity.creditAmountBs = it.unitPriceBs.times(it.quantity.toBigDecimal()).minus(unitIvaTax)
+                transactionDetailRepository.save(transactionDetailEntity)
+            }
+            logger.info("Saving the it debit tax of the sale transaction")
+            val transactionDetailItDebitEntity = TransactionDetail()
+            transactionDetailItDebitEntity.transactionId = savedTransaction.transactionId.toInt()
+            transactionDetailItDebitEntity.subaccountId = itTaxDebitRate.subaccountId
+            transactionDetailItDebitEntity.debitAmountBs = accumulatedItDebitTax
+            transactionDetailItDebitEntity.creditAmountBs = BigDecimal.ZERO
+            transactionDetailRepository.save(transactionDetailItDebitEntity)
+            logger.info("Saving the it credit tax of the sale transaction")
+            val transactionDetailItCreditEntity = TransactionDetail()
+            transactionDetailItCreditEntity.transactionId = savedTransaction.transactionId.toInt()
+            transactionDetailItCreditEntity.subaccountId = itTaxCreditRate.subaccountId
+            transactionDetailItCreditEntity.debitAmountBs = BigDecimal.ZERO
+            transactionDetailItCreditEntity.creditAmountBs = accumulatedItCreditTax
+            transactionDetailRepository.save(transactionDetailItCreditEntity)
+            logger.info("Saving the iva tax of the sale transaction")
+            val transactionDetailIvaEntity = TransactionDetail()
+            transactionDetailIvaEntity.transactionId = savedTransaction.transactionId.toInt()
+            transactionDetailIvaEntity.subaccountId = ivaTaxRate.subaccountId
+            transactionDetailIvaEntity.debitAmountBs = BigDecimal.ZERO
+            transactionDetailIvaEntity.creditAmountBs = accumulatedIvaTax
+            transactionDetailRepository.save(transactionDetailIvaEntity)
+            logger.info("Saving the total of the sale transaction, total debit")
+            val transactionDetailEntity = TransactionDetail()
+            transactionDetailEntity.transactionId = savedTransaction.transactionId.toInt()
+            transactionDetailEntity.subaccountId = customerEntity.subaccountId
+            transactionDetailEntity.debitAmountBs =  invoiceDto.invoiceDetails.sumOf { it.unitPriceBs.times(it.quantity.toBigDecimal()) }
+            transactionDetailEntity.creditAmountBs = BigDecimal.ZERO
             transactionDetailRepository.save(transactionDetailEntity)
         }
-        logger.info("Saving the total of the sale transaction, total debit")
-        val transactionDetailEntity = TransactionDetail()
-        transactionDetailEntity.transactionId = savedTransaction.transactionId.toInt()
-        transactionDetailEntity.subaccountId = customerEntity.subaccountId
-        transactionDetailEntity.debitAmountBs = invoiceDto.invoiceDetails.sumOf { it.unitPriceBs.times(it.quantity.toBigDecimal()) }
-        transactionDetailEntity.creditAmountBs = BigDecimal.ZERO
-        transactionDetailRepository.save(transactionDetailEntity)
-
         logger.info("Saving sale transaction")
         val saleTransactionEntity = SaleTransaction()
         saleTransactionEntity.journalEntryId = savedJournalEntry.journalEntryId.toInt()
