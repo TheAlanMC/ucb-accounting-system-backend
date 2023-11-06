@@ -14,6 +14,7 @@ import ucb.accounting.backend.exception.UasException
 import ucb.accounting.backend.mapper.*
 import ucb.accounting.backend.util.KeycloakSecurityContextHolder
 import ucb.accounting.backend.service.MinioService
+import java.math.BigDecimal
 import java.sql.Date
 import java.util.*
 
@@ -176,31 +177,60 @@ class   JournalEntryBl @Autowired constructor(
         val journalEntriesPage = transactionEntryRepository.findAll(companyId, searchKeyword, pageable)
 
         val transactionsList: List<TransactionDto> = journalEntriesPage.content.map {
-            val transaction = TransactionDto(
-                it.journalEntryId.toInt(),
-                it.transactionNumber,
-                ClientPartialDto(
-                    it.clientId,
-                    it.displayName,
-                    it.companyName,
-                    it.companyPhoneNumber,
-                    Date(it.creationDate.time)
-                ),
-                it.transactionAccepted,
-                DocumentTypeDto(
-                    it.documentTypeId.toLong(),
-                    it.documentTypeName
-                ),
-                TransactionTypeDto(
-                    it.transactionTypeId,
-                    it.transactionTypeName
-                ),
-                it.totalAmountBs,
-                Date(it.creationDate.time),
-                it.transactionDate,
-                it.description
-            )
-            transaction
+            if(it.transactionTypeId != 3) {
+                val transaction = TransactionDto(
+                    it.journalEntryId.toInt(),
+                    it.transactionNumber,
+                    ClientPartialDto(
+                        it.clientId,
+                        it.displayName,
+                        it.companyName,
+                        it.companyPhoneNumber,
+                        Date(it.clientCreationDate.time)
+                    ),
+                    it.transactionAccepted,
+                    DocumentTypeDto(
+                        it.documentTypeId.toLong(),
+                        it.documentTypeName
+                    ),
+                    TransactionTypeDto(
+                        it.transactionTypeId,
+                        it.transactionTypeName
+                    ),
+                    it.totalAmountBs,
+                    Date(it.creationDate.time),
+                    it.transactionDate,
+                    it.description
+                )
+                transaction
+            } else {
+                val journalEntry = journalEntryRepository.findByJournalEntryIdAndStatusIsTrue(it.journalEntryId.toLong())
+                val transaction = TransactionDto(
+                    it.journalEntryId.toInt(),
+                    it.transactionNumber,
+                    ClientPartialDto(
+                        it.clientId,
+                        it.displayName,
+                        it.companyName,
+                        it.companyPhoneNumber,
+                        Date(it.clientCreationDate.time)
+                    ),
+                    it.transactionAccepted,
+                    DocumentTypeDto(
+                        it.documentTypeId.toLong(),
+                        it.documentTypeName
+                    ),
+                    TransactionTypeDto(
+                        it.transactionTypeId,
+                        it.transactionTypeName
+                    ),
+                    journalEntry!!.transaction!!.transactionDetails?.sumOf { td -> td.debitAmountBs } ?: BigDecimal.ZERO,
+                    Date(journalEntry.transaction!!.txDate.time),
+                    journalEntry.transaction!!.transactionDate,
+                    journalEntry.transaction!!.description
+                )
+                transaction
+            }
         }
         logger.info("List of transactions retrieved successfully")
         return PageImpl(transactionsList, pageable, journalEntriesPage.totalElements)
@@ -219,9 +249,9 @@ class   JournalEntryBl @Autowired constructor(
         logger.info("User $kcUuid is getting journal entry $journalEntryId from company $companyId")
 
         // Validation that journal entry is associated with an expense transaction or sale transaction
-        val saleJournalEntryId = saleTransactionRepository.findByJournalEntryIdAndCompanyIdAndStatusIsTrue(journalEntryId.toInt(), companyId.toInt())
-        val expenseJournalEntryId = expenseTransactionRepository.findByJournalEntryIdAndCompanyIdAndStatusIsTrue(journalEntryId.toInt(), companyId.toInt())
-        if (saleJournalEntryId == null && expenseJournalEntryId == null) throw UasException("404-19")
+//        val saleJournalEntryId = saleTransactionRepository.findByJournalEntryIdAndCompanyIdAndStatusIsTrue(journalEntryId.toInt(), companyId.toInt())
+//        val expenseJournalEntryId = expenseTransactionRepository.findByJournalEntryIdAndCompanyIdAndStatusIsTrue(journalEntryId.toInt(), companyId.toInt())
+//        if (saleJournalEntryId == null && expenseJournalEntryId == null) throw UasException("404-19")
 
         // Validation of journal entry exists
         val journalEntryEntity = journalEntryRepository.findByJournalEntryIdAndStatusIsTrue(journalEntryId) ?: throw UasException("404-19")
@@ -245,9 +275,14 @@ class   JournalEntryBl @Autowired constructor(
             ),
             transactionAccepted = journalEntryEntity.journalEntryAccepted,
             documentType = DocumentTypeMapper.entityToDto(journalEntryEntity.documentType!!),
-            transactionType = TransactionTypeMapper.entityToDto(
+            transactionType = if (saleTransaction?.transactionType == null && expenseTransaction?.transactionType ==null)
+                    TransactionTypeDto(
+                        3,
+                        "Comprobante de Diario"
+                    ) else
+                    (TransactionTypeMapper.entityToDto(
                 saleTransaction?.transactionType ?: expenseTransaction?.transactionType!!
-            ),
+            )),
             gloss = journalEntryEntity.gloss,
             description = journalEntryEntity.transaction!!.description,
             transactionDate = journalEntryEntity.transaction!!.transactionDate,
