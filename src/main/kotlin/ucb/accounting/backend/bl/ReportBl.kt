@@ -52,7 +52,6 @@ class ReportBl @Autowired constructor(
     private val worksheetRepository: WorksheetRepository,
     private val financialStatementRepository: FinancialStatementRepository,
     private val kcUserRepository: KcUserRepository,
-    private val excelService: ExcelService
     ) {
     companion object {
         private val logger = LoggerFactory.getLogger(DocumentTypeBl::class.java.name)
@@ -1239,13 +1238,18 @@ class ReportBl @Autowired constructor(
                 totalCreditAmountBs = rows.sumOf { it.creditAmountBs }
             )
         }
-
         val sdf = SimpleDateFormat("dd/MM/yyyy")
+
+        val timeStampFormat = SimpleDateFormat("dd/MM/yyyy HH:mm:ss")
+        val timeZone = TimeZone.getTimeZone("GMT-4")
+        timeStampFormat.timeZone = timeZone
+
+        val excelService = ExcelService()
 
         excelService.addHeader(listOf("Empresa", companyDto.companyName, "", ""))
         excelService.addHeader(listOf("Nit", companyDto.companyNit, "", ""))
         excelService.addHeader(listOf("Libro Diario", "Del ${sdf.format(newDateFrom)} al ${sdf.format(newDateTo)}", "", ""))
-        excelService.addHeader(listOf("Generado el", sdf.format(Date()), "", ""))
+        excelService.addHeader(listOf("Generado el", timeStampFormat.format(Date()), "", ""))
         excelService.addHeader(listOf("Expresado en Bolivianos", "", "", ""))
         excelService.addRow(listOf("", "", "", ""))
         journalBook.forEach { journalBookReportDto ->
@@ -1266,5 +1270,306 @@ class ReportBl @Autowired constructor(
         excelService.addRow(listOf("", "", "", ""))
         logger.info("Finishing the BL call to get journal entries")
         return excelService.toByteArray()
+    }
+
+    fun generateLedgerAccountReportExcel(
+        companyId: Long,
+        dateFrom: String,
+        dateTo: String,
+        subaccountIds: List<String>
+    ): ByteArray {
+        logger.info("Starting the BL call to get journal book report")
+        // Validate that the company exists
+        val company = companyRepository.findByCompanyIdAndStatusIsTrue(companyId) ?: throw UasException("404-05")
+
+        // Validation of user belongs to company
+        val kcUuid = KeycloakSecurityContextHolder.getSubject()!!
+        kcUserCompanyRepository.findAllByKcUser_KcUuidAndCompany_CompanyIdAndStatusIsTrue(kcUuid, companyId)
+            ?: throw UasException("403-22")
+        logger.info("User $kcUuid is trying to get journal book report from company $companyId")
+
+        // Convert dateFrom and dateTo to Date
+        val format: java.text.DateFormat = SimpleDateFormat("yyyy-MM-dd")
+        val newDateFrom: Date = format.parse(dateFrom)
+        val newDateTo: Date = format.parse(dateTo)
+        // Validation of dateFrom and dateTo
+        if (newDateFrom.after(newDateTo) || subaccountIds.isEmpty()) {
+            throw UasException("400-16")
+        }
+        // Parse subaccountIds to Long
+        val newSubaccountIds: List<Int> = subaccountIds.map { it.toInt() }
+        // Validation of subaccountIds
+        newSubaccountIds.map {
+            val subaccount =
+                subaccountRepository.findBySubaccountIdAndStatusIsTrue(it.toLong()) ?: throw UasException("404-10")
+            if (subaccount.companyId.toLong() != companyId) {
+                throw UasException("403-22")
+            }
+            subaccount
+        }
+
+        val generalLedgers: List<GeneralLedger> = generalLedgerRepository.findAllInSubaccountsByCompanyIdAndStatusIsTrue (companyId.toInt(), newDateFrom, newDateTo, newSubaccountIds)
+
+        // Getting company info
+        // Get s3 object for company logo
+        val s3Object: S3Object = s3ObjectRepository.findByS3ObjectIdAndStatusIsTrue(company.s3CompanyLogo.toLong())!!
+        val preSignedUrl: String = minioService.getPreSignedUrl(s3Object.bucket, s3Object.filename)
+        val companyDto = CompanyMapper.entityToDto(company, preSignedUrl)
+
+
+        val generalLedgerReports: List<GeneralLedgerReportDto> = generalLedgers.groupBy { it.subaccountId }.map { (key, rows) ->
+            val generalLedger = rows.first()
+            var accumulatedBalance = BigDecimal(0.00)
+            val transactionDetails = rows.map {
+                accumulatedBalance += it.debitAmountBs - it.creditAmountBs
+                GeneralLedgerTransactionDetailDto(
+                    transactionDate = it.transactionDate,
+                    gloss = it.gloss,
+                    description = it.description,
+                    creditAmount = it.creditAmountBs,
+                    debitAmount = it.debitAmountBs,
+                    balanceAmount = accumulatedBalance
+                )
+            }
+
+            val generalLedgerReportDto = GeneralLedgerReportDto(
+                subaccount = SubaccountDto(
+                    subaccountId = generalLedger.subaccountId,
+                    subaccountCode = generalLedger.subaccountCode,
+                    subaccountName = generalLedger.subaccountName,
+                ),
+                transactionDetails = transactionDetails,
+                totalDebitAmount = transactionDetails.sumOf { it.debitAmount },
+                totalCreditAmount = transactionDetails.sumOf { it.creditAmount },
+                totalBalanceAmount = accumulatedBalance
+            )
+            generalLedgerReportDto
+        }
+
+        val sdf = SimpleDateFormat("dd/MM/yyyy")
+
+        val timeStampFormat = SimpleDateFormat("yyyy-MM-dd HH:mm:ss")
+        val timeZone = TimeZone.getTimeZone("GMT-4")
+        timeStampFormat.timeZone = timeZone
+
+        val excelService = ExcelService()
+
+        excelService.addHeader(listOf("Empresa", companyDto.companyName, "", "", ""))
+        excelService.addHeader(listOf("Nit", companyDto.companyNit, "", "", ""))
+        excelService.addHeader(listOf("Libro Diario", "Del ${sdf.format(newDateFrom)} al ${sdf.format(newDateTo)}", "", "", ""))
+        excelService.addHeader(listOf("Generado el", timeStampFormat.format(Date()), "", "", ""))
+        excelService.addHeader(listOf("Expresado en Bolivianos", "", "", "", ""))
+        excelService.addRow(listOf("", "", "", "", ""))
+        generalLedgerReports.forEach { generalLedgerReportDto ->
+            excelService.addHeader(listOf("Código de la cuenta:", generalLedgerReportDto.subaccount.subaccountCode!!.toString(), "", "", ""))
+            excelService.addHeader(listOf("Cuenta:", generalLedgerReportDto.subaccount.subaccountName.toString(), "", "", ""))
+            excelService.addRow(listOf("", "", "", "", ""))
+            excelService.addHeader(listOf("Fecha", "Descripción", "Debe(Bs.)", "Haber(Bs.)", "Saldo(Bs.)"))
+            generalLedgerReportDto.transactionDetails.forEach { transactionDetail ->
+                excelService.addRow(listOf(
+                    sdf.format(transactionDetail.transactionDate),
+                    transactionDetail.description,
+                    transactionDetail.debitAmount,
+                    transactionDetail.creditAmount,
+                    transactionDetail.balanceAmount
+                ))
+            }
+            excelService.addRow(listOf("Totales", "", generalLedgerReportDto.totalDebitAmount, generalLedgerReportDto.totalCreditAmount))
+            excelService.addRow(listOf("", "", "", "", ""))
+        }
+        logger.info("Found ${generalLedgerReports.size} general ledger reports")
+        logger.info("Finishing the BL call to get journal book report")
+        return excelService.toByteArray()
+    }
+
+    fun generateTrialBalancesReportByDatesExcel(
+        companyId: Long,
+        dateFrom: String,
+        dateTo: String,
+    ): ByteArray {
+        logger.info("Starting the BL call to get trial balance report")
+        // Validate that the company exists
+        val company = companyRepository.findByCompanyIdAndStatusIsTrue(companyId) ?: throw UasException("404-05")
+
+        // Validation of user belongs to company
+        val kcUuid = KeycloakSecurityContextHolder.getSubject()!!
+        kcUserCompanyRepository.findAllByKcUser_KcUuidAndCompany_CompanyIdAndStatusIsTrue(kcUuid, companyId)
+            ?: throw UasException("403-23")
+        logger.info("User $kcUuid is trying to get journal book report from company $companyId")
+
+        // Convert dateFrom and dateTo to Date
+        val format: java.text.DateFormat = SimpleDateFormat("yyyy-MM-dd")
+        val newDateFrom: Date = format.parse(dateFrom)
+        val newDateTo: Date = format.parse(dateTo)
+        // Validation of dateFrom and dateTo
+        if (newDateFrom.after(newDateTo)) {
+            throw UasException("400-17")
+        }
+
+        val trialBalance: List<TrialBalance> = trialBalanceRepository.findAllByCompanyIdAndStatusIsTrue(companyId.toInt(), newDateFrom, newDateTo)
+        // Getting company info
+        // Get s3 object for company logo
+        val s3Object: S3Object = s3ObjectRepository.findByS3ObjectIdAndStatusIsTrue(company.s3CompanyLogo.toLong())!!
+        val preSignedUrl: String = minioService.getPreSignedUrl(s3Object.bucket, s3Object.filename)
+        val companyDto = CompanyMapper.entityToDto(company, preSignedUrl)
+
+        val trialBalanceDetails: List<TrialBalanceReportDetailDto> =
+            trialBalance.map { transactionDetail ->
+                val totalCreditAmount = transactionDetail.creditAmountBs
+                val totalDebitAmount = transactionDetail.debitAmountBs
+                val balanceDebtor = if (totalDebitAmount > totalCreditAmount) totalDebitAmount - totalCreditAmount else BigDecimal(0.00)
+                val balanceCreditor = if (totalCreditAmount > totalDebitAmount) totalCreditAmount - totalDebitAmount else BigDecimal(0.00)
+                val trialBalanceDetail = TrialBalanceReportDetailDto(
+                    subaccount = SubaccountDto(
+                        subaccountId = transactionDetail.subaccountId.toLong(),
+                        subaccountCode = transactionDetail.subaccountCode,
+                        subaccountName = transactionDetail.subaccountName,
+                    ),
+                    debitAmount = totalDebitAmount,
+                    creditAmount = totalCreditAmount,
+                    balanceDebtor = balanceDebtor,
+                    balanceCreditor = balanceCreditor
+                )
+                trialBalanceDetail
+            }
+        val totalDebitAmount = trialBalanceDetails.sumOf { it.debitAmount }
+        val totalCreditAmount = trialBalanceDetails.sumOf { it.creditAmount }
+        val totalBalanceDebtor = trialBalanceDetails.sumOf{ it.balanceDebtor }
+        val totalBalanceCreditor = trialBalanceDetails.sumOf { it.balanceCreditor }
+
+        logger.info("Found trial balance report")
+        val sdf = SimpleDateFormat("dd/MM/yyyy")
+
+        val timeStampFormat = SimpleDateFormat("yyyy-MM-dd HH:mm:ss")
+        val timeZone = TimeZone.getTimeZone("GMT-4")
+        timeStampFormat.timeZone = timeZone
+
+        val excelService = ExcelService()
+
+        excelService.addHeader(listOf("Empresa", companyDto.companyName, "", "", "", ""))
+        excelService.addHeader(listOf("Nit", companyDto.companyNit, "", "", "", ""))
+        excelService.addHeader(listOf("Libro Diario", "Del ${sdf.format(newDateFrom)} al ${sdf.format(newDateTo)}", "", "", "", ""))
+        excelService.addHeader(listOf("Generado el", timeStampFormat.format(Date()), "", "", "", ""))
+        excelService.addHeader(listOf("Expresado en Bolivianos", "", "", "", "", ""))
+        excelService.addRow(listOf("", "", "", "", "", "", ""))
+        excelService.addHeader(listOf("","", "Sumas","", "Saldos",""))
+        excelService.addHeader(listOf("Código", "Cuenta", "Cargos (Bs.)", "Abonos (Bs.)", "Deudor (Bs.)", "Acreedor (Bs.)"))
+        trialBalanceDetails.forEach { trialBalanceReportDetailDto ->
+            excelService.addRow(listOf(
+                trialBalanceReportDetailDto.subaccount.subaccountCode!!,
+                trialBalanceReportDetailDto.subaccount.subaccountName!!,
+                trialBalanceReportDetailDto.debitAmount,
+                trialBalanceReportDetailDto.creditAmount,
+                trialBalanceReportDetailDto.balanceDebtor,
+                trialBalanceReportDetailDto.balanceCreditor
+            ))
+        }
+        excelService.addRow(listOf("Totales", "", totalDebitAmount, totalCreditAmount, totalBalanceDebtor, totalBalanceCreditor))
+        excelService.addRow(listOf("", "", "", "", "", ""))
+        logger.info("Finishing the BL call to get trial balance report")
+        return excelService.toByteArray()
+    }
+
+
+    fun generateWorksheetsReportExcel(
+        companyId: Long,
+        dateFrom: String,
+        dateTo: String,
+    ): ByteArray {
+        logger.info("Starting the BL call to get worksheet report")
+        // Validate that the company exists
+        val company = companyRepository.findByCompanyIdAndStatusIsTrue(companyId) ?: throw UasException("404-05")
+
+        // Validation of user belongs to company
+        val kcUuid = KeycloakSecurityContextHolder.getSubject()!!
+        kcUserCompanyRepository.findAllByKcUser_KcUuidAndCompany_CompanyIdAndStatusIsTrue(kcUuid, companyId)
+            ?: throw UasException("403-24")
+        logger.info("User $kcUuid is trying to get journal book report from company $companyId")
+
+        // Convert dateFrom and dateTo to Date
+        val format: java.text.DateFormat = SimpleDateFormat("yyyy-MM-dd")
+        val newDateFrom: Date = format.parse(dateFrom)
+        val newDateTo: Date = format.parse(dateTo)
+        // Validation of dateFrom and dateTo
+        if (newDateFrom.after(newDateTo)) {
+            throw UasException("400-18")
+        }
+
+        val worksheet: List<Worksheet> = worksheetRepository.findAllByCompanyIdAndStatusIsTrue(companyId.toInt(), newDateFrom, newDateTo)
+
+        // Getting company info
+        // Get s3 object for company logo
+        val s3Object: S3Object = s3ObjectRepository.findByS3ObjectIdAndStatusIsTrue(company.s3CompanyLogo.toLong())!!
+        val preSignedUrl: String = minioService.getPreSignedUrl(s3Object.bucket, s3Object.filename)
+        val companyDto = CompanyMapper.entityToDto(company, preSignedUrl)
+
+        val worksheetDetails: List<WorksheetReportDetailDto> =
+            worksheet.map { transactionDetail ->
+                val accountCategoryName = transactionDetail.accountCategoryName
+                val totalDebitAmount = transactionDetail.debitAmountBs
+                val totalCreditAmount = transactionDetail.creditAmountBs
+                val balanceDebtor = if (totalDebitAmount > totalCreditAmount) totalDebitAmount - totalCreditAmount else BigDecimal(0.00)
+                val balanceCreditor = if (totalCreditAmount > totalDebitAmount) totalCreditAmount - totalDebitAmount else BigDecimal(0.00)
+                val worksheetDetail = WorksheetReportDetailDto(
+                    subaccount = SubaccountDto(
+                        subaccountId = transactionDetail.subaccountId.toLong(),
+                        subaccountCode = transactionDetail.subaccountCode,
+                        subaccountName = transactionDetail.subaccountName,
+                    ),
+                    balanceDebtor = balanceDebtor,
+                    balanceCreditor = balanceCreditor,
+                    incomeStatementExpense = if (accountCategoryName == "EGRESOS") if (totalDebitAmount > totalCreditAmount) balanceDebtor else if (totalCreditAmount > totalDebitAmount) (totalDebitAmount - totalCreditAmount) else BigDecimal(0.00) else BigDecimal(0.00),
+                    incomeStatementIncome = if (accountCategoryName == "INGRESOS") if (totalCreditAmount > totalDebitAmount) balanceCreditor else if (totalDebitAmount > totalCreditAmount) (totalCreditAmount - totalDebitAmount) else BigDecimal(0.00) else BigDecimal(0.00),
+                    balanceSheetAsset = if (accountCategoryName == "ACTIVO") if (totalDebitAmount > totalCreditAmount) balanceDebtor else if (totalCreditAmount > totalDebitAmount) (totalDebitAmount - totalCreditAmount) else BigDecimal(0.00) else BigDecimal(0.00),
+                    balanceSheetLiability = if (accountCategoryName == "PASIVO" || accountCategoryName == "PATRIMONIO") if (totalCreditAmount > totalDebitAmount) balanceCreditor else if (totalDebitAmount > totalCreditAmount) (totalCreditAmount - totalDebitAmount) else BigDecimal(0.00) else BigDecimal(0.00),
+                )
+                worksheetDetail
+            }
+        val totalDebtor = worksheetDetails.sumOf { it.balanceDebtor }
+        val totalCreditor = worksheetDetails.sumOf { it.balanceCreditor }
+        val totalIncomeStatementIncome = worksheetDetails.sumOf { it.incomeStatementIncome }
+        val totalIncomeStatementExpense = worksheetDetails.sumOf { it.incomeStatementExpense }
+        val totalBalanceSheetAsset = worksheetDetails.sumOf { it.balanceSheetAsset }
+        val totalBalanceSheetLiability = worksheetDetails.sumOf { it.balanceSheetLiability }
+
+        val totalIncomeStatementNetIncome = totalIncomeStatementIncome - totalIncomeStatementExpense
+        val totalBalanceSheetEquity = totalBalanceSheetAsset - totalBalanceSheetLiability
+
+        logger.info("Found worksheet report")
+        val sdf = SimpleDateFormat("dd/MM/yyyy")
+
+        val timeStampFormat = SimpleDateFormat("yyyy-MM-dd HH:mm:ss")
+        val timeZone = TimeZone.getTimeZone("GMT-4")
+        timeStampFormat.timeZone = timeZone
+
+        val excelService = ExcelService()
+
+        excelService.addHeader(listOf("Empresa", companyDto.companyName, "", "", "", "", "", ""))
+        excelService.addHeader(listOf("Nit", companyDto.companyNit, "", "", "", "", "", ""))
+        excelService.addHeader(listOf("Libro Diario", "Del ${sdf.format(newDateFrom)} al ${sdf.format(newDateTo)}", "", "", "", "", "", ""))
+        excelService.addHeader(listOf("Generado el", timeStampFormat.format(Date()), "", "", "", "", "", ""))
+        excelService.addHeader(listOf("Expresado en Bolivianos", "", "", "", "", "", "", ""))
+        excelService.addRow(listOf("", "", "", "", "", "", "", ""))
+        excelService.addHeader(listOf("", "", "Balance de comprobación", "", "Estado de resultados", "", "Balance general", ""))
+        excelService.addHeader(listOf("Código", "Cuenta", "Deudor (Bs.)", "Acreedor (Bs.)", "Egreso(Bs.)", "Ingreso(Bs.)", "Activo(Bs.)", "Pasivo y Patrimonio(Bs.)"))
+        worksheetDetails.forEach { worksheetReportDetailDto ->
+            excelService.addRow(listOf(
+                worksheetReportDetailDto.subaccount.subaccountCode!!,
+                worksheetReportDetailDto.subaccount.subaccountName!!,
+                worksheetReportDetailDto.balanceDebtor,
+                worksheetReportDetailDto.balanceCreditor,
+                worksheetReportDetailDto.incomeStatementExpense,
+                worksheetReportDetailDto.incomeStatementIncome,
+                worksheetReportDetailDto.balanceSheetAsset,
+                worksheetReportDetailDto.balanceSheetLiability
+            ))
+        }
+        excelService.addRow(listOf("Utilidades", "", "", "", totalIncomeStatementNetIncome, "", "", totalBalanceSheetEquity))
+        excelService.addRow(listOf("Totales", "", totalDebtor, totalCreditor, totalIncomeStatementExpense, totalIncomeStatementIncome, totalBalanceSheetAsset, totalBalanceSheetLiability))
+        excelService.addRow(listOf("", "", "", "", "", "", "", ""))
+        logger.info("Finishing the BL call to get trial balance report")
+        return excelService.toByteArray()
+
+
     }
 }

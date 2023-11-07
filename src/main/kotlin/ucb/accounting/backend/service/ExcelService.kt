@@ -1,6 +1,7 @@
 package ucb.accounting.backend.service
 
 import org.apache.poi.ss.usermodel.*
+import org.apache.poi.ss.util.CellRangeAddress
 import org.apache.poi.xssf.usermodel.XSSFCellStyle
 import org.apache.poi.xssf.usermodel.XSSFWorkbook
 import org.springframework.stereotype.Service
@@ -8,7 +9,6 @@ import java.io.FileOutputStream
 import java.io.ByteArrayOutputStream
 import java.math.BigDecimal
 
-@Service
 class ExcelService(private val sheetName: String = "Sheet1") {
 
     private val workbook = XSSFWorkbook()
@@ -38,6 +38,7 @@ class ExcelService(private val sheetName: String = "Sheet1") {
             sheet.autoSizeColumn(index)
         }
     }
+
 
     private val rowStyle: XSSFCellStyle = createRowStyle()
 
@@ -112,6 +113,7 @@ class ExcelService(private val sheetName: String = "Sheet1") {
         return try {
             val outputStream = ByteArrayOutputStream()
             workbook.write(outputStream)
+            workbook.close()
             outputStream.toByteArray()
         } catch (e: Exception) {
             e.printStackTrace()
@@ -123,6 +125,7 @@ class ExcelService(private val sheetName: String = "Sheet1") {
         try {
             FileOutputStream(filePath).use { fileOut ->
                 workbook.write(fileOut)
+                workbook.close()
             }
             println("Excel file created successfully at: $filePath")
         } catch (e: Exception) {

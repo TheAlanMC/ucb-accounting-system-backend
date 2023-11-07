@@ -2,7 +2,6 @@ package ucb.accounting.backend.api
 
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.data.domain.Page
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
@@ -13,14 +12,12 @@ import ucb.accounting.backend.bl.AccountBl
 import ucb.accounting.backend.bl.FilesBl
 import ucb.accounting.backend.bl.ReportBl
 import ucb.accounting.backend.dto.AttachmentDownloadDto
-import ucb.accounting.backend.dto.GeneratedReportDto
 import ucb.accounting.backend.dto.ResponseDto
 import ucb.accounting.backend.util.ResponseCodeUtil
-import java.sql.Date
 
 @RestController
 @RequestMapping("/api/v1/reports")
-class ReporExcelApi @Autowired constructor(
+class ReportExcelApi @Autowired constructor(
     private val reportBl: ReportBl,
     private val fileBl: FilesBl
 ){
@@ -58,8 +55,8 @@ class ReporExcelApi @Autowired constructor(
     {
         logger.info("Generating Ledger Account report")
         logger.info("GET api/v1/report/ledger-account-report/companies/${companyId}")
-        val report:ByteArray = reportBl.generateLedgerAccountReport(companyId, dateFrom, dateTo, subaccountIds)
-        val uploadedReport = fileBl.uploadFile(report, companyId)
+        val report:ByteArray = reportBl.generateLedgerAccountReportExcel(companyId, dateFrom, dateTo, subaccountIds)
+        val uploadedReport = fileBl.uploadFile(report, companyId, true)
         val downloadReport = fileBl.downloadFile(uploadedReport.attachmentId, companyId)
         logger.info("Sending response")
         val code = "200-23"
@@ -75,8 +72,8 @@ class ReporExcelApi @Autowired constructor(
     ): ResponseEntity<ResponseDto<AttachmentDownloadDto>> {
         logger.info("Generating Trial Balances report")
         logger.info("GET api/v1/report/trial-balances/companies/${companyId}")
-        val report: ByteArray = reportBl.generateTrialBalancesReportByDates(companyId, dateFrom, dateTo)
-        val uploadedReport = fileBl.uploadFile(report, companyId)
+        val report: ByteArray = reportBl.generateTrialBalancesReportByDatesExcel(companyId, dateFrom, dateTo)
+        val uploadedReport = fileBl.uploadFile(report, companyId, true)
         val downloadReport = fileBl.downloadFile(uploadedReport.attachmentId, companyId)
         val code = "200-24"
         val responseInfo = ResponseCodeUtil.getResponseInfo(code)
@@ -91,8 +88,8 @@ class ReporExcelApi @Autowired constructor(
     ): ResponseEntity<ResponseDto<AttachmentDownloadDto>> {
         logger.info("Generating Worksheets report")
         logger.info("GET api/v1/report/worksheets/companies/${companyId}")
-        val report: ByteArray = reportBl.generateWorksheetsReport(companyId, dateFrom, dateTo)
-        val uploadedReport = fileBl.uploadFile(report, companyId)
+        val report: ByteArray = reportBl.generateWorksheetsReportExcel(companyId, dateFrom, dateTo)
+        val uploadedReport = fileBl.uploadFile(report, companyId, true)
         val downloadReport = fileBl.downloadFile(uploadedReport.attachmentId, companyId)
         val code = "200-25"
         val responseInfo = ResponseCodeUtil.getResponseInfo(code)
