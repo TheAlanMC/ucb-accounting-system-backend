@@ -183,3 +183,14 @@ keycloak:
             - POST
             - GET
             - PUT
+# Dashboard Api
+    - auth-roles:
+        - common-user
+      security-collections:
+        - name: Dashboard
+          patterns:
+            - /api/v1/expense-dashboards/*
+            - /api/v1/sale-dashboards/*
+            - /api/v1/expense-sale-dashboards/*
+          methods:
+            - GET
