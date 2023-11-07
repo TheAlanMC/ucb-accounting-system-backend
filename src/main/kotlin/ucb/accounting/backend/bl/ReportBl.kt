@@ -19,6 +19,7 @@ import ucb.accounting.backend.dto.pdf_turtle.PageSize
 import ucb.accounting.backend.dto.pdf_turtle.ReportOptions
 import ucb.accounting.backend.exception.UasException
 import ucb.accounting.backend.mapper.*
+import ucb.accounting.backend.service.ExcelService
 import ucb.accounting.backend.service.MinioService
 import ucb.accounting.backend.service.PdfTurtleService
 import ucb.accounting.backend.util.KeycloakSecurityContextHolder
@@ -50,7 +51,8 @@ class ReportBl @Autowired constructor(
     private val trialBalanceRepository: TrialBalanceRepository,
     private val worksheetRepository: WorksheetRepository,
     private val financialStatementRepository: FinancialStatementRepository,
-    private val kcUserRepository: KcUserRepository
+    private val kcUserRepository: KcUserRepository,
+    private val excelService: ExcelService
     ) {
     companion object {
         private val logger = LoggerFactory.getLogger(DocumentTypeBl::class.java.name)
@@ -1177,5 +1179,92 @@ class ReportBl @Autowired constructor(
             e.printStackTrace()
             throw UasException("500-00")
         }
+    }
+
+    fun generateJournalBookByDatesExcel(
+        companyId: Long,
+        dateFrom: String,
+        dateTo: String,
+    ): ByteArray {
+        // Validate that the company exists
+        val company = companyRepository.findByCompanyIdAndStatusIsTrue(companyId) ?: throw UasException("404-05")
+
+        // Validation of user belongs to company
+        val kcUuid = KeycloakSecurityContextHolder.getSubject()!!
+        kcUserCompanyRepository.findAllByKcUser_KcUuidAndCompany_CompanyIdAndStatusIsTrue(kcUuid, companyId)
+            ?: throw UasException("403-22")
+        logger.info("User $kcUuid is trying to get journal book report from company $companyId")
+
+        // Convert dateFrom and dateTo to Date
+        val dateFormat: java.text.DateFormat = SimpleDateFormat("yyyy-MM-dd")
+        val newDateFrom: Date = dateFormat.parse(dateFrom)
+        val newDateTo: Date = dateFormat.parse(dateTo)
+
+        // Validation of dateFrom and dateTo
+        if (newDateFrom.after(newDateTo)) {
+            throw UasException("400-15")
+        }
+
+        val journalBooks = journalBookRepository.findAllByCompanyIdAndStatusIsTrue(companyId.toInt(), newDateFrom, newDateTo)
+
+        // Company info
+        val s3Object: S3Object = s3ObjectRepository.findByS3ObjectIdAndStatusIsTrue(company.s3CompanyLogo.toLong())!!
+        val preSignedUrl: String = minioService.getPreSignedUrl(s3Object.bucket, s3Object.filename)
+        val companyDto = CompanyMapper.entityToDto(company, preSignedUrl)
+
+        val journalBook: List<JournalBookReportDto> = journalBooks.groupBy { it.journalEntryId }.map { (key, rows) ->
+            val journalBook = rows.first()
+            JournalBookReportDto (
+                journalEntryId = journalBook.journalEntryId.toInt(),
+                documentType = DocumentTypeDto(
+                    documentTypeId = journalBook.documentTypeId.toLong(),
+                    documentTypeName = journalBook.documentTypeName,
+                ),
+                journalEntryNumber = journalBook.journalEntryNumber,
+                gloss = journalBook.gloss,
+                description = journalBook.description,
+                transactionDate = journalBook.transactionDate,
+                transactionDetails = rows.map {
+                    JournalBookTransactionDetailDto(
+                        subaccount = SubaccountDto(
+                            subaccountId = it.subaccountId.toLong(),
+                            subaccountCode = it.subaccountCode,
+                            subaccountName = it.subaccountName,
+                        ),
+                        debitAmountBs = it.debitAmountBs,
+                        creditAmountBs = it.creditAmountBs
+                    )
+                },
+                totalDebitAmountBs = rows.sumOf { it.debitAmountBs },
+                totalCreditAmountBs = rows.sumOf { it.creditAmountBs }
+            )
+        }
+
+        val sdf = SimpleDateFormat("dd/MM/yyyy")
+
+        excelService.addHeader(listOf("Empresa", companyDto.companyName, "", ""))
+        excelService.addHeader(listOf("Nit", companyDto.companyNit, "", ""))
+        excelService.addHeader(listOf("Libro Diario", "Del ${sdf.format(newDateFrom)} al ${sdf.format(newDateTo)}", "", ""))
+        excelService.addHeader(listOf("Generado el", sdf.format(Date()), "", ""))
+        excelService.addHeader(listOf("Expresado en Bolivianos", "", "", ""))
+        excelService.addRow(listOf("", "", "", ""))
+        journalBook.forEach { journalBookReportDto ->
+            excelService.addHeader(listOf("Fecha/Codigo", "Detalle", "Debe(Bs.)", "Haber(Bs.)"))
+            excelService.addRow(listOf(sdf.format(journalBookReportDto.transactionDate), journalBookReportDto.description!!, "", ""))
+            journalBookReportDto.transactionDetails!!.forEach { transactionDetail ->
+                excelService.addRow(listOf(
+                    transactionDetail.subaccount!!.subaccountCode!!,
+                    if (transactionDetail.creditAmountBs.compareTo(BigDecimal(0.00)) == 0) transactionDetail.subaccount.subaccountName!! else "                    " + transactionDetail.subaccount.subaccountName!!,
+                    transactionDetail.debitAmountBs,
+                    transactionDetail.creditAmountBs
+                ))
+            }
+            excelService.addRow(listOf("Totales", journalBookReportDto.gloss!!, journalBookReportDto.totalDebitAmountBs!!, journalBookReportDto.totalCreditAmountBs!!))
+            excelService.addRow(listOf("", "", "", ""))
+        }
+        excelService.addRow(listOf("Totales","", journalBook.sumOf { it.totalDebitAmountBs!! }, journalBook.sumOf { it.totalCreditAmountBs!! }))
+        excelService.addRow(listOf("", "", "", ""))
+        logger.info("Finishing the BL call to get journal entries")
+        return excelService.toByteArray()
     }
 }

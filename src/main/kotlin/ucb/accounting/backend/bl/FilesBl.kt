@@ -53,7 +53,7 @@ class FilesBl @Autowired constructor(
         )
     }
 
-    fun uploadFile(attachment: ByteArray, companyId: Long) : AttachmentDto{
+    fun uploadFile(attachment: ByteArray, companyId: Long, excel:Boolean = false) : AttachmentDto{
         // Validation of company
         companyRepository.findByCompanyIdAndStatusIsTrue(companyId) ?: throw UasException("404-05")
         // Validation of user belongs to company
@@ -64,8 +64,8 @@ class FilesBl @Autowired constructor(
         val attachmentEntity = Attachment()
         attachmentEntity.companyId = companyId.toInt()
         attachmentEntity.fileData = attachment
-        attachmentEntity.filename = "report.pdf"
-        attachmentEntity.contentType = "application/pdf"
+        attachmentEntity.filename = "report.${if (excel) "xlsx" else "pdf"}"
+        attachmentEntity.contentType = "application/${if (excel) "vnd.openxmlformats-officedocument.spreadsheetml.sheet" else "pdf"}"
         logger.info("Uploading file to database")
         val savedAttachment = attachmentRepository.save(attachmentEntity)
         logger.info("File uploaded to database")
