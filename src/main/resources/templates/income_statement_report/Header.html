@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <style>
+    .header-container {
+      padding-top: 12mm;
+      display: flex;
+      align-items: center;
+      gap: 4mm;
+    }
+    </style>
+  </head>
+
+  <div class="header-container">
+		<img width="50" height="50" src="{{ .icono }}">
+		<h1>{{ .empresa }}</h1>
+		<div style="flex-grow: 1;"></div>
+		<h3>{{ .ciudad }}</h3>
+  </div>
+</html>

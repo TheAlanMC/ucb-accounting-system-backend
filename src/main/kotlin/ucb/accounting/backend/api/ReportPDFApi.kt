@@ -103,6 +103,40 @@ class ReportPDFApi @Autowired constructor(
         return ResponseEntity(ResponseDto(code, responseInfo.message!!, downloadReport), responseInfo.httpStatus)
     }
 
+    @GetMapping("/balance-sheets/companies/{companyId}/pdf")
+    fun generateBalanceSheetReportByDates (
+        @PathVariable("companyId") companyId: Long,
+        @RequestParam("dateFrom") dateFrom: String,
+        @RequestParam("dateTo") dateTo: String,
+    ): ResponseEntity<ResponseDto<AttachmentDownloadDto>> {
+        logger.info("Generating Balance Sheet report")
+        logger.info("GET api/v1/report/balance-sheets/companies/${companyId}")
+        val report: ByteArray = reportBl.generateBalanceSheetReport(companyId, dateFrom, dateTo)
+        val uploadedReport = fileBl.uploadFile(report, companyId)
+        val downloadReport = fileBl.downloadFile(uploadedReport.attachmentId, companyId)
+        reportBl.saveReport(companyId, 6, 1, uploadedReport.attachmentId, dateFrom, dateTo, "Balance Sheet Report", true)
+        val code = "200-26"
+        val responseInfo = ResponseCodeUtil.getResponseInfo(code)
+        return ResponseEntity(ResponseDto(code, responseInfo.message!!, downloadReport), responseInfo.httpStatus)
+    }
+
+    @GetMapping("/income-statements/companies/{companyId}/pdf")
+    fun generateIncomeStatementReportByDates(
+        @PathVariable("companyId") companyId: Long,
+        @RequestParam("dateFrom") dateFrom: String,
+        @RequestParam("dateTo") dateTo: String,
+    ): ResponseEntity<ResponseDto<AttachmentDownloadDto>> {
+        logger.info("Generating Income Statement report")
+        logger.info("GET api/v1/report/income-statements/companies/${companyId}")
+        val report: ByteArray = reportBl.generateIncomeStatementReport(companyId, dateFrom, dateTo)
+        val uploadedReport = fileBl.uploadFile(report, companyId)
+        val downloadReport = fileBl.downloadFile(uploadedReport.attachmentId, companyId)
+        reportBl.saveReport(companyId, 5, 1, uploadedReport.attachmentId, dateFrom, dateTo, "Income Statement Report", true)
+        val code = "200-27"
+        val responseInfo = ResponseCodeUtil.getResponseInfo(code)
+        return ResponseEntity(ResponseDto(code, responseInfo.message!!, downloadReport), responseInfo.httpStatus)
+    }
+
     @GetMapping("/generated-reports/companies/{companyId}/pdf")
     fun generatedReports(
         @PathVariable("companyId") companyId: Long,

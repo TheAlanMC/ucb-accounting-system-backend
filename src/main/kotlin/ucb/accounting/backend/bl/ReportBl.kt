@@ -417,7 +417,7 @@ class ReportBl @Autowired constructor(
             20,
             20,
             20,
-            30
+            35
         ),
         "Letter",
         PageSize(
@@ -866,6 +866,206 @@ class ReportBl @Autowired constructor(
         val headerHtmlTemplate = readResourceAsString("templates/trial_balances_report/Header.html")
         val htmlTemplate = readResourceAsString("templates/trial_balances_report/Body.html")
         val model = generateModelForTrialBalancesReportByDates(copmanyId, dateFrom, dateTo)
+        return pdfTurtleService.generatePdf(footerHtmlTemplate, headerHtmlTemplate, htmlTemplate, model, options, templateEngine)
+    }
+
+    fun generateModelForBalanceSheetReport(
+        companyId: Long,
+        dateFrom: String,
+        dateTo: String,
+    ):Map<String, Any>{
+        logger.info("Starting the BL call to get trial balance report")
+        // Validate that the company exists
+        val company = companyRepository.findByCompanyIdAndStatusIsTrue(companyId) ?: throw UasException("404-05")
+
+        // Validation of user belongs to company
+        val kcUuid = KeycloakSecurityContextHolder.getSubject()!!
+        kcUserCompanyRepository.findAllByKcUser_KcUuidAndCompany_CompanyIdAndStatusIsTrue(kcUuid, companyId)
+            ?: throw UasException("403-23")
+        logger.info("User $kcUuid is trying to get journal book report from company $companyId")
+
+        // Convert dateFrom and dateTo to Date
+        val formatDate: java.text.DateFormat = SimpleDateFormat("yyyy-MM-dd")
+        val newDateFrom: Date = formatDate.parse(dateFrom)
+        val newDateTo: Date = formatDate.parse(dateTo)
+        // Validation of dateFrom and dateTo
+        if (newDateFrom.after(newDateTo)) {
+            throw UasException("400-20")
+        }
+
+        // Getting company info
+        // Get s3 object for company logo
+        val s3Object: S3Object = s3ObjectRepository.findByS3ObjectIdAndStatusIsTrue(company.s3CompanyLogo.toLong())!!
+        val preSignedUrl: String = minioService.getPreSignedUrl(s3Object.bucket, s3Object.filename)
+        val companyDto = CompanyMapper.entityToDto(company, preSignedUrl)
+
+        val sdf = SimpleDateFormat("dd/MM/yyyy")
+        val locale = Locale("en", "EN")
+        val format = DecimalFormat("#,##0.00", DecimalFormatSymbols(locale))
+
+        val balanceData = worksheetRepository.findAllByCompanyIdAndStatusIsTrue(companyId.toInt(), newDateFrom, newDateTo)
+
+        val activoCuentas = balanceData.filter { it.accountCategoryName == "ACTIVO" }.map {
+            val codigoDeCuenta = it.subaccountCode.toString()
+            val nombreDeCuenta = it.subaccountName.toString()
+            val saldo = it.debitAmountBs - it.creditAmountBs
+            mapOf(
+                "codigoDeCuenta" to codigoDeCuenta,
+                "nombreDeCuenta" to nombreDeCuenta,
+                "totalDeCuenta" to saldo
+            )
+        }
+
+        val pasivoCuentas = balanceData.filter { it.accountCategoryName == "PASIVO" }.map {
+            val codigoDeCuenta = it.subaccountCode.toString()
+            val nombreDeCuenta = it.subaccountName.toString()
+            val saldo = it.creditAmountBs - it.debitAmountBs
+            mapOf(
+                "codigoDeCuenta" to codigoDeCuenta,
+                "nombreDeCuenta" to nombreDeCuenta,
+                "totalDeCuenta" to saldo
+            )
+        }
+
+        val patrimonioCuentas = balanceData.filter { it.accountCategoryName == "PATRIMONIO" }.map {
+            val codigoDeCuenta = it.subaccountCode.toString()
+            val nombreDeCuenta = it.subaccountName.toString()
+            val saldo = it.creditAmountBs - it.debitAmountBs
+            mapOf(
+                "codigoDeCuenta" to codigoDeCuenta,
+                "nombreDeCuenta" to nombreDeCuenta,
+                "totalDeCuenta" to saldo
+            )
+        }
+
+        val totalActivo = activoCuentas.sumOf { it["totalDeCuenta"] as BigDecimal }
+        val totalPasivo = pasivoCuentas.sumOf { it["totalDeCuenta"] as BigDecimal }
+        val totalPatrimonio = patrimonioCuentas.sumOf { it["totalDeCuenta"] as BigDecimal }
+        val totalPasivoyPatrimonio = totalPasivo + totalPatrimonio
+
+        return mapOf(
+            "empresa" to companyDto.companyName,
+            "subtitulo" to "Balance General",
+            "icono" to preSignedUrl,
+            "expresadoEn" to "Expresado en Bolivianos",
+            "ciudad" to "La Paz - Bolivia",
+            "nit" to company.companyNit,
+            "fecha" to "del ${sdf.format(newDateFrom)} al ${sdf.format(newDateTo)}",
+            "balanceGeneral" to mapOf(
+                "activo" to activoCuentas,
+                "totalActivo" to totalActivo,
+                "pasivo" to pasivoCuentas,
+                "totalPasivo" to totalPasivo,
+                "patrimonio" to patrimonioCuentas,
+                "totalPatrimonio" to totalPatrimonio,
+                "totalPasivoyPatrimonio" to totalPasivoyPatrimonio
+            )
+        )
+    }
+
+    fun generateBalanceSheetReport(
+        companyId: Long,
+        dateFrom: String,
+        dateTo: String,
+    ): ByteArray{
+        logger.info("Starting business logic to generate balance sheet report")
+        val footerHtmlTemplate = readResourceAsString("templates/balance_sheet_report/Footer.html")
+        val headerHtmlTemplate = readResourceAsString("templates/balance_sheet_report/Header.html")
+        val htmlTemplate = readResourceAsString("templates/balance_sheet_report/Body.html")
+        val model = generateModelForBalanceSheetReport(companyId, dateFrom, dateTo)
+        return pdfTurtleService.generatePdf(footerHtmlTemplate, headerHtmlTemplate, htmlTemplate, model, options, templateEngine)
+    }
+
+    fun generateModelForIncomeStatementReport(
+        companyId: Long,
+        dateFrom: String,
+        dateTo: String,
+    ):Map<String, Any>{
+        logger.info("Starting the BL call to get trial balance report")
+        // Validate that the company exists
+        val company = companyRepository.findByCompanyIdAndStatusIsTrue(companyId) ?: throw UasException("404-05")
+
+        // Validation of user belongs to company
+        val kcUuid = KeycloakSecurityContextHolder.getSubject()!!
+        kcUserCompanyRepository.findAllByKcUser_KcUuidAndCompany_CompanyIdAndStatusIsTrue(kcUuid, companyId)
+            ?: throw UasException("403-23")
+        logger.info("User $kcUuid is trying to get journal book report from company $companyId")
+
+        // Convert dateFrom and dateTo to Date
+        val formatDate: java.text.DateFormat = SimpleDateFormat("yyyy-MM-dd")
+        val newDateFrom: Date = formatDate.parse(dateFrom)
+        val newDateTo: Date = formatDate.parse(dateTo)
+        // Validation of dateFrom and dateTo
+        if (newDateFrom.after(newDateTo)) {
+            throw UasException("400-20")
+        }
+
+        // Getting company info
+        // Get s3 object for company logo
+        val s3Object: S3Object = s3ObjectRepository.findByS3ObjectIdAndStatusIsTrue(company.s3CompanyLogo.toLong())!!
+        val preSignedUrl: String = minioService.getPreSignedUrl(s3Object.bucket, s3Object.filename)
+        val companyDto = CompanyMapper.entityToDto(company, preSignedUrl)
+
+        val sdf = SimpleDateFormat("dd/MM/yyyy")
+        val locale = Locale("en", "EN")
+        val format = DecimalFormat("#,##0.00", DecimalFormatSymbols(locale))
+
+        val incomeStatementData = worksheetRepository.findAllByCompanyIdAndStatusIsTrue(companyId.toInt(), newDateFrom, newDateTo)
+
+        val ingresosCuentas = incomeStatementData.filter { it.accountCategoryName == "INGRESOS" }.map {
+            val codigoDeCuenta = it.subaccountCode.toString()
+            val nombreDeCuenta = it.subaccountName.toString()
+            val saldo = it.debitAmountBs - it.creditAmountBs
+            mapOf(
+                "codigoDeCuenta" to codigoDeCuenta,
+                "nombreDeCuenta" to nombreDeCuenta,
+                "totalDeCuenta" to saldo
+            )
+        }
+
+        val egresosCuentas = incomeStatementData.filter { it.accountCategoryName == "EGRESOS" }.map {
+            val codigoDeCuenta = it.subaccountCode.toString()
+            val nombreDeCuenta = it.subaccountName.toString()
+            val saldo = it.debitAmountBs - it.creditAmountBs
+            mapOf(
+                "codigoDeCuenta" to codigoDeCuenta,
+                "nombreDeCuenta" to nombreDeCuenta,
+                "totalDeCuenta" to saldo
+            )
+        }
+
+        val totalIngresos = ingresosCuentas.sumOf { it["totalDeCuenta"] as BigDecimal }
+        val totalEgresos = egresosCuentas.sumOf { it["totalDeCuenta"] as BigDecimal }
+        val utilidad = totalIngresos - totalEgresos
+
+        return mapOf(
+            "empresa" to companyDto.companyName,
+            "subtitulo" to "Estado de Resultados",
+            "icono" to preSignedUrl,
+            "expresadoEn" to "Expresado en Bolivianos",
+            "ciudad" to "La Paz - Bolivia",
+            "nit" to company.companyNit,
+            "fecha" to "del ${sdf.format(newDateFrom)} al ${sdf.format(newDateTo)}",
+            "estadoDeResultados" to mapOf(
+                "ingresos" to ingresosCuentas,
+                "totalIngresos" to totalIngresos,
+                "egresos" to egresosCuentas,
+                "totalEgresos" to totalEgresos,
+                "utilidadNeta" to utilidad
+            )
+        )
+    }
+
+    fun generateIncomeStatementReport(
+        companyId: Long,
+        dateFrom: String,
+        dateTo: String,
+    ): ByteArray{
+        logger.info("Starting business logic to generate income statement report")
+        val footerHtmlTemplate = readResourceAsString("templates/income_statement_report/Footer.html")
+        val headerHtmlTemplate = readResourceAsString("templates/income_statement_report/Header.html")
+        val htmlTemplate = readResourceAsString("templates/income_statement_report/Body.html")
+        val model = generateModelForIncomeStatementReport(companyId, dateFrom, dateTo)
         return pdfTurtleService.generatePdf(footerHtmlTemplate, headerHtmlTemplate, htmlTemplate, model, options, templateEngine)
     }
 
