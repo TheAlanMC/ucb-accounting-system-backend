@@ -9,6 +9,11 @@ import org.springframework.util.StreamUtils
 import ucb.accounting.backend.dao.*
 import ucb.accounting.backend.dao.repository.*
 import ucb.accounting.backend.dto.*
+import ucb.accounting.backend.dto.Account
+import ucb.accounting.backend.dto.AccountCategory
+import ucb.accounting.backend.dto.AccountGroup
+import ucb.accounting.backend.dto.AccountSubgroup
+import ucb.accounting.backend.dto.Subaccount
 import ucb.accounting.backend.dto.pdf_turtle.Margins
 import ucb.accounting.backend.dto.pdf_turtle.PageSize
 import ucb.accounting.backend.dto.pdf_turtle.ReportOptions
@@ -44,7 +49,8 @@ class ReportBl @Autowired constructor(
     private val generalLedgerRepository: GeneralLedgerRepository,
     private val trialBalanceRepository: TrialBalanceRepository,
     private val worksheetRepository: WorksheetRepository,
-    private val kcUserRepository: KcUserRepository
+    private val kcUserRepository: KcUserRepository,
+    private val financialStatementRepository: FinancialStatementRepository
     ) {
     companion object {
         private val logger = LoggerFactory.getLogger(DocumentTypeBl::class.java.name)
@@ -869,6 +875,75 @@ class ReportBl @Autowired constructor(
         return pdfTurtleService.generatePdf(footerHtmlTemplate, headerHtmlTemplate, htmlTemplate, model, options, templateEngine)
     }
 
+    fun getFinancialStatement(companyId: Long, dateFrom: Date, dateTo: Date, accountCategoryNames: List<String>, descriptions: List<String>): List<FinancialStatementReportDetailDto> {
+        val financialStatement: List<FinancialStatement> = financialStatementRepository.findAllByCompanyIdAndStatusIsTrue(companyId.toInt(), dateFrom, dateTo, accountCategoryNames)
+        var index = 0
+        val financialStatementReportDetailDto: List<FinancialStatementReportDetailDto> = financialStatement.groupBy { it.accountCategoryId }.map { (key, rows) ->
+            val accountGroup = rows.groupBy { it.accountGroupId }.map { (key, rows) ->
+                val accountSubgroup = rows.groupBy { it.accountSubgroupId }.map { (key, rows) ->
+                    val account = rows.groupBy { it.accountId }.map { (key, rows) ->
+                        val subaccount = rows.groupBy { it.subaccountId }.map { (key, rows) ->
+                            val totalDebitAmount = rows.first().debitAmountBs
+                            val totalCreditAmount = rows.first().creditAmountBs
+                            val accountCategoryName = accountCategoryNames[index]
+                            val balanceDebtor = if (totalDebitAmount > totalCreditAmount) totalDebitAmount - totalCreditAmount else BigDecimal(0.00)
+                            val balanceCreditor = if (totalCreditAmount > totalDebitAmount) totalCreditAmount - totalDebitAmount else BigDecimal(0.00)
+                            val incomeStatementExpense = if (accountCategoryName == "EGRESOS") if (totalDebitAmount > totalCreditAmount) balanceDebtor else if (totalCreditAmount > totalDebitAmount) (totalDebitAmount - totalCreditAmount) else BigDecimal(0.00) else BigDecimal(0.00);
+                            val incomeStatementIncome = if (accountCategoryName == "INGRESOS") if (totalCreditAmount > totalDebitAmount) balanceCreditor else if (totalDebitAmount > totalCreditAmount) (totalCreditAmount - totalDebitAmount) else BigDecimal(0.00) else BigDecimal(0.00);
+                            val balanceSheetAsset = if (accountCategoryName == "ACTIVO") if (totalDebitAmount > totalCreditAmount) balanceDebtor else if (totalCreditAmount > totalDebitAmount) (totalDebitAmount - totalCreditAmount) else BigDecimal(0.00) else BigDecimal(0.00);
+                            val balanceSheetLiability = if (accountCategoryName == "PASIVO" || accountCategoryName == "PATRIMONIO") if (totalCreditAmount > totalDebitAmount) balanceCreditor else if (totalDebitAmount > totalCreditAmount) (totalCreditAmount - totalDebitAmount) else BigDecimal(0.00) else BigDecimal(0.00);
+                            val subaccount = Subaccount(
+                                subaccountId = rows.first().subaccountId.toLong(),
+                                subaccountCode = rows.first().subaccountCode,
+                                subaccountName = rows.first().subaccountName,
+                                totalAmountBs = incomeStatementExpense + incomeStatementIncome + balanceSheetAsset + balanceSheetLiability
+                            )
+                            subaccount
+                        }
+                        val account = Account(
+                            accountId = rows.first().accountId.toLong(),
+                            accountCode = rows.first().accountCode,
+                            accountName = rows.first().accountName,
+                            subaccounts = subaccount,
+                            totalAmountBs = subaccount.sumOf { it.totalAmountBs }
+                        )
+                        account
+                    }
+                    val accountSubgroup = AccountSubgroup(
+                        accountSubgroupId = rows.first().accountSubgroupId.toLong(),
+                        accountSubgroupCode = rows.first().accountSubgroupCode,
+                        accountSubgroupName = rows.first().accountSubgroupName,
+                        accounts = account,
+                        totalAmountBs = account.sumOf { it.totalAmountBs }
+                    )
+                    accountSubgroup
+                }
+                val accountGroup = AccountGroup(
+                    accountGroupId = rows.first().accountGroupId.toLong(),
+                    accountGroupCode = rows.first().accountGroupCode,
+                    accountGroupName = rows.first().accountGroupName,
+                    accountSubgroups = accountSubgroup,
+                    totalAmountBs = accountSubgroup.sumOf { it.totalAmountBs }
+                )
+                accountGroup
+            }
+            val accountCategory = AccountCategory(
+                accountCategoryId = rows.first().accountCategoryId.toLong(),
+                accountCategoryCode = rows.first().accountCategoryCode,
+                accountCategoryName = rows.first().accountCategoryName,
+                accountGroups = accountGroup,
+                totalAmountBs = accountGroup.sumOf { it.totalAmountBs }
+            )
+            val totalAmountBs = accountCategory.totalAmountBs
+            FinancialStatementReportDetailDto(
+                accountCategory = accountCategory,
+                description = descriptions[index++],
+                totalAmountBs = totalAmountBs
+            )
+        }
+        return financialStatementReportDetailDto
+    }
+
     fun generateModelForBalanceSheetReport(
         companyId: Long,
         dateFrom: String,
@@ -903,64 +978,104 @@ class ReportBl @Autowired constructor(
         val locale = Locale("en", "EN")
         val format = DecimalFormat("#,##0.00", DecimalFormatSymbols(locale))
 
-        val balanceData = worksheetRepository.findAllByCompanyIdAndStatusIsTrue(companyId.toInt(), newDateFrom, newDateTo)
+        val accountCategoryNames: List<String> = listOf("ACTIVO", "PASIVO", "PATRIMONIO")
+        val descriptions: List<String> = listOf("TOTAL CUENTAS DE ACTIVO", "TOTAL CUENTAS DE PASIVO", "TOTAL CUENTAS DE PATRIMONIO")
 
-        val activoCuentas = balanceData.filter { it.accountCategoryName == "ACTIVO" }.map {
-            val codigoDeCuenta = it.subaccountCode.toString()
-            val nombreDeCuenta = it.subaccountName.toString()
-            val saldo = it.debitAmountBs - it.creditAmountBs
-            mapOf(
-                "codigoDeCuenta" to codigoDeCuenta,
-                "nombreDeCuenta" to nombreDeCuenta,
-                "totalDeCuenta" to saldo
-            )
+        val financialStatementReportDetailDtoList = getFinancialStatement(companyId, newDateFrom, newDateTo, accountCategoryNames, descriptions)
+
+        val balanceSheetReport: MutableMap<String, Any> = HashMap()
+
+        balanceSheetReport["empresa"] = companyDto.companyName
+        balanceSheetReport["subtitulo"] = "Balance General"
+        balanceSheetReport["icono"] = preSignedUrl
+        balanceSheetReport["expresadoEn"] = "Expresado en Bolivianos"
+        balanceSheetReport["ciudad"] = "La Paz - Bolivia"
+        balanceSheetReport["nit"] = companyDto.companyNit
+        balanceSheetReport["fecha"] = "del ${sdf.format(newDateFrom)} al ${sdf.format(newDateTo)}"
+
+        val balanceGeneral: MutableMap<String, Any> = HashMap()
+        balanceSheetReport["balanceGeneral"] = balanceGeneral
+
+        for (financialStatementDto in financialStatementReportDetailDtoList) {
+            val accountCategoryDto = financialStatementDto.accountCategory
+            val categoryName = accountCategoryDto.accountCategoryName.lowercase(Locale.getDefault())
+
+            if (!balanceGeneral.containsKey(categoryName)) {
+                val categoryMap: MutableMap<String, Any> = HashMap()
+                balanceGeneral[categoryName] = categoryMap
+
+                val categoriaList: MutableList<Map<String, Any>> = ArrayList()
+                categoryMap["categoria"] = categoriaList
+
+                val categoryDtoMap: MutableMap<String, Any> = HashMap()
+                categoriaList.add(categoryDtoMap)
+
+                categoryDtoMap["codigoDeCategoria"] = accountCategoryDto.accountCategoryCode.toString()
+                categoryDtoMap["nombreDeCategoría"] = accountCategoryDto.accountCategoryName
+                categoryDtoMap["totalDeCategoría"] = format.format(accountCategoryDto.totalAmountBs)
+
+                val grupoList: MutableList<Map<String, Any>> = ArrayList()
+                categoryDtoMap["grupo"] = grupoList
+
+                for (accountGroupDto in accountCategoryDto.accountGroups) {
+                    val groupDtoMap: MutableMap<String, Any> = HashMap()
+                    grupoList.add(groupDtoMap)
+
+                    groupDtoMap["codigoDeGrupo"] = accountGroupDto.accountGroupCode.toString()
+                    groupDtoMap["nombreDeGrupo"] = accountGroupDto.accountGroupName
+                    groupDtoMap["totalDeGrupo"] = format.format(accountGroupDto.totalAmountBs)
+
+                    val subgrupoList: MutableList<Map<String, Any>> = ArrayList()
+                    groupDtoMap["subgrupo"] = subgrupoList
+
+                    for (accountSubgroupDto in accountGroupDto.accountSubgroups) {
+                        val subgroupDtoMap: MutableMap<String, Any> = HashMap()
+                        subgrupoList.add(subgroupDtoMap)
+
+                        subgroupDtoMap["codigoDeSubGrupo"] = accountSubgroupDto.accountSubgroupCode.toString()
+                        subgroupDtoMap["nombreDeSubGrupo"] = accountSubgroupDto.accountSubgroupName
+                        subgroupDtoMap["totalDeSubGrupo"] = format.format(accountSubgroupDto.totalAmountBs)
+
+                        val cuentaList: MutableList<Map<String, Any>> = ArrayList()
+                        subgroupDtoMap["cuenta"] = cuentaList
+
+                        for (accountDto in accountSubgroupDto.accounts) {
+                            val accountDtoMap: MutableMap<String, Any> = HashMap()
+                            cuentaList.add(accountDtoMap)
+
+                            accountDtoMap["codigoDeCuenta"] = accountDto.accountCode.toString()
+                            accountDtoMap["nombreDeCuenta"] = accountDto.accountName
+                            accountDtoMap["totalDeCuenta"] = format.format(accountDto.totalAmountBs)
+
+                            val subcuentaList: MutableList<Map<String, Any>> = ArrayList()
+                            accountDtoMap["subcuenta"] = subcuentaList
+
+                            for (subaccountDto in accountDto.subaccounts) {
+                                val subaccountDtoMap: MutableMap<String, Any> = HashMap()
+                                subcuentaList.add(subaccountDtoMap)
+
+                                subaccountDtoMap["codigoDeSubCuenta"] = subaccountDto.subaccountCode.toString()
+                                subaccountDtoMap["nombreDeSubCuenta"] = subaccountDto.subaccountName
+                                subaccountDtoMap["totalDeSubCuenta"] = format.format(subaccountDto.totalAmountBs)
+                            }
+                        }
+                    }
+                }
+            }
+
         }
+        val totalPasivoyPatrimonio = financialStatementReportDetailDtoList
+            .filter { it.accountCategory.accountCategoryName == "PASIVO" || it.accountCategory.accountCategoryName == "PATRIMONIO" }
+            .sumOf { it.totalAmountBs }
 
-        val pasivoCuentas = balanceData.filter { it.accountCategoryName == "PASIVO" }.map {
-            val codigoDeCuenta = it.subaccountCode.toString()
-            val nombreDeCuenta = it.subaccountName.toString()
-            val saldo = it.creditAmountBs - it.debitAmountBs
-            mapOf(
-                "codigoDeCuenta" to codigoDeCuenta,
-                "nombreDeCuenta" to nombreDeCuenta,
-                "totalDeCuenta" to saldo
-            )
-        }
+        val totalActivo = financialStatementReportDetailDtoList
+            .filter { it.accountCategory.accountCategoryName == "ACTIVO" }
+            .sumOf { it.totalAmountBs }
 
-        val patrimonioCuentas = balanceData.filter { it.accountCategoryName == "PATRIMONIO" }.map {
-            val codigoDeCuenta = it.subaccountCode.toString()
-            val nombreDeCuenta = it.subaccountName.toString()
-            val saldo = it.creditAmountBs - it.debitAmountBs
-            mapOf(
-                "codigoDeCuenta" to codigoDeCuenta,
-                "nombreDeCuenta" to nombreDeCuenta,
-                "totalDeCuenta" to saldo
-            )
-        }
+        balanceGeneral["totalPasivoyPatrimonio"] = format.format(totalPasivoyPatrimonio)
+        balanceGeneral["totalActivo"] = format.format(totalActivo)
 
-        val totalActivo = activoCuentas.sumOf { it["totalDeCuenta"] as BigDecimal }
-        val totalPasivo = pasivoCuentas.sumOf { it["totalDeCuenta"] as BigDecimal }
-        val totalPatrimonio = patrimonioCuentas.sumOf { it["totalDeCuenta"] as BigDecimal }
-        val totalPasivoyPatrimonio = totalPasivo + totalPatrimonio
-
-        return mapOf(
-            "empresa" to companyDto.companyName,
-            "subtitulo" to "Balance General",
-            "icono" to preSignedUrl,
-            "expresadoEn" to "Expresado en Bolivianos",
-            "ciudad" to "La Paz - Bolivia",
-            "nit" to company.companyNit,
-            "fecha" to "del ${sdf.format(newDateFrom)} al ${sdf.format(newDateTo)}",
-            "balanceGeneral" to mapOf(
-                "activo" to activoCuentas,
-                "totalActivo" to totalActivo,
-                "pasivo" to pasivoCuentas,
-                "totalPasivo" to totalPasivo,
-                "patrimonio" to patrimonioCuentas,
-                "totalPatrimonio" to totalPatrimonio,
-                "totalPasivoyPatrimonio" to totalPasivoyPatrimonio
-            )
-        )
+        return balanceSheetReport
     }
 
     fun generateBalanceSheetReport(
@@ -973,6 +1088,7 @@ class ReportBl @Autowired constructor(
         val headerHtmlTemplate = readResourceAsString("templates/balance_sheet_report/Header.html")
         val htmlTemplate = readResourceAsString("templates/balance_sheet_report/Body.html")
         val model = generateModelForBalanceSheetReport(companyId, dateFrom, dateTo)
+
         return pdfTurtleService.generatePdf(footerHtmlTemplate, headerHtmlTemplate, htmlTemplate, model, options, templateEngine)
     }
 
@@ -1010,50 +1126,108 @@ class ReportBl @Autowired constructor(
         val locale = Locale("en", "EN")
         val format = DecimalFormat("#,##0.00", DecimalFormatSymbols(locale))
 
-        val incomeStatementData = worksheetRepository.findAllByCompanyIdAndStatusIsTrue(companyId.toInt(), newDateFrom, newDateTo)
+        val accountCategoryNames: List<String> = listOf("INGRESOS", "EGRESOS")
+        val descriptions: List<String> = listOf("TOTAL CUENTAS DE INGRESOS", "TOTAL CUENTAS DE EGRESOS")
 
-        val ingresosCuentas = incomeStatementData.filter { it.accountCategoryName == "INGRESOS" }.map {
-            val codigoDeCuenta = it.subaccountCode.toString()
-            val nombreDeCuenta = it.subaccountName.toString()
-            val saldo = it.debitAmountBs - it.creditAmountBs
-            mapOf(
-                "codigoDeCuenta" to codigoDeCuenta,
-                "nombreDeCuenta" to nombreDeCuenta,
-                "totalDeCuenta" to saldo
-            )
+        val financialStatementReportDetailDtoList = getFinancialStatement(companyId, newDateFrom, newDateTo, accountCategoryNames, descriptions)
+
+        val incomeStatementReport: MutableMap<String, Any> = HashMap()
+
+        incomeStatementReport["empresa"] = companyDto.companyName
+        incomeStatementReport["subtitulo"] = "Estado de resultados"
+        incomeStatementReport["icono"] = preSignedUrl
+        incomeStatementReport["expresadoEn"] = "Expresado en Bolivianos"
+        incomeStatementReport["ciudad"] = "La Paz - Bolivia"
+        incomeStatementReport["nit"] = companyDto.companyNit
+        incomeStatementReport["fecha"] = "del ${sdf.format(newDateFrom)} al ${sdf.format(newDateTo)}"
+
+        val estadoDeResultados: MutableMap<String, Any> = HashMap()
+        incomeStatementReport["estadoDeResultados"] = estadoDeResultados
+
+        for (financialStatementDto in financialStatementReportDetailDtoList) {
+            val accountCategoryDto = financialStatementDto.accountCategory
+            val categoryName = accountCategoryDto.accountCategoryName.lowercase(Locale.getDefault())
+
+            if (!estadoDeResultados.containsKey(categoryName)) {
+                val categoryMap: MutableMap<String, Any> = HashMap()
+                estadoDeResultados[categoryName] = categoryMap
+
+                val categoriaList: MutableList<Map<String, Any>> = ArrayList()
+                categoryMap["categoria"] = categoriaList
+
+                val categoryDtoMap: MutableMap<String, Any> = HashMap()
+                categoriaList.add(categoryDtoMap)
+
+                categoryDtoMap["codigoDeCategoria"] = accountCategoryDto.accountCategoryCode.toString()
+                categoryDtoMap["nombreDeCategoría"] = accountCategoryDto.accountCategoryName
+                categoryDtoMap["totalDeCategoría"] = format.format(accountCategoryDto.totalAmountBs)
+
+                val grupoList: MutableList<Map<String, Any>> = ArrayList()
+                categoryDtoMap["grupo"] = grupoList
+
+                for (accountGroupDto in accountCategoryDto.accountGroups) {
+                    val groupDtoMap: MutableMap<String, Any> = HashMap()
+                    grupoList.add(groupDtoMap)
+
+                    groupDtoMap["codigoDeGrupo"] = accountGroupDto.accountGroupCode.toString()
+                    groupDtoMap["nombreDeGrupo"] = accountGroupDto.accountGroupName
+                    groupDtoMap["totalDeGrupo"] = format.format(accountGroupDto.totalAmountBs)
+
+                    val subgrupoList: MutableList<Map<String, Any>> = ArrayList()
+                    groupDtoMap["subgrupo"] = subgrupoList
+
+                    for (accountSubgroupDto in accountGroupDto.accountSubgroups) {
+                        val subgroupDtoMap: MutableMap<String, Any> = HashMap()
+                        subgrupoList.add(subgroupDtoMap)
+
+                        subgroupDtoMap["codigoDeSubGrupo"] = accountSubgroupDto.accountSubgroupCode.toString()
+                        subgroupDtoMap["nombreDeSubGrupo"] = accountSubgroupDto.accountSubgroupName
+                        subgroupDtoMap["totalDeSubGrupo"] = format.format(accountSubgroupDto.totalAmountBs)
+
+                        val cuentaList: MutableList<Map<String, Any>> = ArrayList()
+                        subgroupDtoMap["cuenta"] = cuentaList
+
+                        for (accountDto in accountSubgroupDto.accounts) {
+                            val accountDtoMap: MutableMap<String, Any> = HashMap()
+                            cuentaList.add(accountDtoMap)
+
+                            accountDtoMap["codigoDeCuenta"] = accountDto.accountCode.toString()
+                            accountDtoMap["nombreDeCuenta"] = accountDto.accountName
+                            accountDtoMap["totalDeCuenta"] = format.format(accountDto.totalAmountBs)
+
+                            val subcuentaList: MutableList<Map<String, Any>> = ArrayList()
+                            accountDtoMap["subcuenta"] = subcuentaList
+
+                            for (subaccountDto in accountDto.subaccounts) {
+                                val subaccountDtoMap: MutableMap<String, Any> = HashMap()
+                                subcuentaList.add(subaccountDtoMap)
+
+                                subaccountDtoMap["codigoDeSubCuenta"] = subaccountDto.subaccountCode.toString()
+                                subaccountDtoMap["nombreDeSubCuenta"] = subaccountDto.subaccountName
+                                subaccountDtoMap["totalDeSubCuenta"] = format.format(subaccountDto.totalAmountBs)
+                            }
+                        }
+                    }
+                }
+            }
         }
 
-        val egresosCuentas = incomeStatementData.filter { it.accountCategoryName == "EGRESOS" }.map {
-            val codigoDeCuenta = it.subaccountCode.toString()
-            val nombreDeCuenta = it.subaccountName.toString()
-            val saldo = it.debitAmountBs - it.creditAmountBs
-            mapOf(
-                "codigoDeCuenta" to codigoDeCuenta,
-                "nombreDeCuenta" to nombreDeCuenta,
-                "totalDeCuenta" to saldo
-            )
-        }
+        val totalIngresos = financialStatementReportDetailDtoList
+            .filter { it.accountCategory.accountCategoryName == "INGRESOS" }
+            .sumOf { it.totalAmountBs }
 
-        val totalIngresos = ingresosCuentas.sumOf { it["totalDeCuenta"] as BigDecimal }
-        val totalEgresos = egresosCuentas.sumOf { it["totalDeCuenta"] as BigDecimal }
-        val utilidad = totalIngresos - totalEgresos
+        val totalEgresos = financialStatementReportDetailDtoList
+            .filter { it.accountCategory.accountCategoryName == "EGRESOS" }
+            .sumOf { it.totalAmountBs }
 
-        return mapOf(
-            "empresa" to companyDto.companyName,
-            "subtitulo" to "Estado de Resultados",
-            "icono" to preSignedUrl,
-            "expresadoEn" to "Expresado en Bolivianos",
-            "ciudad" to "La Paz - Bolivia",
-            "nit" to company.companyNit,
-            "fecha" to "del ${sdf.format(newDateFrom)} al ${sdf.format(newDateTo)}",
-            "estadoDeResultados" to mapOf(
-                "ingresos" to ingresosCuentas,
-                "totalIngresos" to totalIngresos,
-                "egresos" to egresosCuentas,
-                "totalEgresos" to totalEgresos,
-                "utilidadNeta" to utilidad
-            )
-        )
+        val utilidad = totalIngresos + totalEgresos
+
+        estadoDeResultados["totalIngresos"] = format.format(totalIngresos)
+        estadoDeResultados["totalEgresos"] = format.format(totalEgresos)
+        estadoDeResultados["utilidad"] = format.format(utilidad)
+
+        return incomeStatementReport
+
     }
 
     fun generateIncomeStatementReport(

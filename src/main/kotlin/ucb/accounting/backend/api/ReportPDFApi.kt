@@ -115,7 +115,7 @@ class ReportPDFApi @Autowired constructor(
         val uploadedReport = fileBl.uploadFile(report, companyId)
         val downloadReport = fileBl.downloadFile(uploadedReport.attachmentId, companyId)
         reportBl.saveReport(companyId, 6, 1, uploadedReport.attachmentId, dateFrom, dateTo, "Balance Sheet Report", true)
-        val code = "200-26"
+        val code = "200-27"
         val responseInfo = ResponseCodeUtil.getResponseInfo(code)
         return ResponseEntity(ResponseDto(code, responseInfo.message!!, downloadReport), responseInfo.httpStatus)
     }
@@ -132,7 +132,7 @@ class ReportPDFApi @Autowired constructor(
         val uploadedReport = fileBl.uploadFile(report, companyId)
         val downloadReport = fileBl.downloadFile(uploadedReport.attachmentId, companyId)
         reportBl.saveReport(companyId, 5, 1, uploadedReport.attachmentId, dateFrom, dateTo, "Income Statement Report", true)
-        val code = "200-27"
+        val code = "200-26"
         val responseInfo = ResponseCodeUtil.getResponseInfo(code)
         return ResponseEntity(ResponseDto(code, responseInfo.message!!, downloadReport), responseInfo.httpStatus)
     }
