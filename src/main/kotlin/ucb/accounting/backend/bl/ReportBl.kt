@@ -607,7 +607,7 @@ class ReportBl @Autowired constructor(
             20,
             20,
             20,
-            30
+            35
         ),
         "Letter",
         PageSize(
@@ -1056,6 +1056,305 @@ class ReportBl @Autowired constructor(
         val headerHtmlTemplate = readResourceAsString("templates/trial_balances_report/Header.html")
         val htmlTemplate = readResourceAsString("templates/trial_balances_report/Body.html")
         val model = generateModelForTrialBalancesReportByDates(copmanyId, dateFrom, dateTo)
+        return pdfTurtleService.generatePdf(footerHtmlTemplate, headerHtmlTemplate, htmlTemplate, model, options, templateEngine)
+    }
+
+    fun generateModelForBalanceSheetReport(
+        companyId: Long,
+        dateFrom: String,
+        dateTo: String,
+    ):Map<String, Any>{
+        logger.info("Starting the BL call to get trial balance report")
+        // Validate that the company exists
+        val company = companyRepository.findByCompanyIdAndStatusIsTrue(companyId) ?: throw UasException("404-05")
+
+        // Validation of user belongs to company
+        val kcUuid = KeycloakSecurityContextHolder.getSubject()!!
+        kcUserCompanyRepository.findAllByKcUser_KcUuidAndCompany_CompanyIdAndStatusIsTrue(kcUuid, companyId)
+            ?: throw UasException("403-23")
+        logger.info("User $kcUuid is trying to get journal book report from company $companyId")
+
+        // Convert dateFrom and dateTo to Date
+        val formatDate: java.text.DateFormat = SimpleDateFormat("yyyy-MM-dd")
+        val newDateFrom: Date = formatDate.parse(dateFrom)
+        val newDateTo: Date = formatDate.parse(dateTo)
+        // Validation of dateFrom and dateTo
+        if (newDateFrom.after(newDateTo)) {
+            throw UasException("400-20")
+        }
+
+        // Getting company info
+        // Get s3 object for company logo
+        val s3Object: S3Object = s3ObjectRepository.findByS3ObjectIdAndStatusIsTrue(company.s3CompanyLogo.toLong())!!
+        val preSignedUrl: String = minioService.getPreSignedUrl(s3Object.bucket, s3Object.filename)
+        val companyDto = CompanyMapper.entityToDto(company, preSignedUrl)
+
+        val sdf = SimpleDateFormat("dd/MM/yyyy")
+        val locale = Locale("en", "EN")
+        val format = DecimalFormat("#,##0.00", DecimalFormatSymbols(locale))
+
+        val accountCategoryNames: List<String> = listOf("ACTIVO", "PASIVO", "PATRIMONIO")
+        val descriptions: List<String> = listOf("TOTAL CUENTAS DE ACTIVO", "TOTAL CUENTAS DE PASIVO", "TOTAL CUENTAS DE PATRIMONIO")
+
+        val financialStatementReportDetailDtoList = getFinancialStatement(companyId, newDateFrom, newDateTo, accountCategoryNames, descriptions)
+
+        val balanceSheetReport: MutableMap<String, Any> = HashMap()
+
+        balanceSheetReport["empresa"] = companyDto.companyName
+        balanceSheetReport["subtitulo"] = "Balance General"
+        balanceSheetReport["icono"] = preSignedUrl
+        balanceSheetReport["expresadoEn"] = "Expresado en Bolivianos"
+        balanceSheetReport["ciudad"] = "La Paz - Bolivia"
+        balanceSheetReport["nit"] = companyDto.companyNit
+        balanceSheetReport["fecha"] = "del ${sdf.format(newDateFrom)} al ${sdf.format(newDateTo)}"
+
+        val balanceGeneral: MutableMap<String, Any> = HashMap()
+        balanceSheetReport["balanceGeneral"] = balanceGeneral
+
+        for (financialStatementDto in financialStatementReportDetailDtoList) {
+            val accountCategoryDto = financialStatementDto.accountCategory
+            val categoryName = accountCategoryDto.accountCategoryName.lowercase(Locale.getDefault())
+
+            if (!balanceGeneral.containsKey(categoryName)) {
+                val categoryMap: MutableMap<String, Any> = HashMap()
+                balanceGeneral[categoryName] = categoryMap
+
+                val categoriaList: MutableList<Map<String, Any>> = ArrayList()
+                categoryMap["categoria"] = categoriaList
+
+                val categoryDtoMap: MutableMap<String, Any> = HashMap()
+                categoriaList.add(categoryDtoMap)
+
+                categoryDtoMap["codigoDeCategoria"] = accountCategoryDto.accountCategoryCode.toString()
+                categoryDtoMap["nombreDeCategoría"] = accountCategoryDto.accountCategoryName
+                categoryDtoMap["totalDeCategoría"] = format.format(accountCategoryDto.totalAmountBs)
+
+                val grupoList: MutableList<Map<String, Any>> = ArrayList()
+                categoryDtoMap["grupo"] = grupoList
+
+                for (accountGroupDto in accountCategoryDto.accountGroups) {
+                    val groupDtoMap: MutableMap<String, Any> = HashMap()
+                    grupoList.add(groupDtoMap)
+
+                    groupDtoMap["codigoDeGrupo"] = accountGroupDto.accountGroupCode.toString()
+                    groupDtoMap["nombreDeGrupo"] = accountGroupDto.accountGroupName
+                    groupDtoMap["totalDeGrupo"] = format.format(accountGroupDto.totalAmountBs)
+
+                    val subgrupoList: MutableList<Map<String, Any>> = ArrayList()
+                    groupDtoMap["subgrupo"] = subgrupoList
+
+                    for (accountSubgroupDto in accountGroupDto.accountSubgroups) {
+                        val subgroupDtoMap: MutableMap<String, Any> = HashMap()
+                        subgrupoList.add(subgroupDtoMap)
+
+                        subgroupDtoMap["codigoDeSubGrupo"] = accountSubgroupDto.accountSubgroupCode.toString()
+                        subgroupDtoMap["nombreDeSubGrupo"] = accountSubgroupDto.accountSubgroupName
+                        subgroupDtoMap["totalDeSubGrupo"] = format.format(accountSubgroupDto.totalAmountBs)
+
+                        val cuentaList: MutableList<Map<String, Any>> = ArrayList()
+                        subgroupDtoMap["cuenta"] = cuentaList
+
+                        for (accountDto in accountSubgroupDto.accounts) {
+                            val accountDtoMap: MutableMap<String, Any> = HashMap()
+                            cuentaList.add(accountDtoMap)
+
+                            accountDtoMap["codigoDeCuenta"] = accountDto.accountCode.toString()
+                            accountDtoMap["nombreDeCuenta"] = accountDto.accountName
+                            accountDtoMap["totalDeCuenta"] = format.format(accountDto.totalAmountBs)
+
+                            val subcuentaList: MutableList<Map<String, Any>> = ArrayList()
+                            accountDtoMap["subcuenta"] = subcuentaList
+
+                            for (subaccountDto in accountDto.subaccounts) {
+                                val subaccountDtoMap: MutableMap<String, Any> = HashMap()
+                                subcuentaList.add(subaccountDtoMap)
+
+                                subaccountDtoMap["codigoDeSubCuenta"] = subaccountDto.subaccountCode.toString()
+                                subaccountDtoMap["nombreDeSubCuenta"] = subaccountDto.subaccountName
+                                subaccountDtoMap["totalDeSubCuenta"] = format.format(subaccountDto.totalAmountBs)
+                            }
+                        }
+                    }
+                }
+            }
+
+        }
+        val totalPasivoyPatrimonio = financialStatementReportDetailDtoList
+            .filter { it.accountCategory.accountCategoryName == "PASIVO" || it.accountCategory.accountCategoryName == "PATRIMONIO" }
+            .sumOf { it.totalAmountBs }
+
+        val totalActivo = financialStatementReportDetailDtoList
+            .filter { it.accountCategory.accountCategoryName == "ACTIVO" }
+            .sumOf { it.totalAmountBs }
+
+        balanceGeneral["totalPasivoyPatrimonio"] = format.format(totalPasivoyPatrimonio)
+        balanceGeneral["totalActivo"] = format.format(totalActivo)
+
+        return balanceSheetReport
+    }
+
+    fun generateBalanceSheetReport(
+        companyId: Long,
+        dateFrom: String,
+        dateTo: String,
+    ): ByteArray{
+        logger.info("Starting business logic to generate balance sheet report")
+        val footerHtmlTemplate = readResourceAsString("templates/balance_sheet_report/Footer.html")
+        val headerHtmlTemplate = readResourceAsString("templates/balance_sheet_report/Header.html")
+        val htmlTemplate = readResourceAsString("templates/balance_sheet_report/Body.html")
+        val model = generateModelForBalanceSheetReport(companyId, dateFrom, dateTo)
+
+        return pdfTurtleService.generatePdf(footerHtmlTemplate, headerHtmlTemplate, htmlTemplate, model, options, templateEngine)
+    }
+
+    fun generateModelForIncomeStatementReport(
+        companyId: Long,
+        dateFrom: String,
+        dateTo: String,
+    ):Map<String, Any>{
+        logger.info("Starting the BL call to get trial balance report")
+        // Validate that the company exists
+        val company = companyRepository.findByCompanyIdAndStatusIsTrue(companyId) ?: throw UasException("404-05")
+
+        // Validation of user belongs to company
+        val kcUuid = KeycloakSecurityContextHolder.getSubject()!!
+        kcUserCompanyRepository.findAllByKcUser_KcUuidAndCompany_CompanyIdAndStatusIsTrue(kcUuid, companyId)
+            ?: throw UasException("403-23")
+        logger.info("User $kcUuid is trying to get journal book report from company $companyId")
+
+        // Convert dateFrom and dateTo to Date
+        val formatDate: java.text.DateFormat = SimpleDateFormat("yyyy-MM-dd")
+        val newDateFrom: Date = formatDate.parse(dateFrom)
+        val newDateTo: Date = formatDate.parse(dateTo)
+        // Validation of dateFrom and dateTo
+        if (newDateFrom.after(newDateTo)) {
+            throw UasException("400-20")
+        }
+
+        // Getting company info
+        // Get s3 object for company logo
+        val s3Object: S3Object = s3ObjectRepository.findByS3ObjectIdAndStatusIsTrue(company.s3CompanyLogo.toLong())!!
+        val preSignedUrl: String = minioService.getPreSignedUrl(s3Object.bucket, s3Object.filename)
+        val companyDto = CompanyMapper.entityToDto(company, preSignedUrl)
+
+        val sdf = SimpleDateFormat("dd/MM/yyyy")
+        val locale = Locale("en", "EN")
+        val format = DecimalFormat("#,##0.00", DecimalFormatSymbols(locale))
+
+        val accountCategoryNames: List<String> = listOf("INGRESOS", "EGRESOS")
+        val descriptions: List<String> = listOf("TOTAL CUENTAS DE INGRESOS", "TOTAL CUENTAS DE EGRESOS")
+
+        val financialStatementReportDetailDtoList = getFinancialStatement(companyId, newDateFrom, newDateTo, accountCategoryNames, descriptions)
+
+        val incomeStatementReport: MutableMap<String, Any> = HashMap()
+
+        incomeStatementReport["empresa"] = companyDto.companyName
+        incomeStatementReport["subtitulo"] = "Estado de resultados"
+        incomeStatementReport["icono"] = preSignedUrl
+        incomeStatementReport["expresadoEn"] = "Expresado en Bolivianos"
+        incomeStatementReport["ciudad"] = "La Paz - Bolivia"
+        incomeStatementReport["nit"] = companyDto.companyNit
+        incomeStatementReport["fecha"] = "del ${sdf.format(newDateFrom)} al ${sdf.format(newDateTo)}"
+
+        val estadoDeResultados: MutableMap<String, Any> = HashMap()
+        incomeStatementReport["estadoDeResultados"] = estadoDeResultados
+
+        for (financialStatementDto in financialStatementReportDetailDtoList) {
+            val accountCategoryDto = financialStatementDto.accountCategory
+            val categoryName = accountCategoryDto.accountCategoryName.lowercase(Locale.getDefault())
+
+            if (!estadoDeResultados.containsKey(categoryName)) {
+                val categoryMap: MutableMap<String, Any> = HashMap()
+                estadoDeResultados[categoryName] = categoryMap
+
+                val categoriaList: MutableList<Map<String, Any>> = ArrayList()
+                categoryMap["categoria"] = categoriaList
+
+                val categoryDtoMap: MutableMap<String, Any> = HashMap()
+                categoriaList.add(categoryDtoMap)
+
+                categoryDtoMap["codigoDeCategoria"] = accountCategoryDto.accountCategoryCode.toString()
+                categoryDtoMap["nombreDeCategoría"] = accountCategoryDto.accountCategoryName
+                categoryDtoMap["totalDeCategoría"] = format.format(accountCategoryDto.totalAmountBs)
+
+                val grupoList: MutableList<Map<String, Any>> = ArrayList()
+                categoryDtoMap["grupo"] = grupoList
+
+                for (accountGroupDto in accountCategoryDto.accountGroups) {
+                    val groupDtoMap: MutableMap<String, Any> = HashMap()
+                    grupoList.add(groupDtoMap)
+
+                    groupDtoMap["codigoDeGrupo"] = accountGroupDto.accountGroupCode.toString()
+                    groupDtoMap["nombreDeGrupo"] = accountGroupDto.accountGroupName
+                    groupDtoMap["totalDeGrupo"] = format.format(accountGroupDto.totalAmountBs)
+
+                    val subgrupoList: MutableList<Map<String, Any>> = ArrayList()
+                    groupDtoMap["subgrupo"] = subgrupoList
+
+                    for (accountSubgroupDto in accountGroupDto.accountSubgroups) {
+                        val subgroupDtoMap: MutableMap<String, Any> = HashMap()
+                        subgrupoList.add(subgroupDtoMap)
+
+                        subgroupDtoMap["codigoDeSubGrupo"] = accountSubgroupDto.accountSubgroupCode.toString()
+                        subgroupDtoMap["nombreDeSubGrupo"] = accountSubgroupDto.accountSubgroupName
+                        subgroupDtoMap["totalDeSubGrupo"] = format.format(accountSubgroupDto.totalAmountBs)
+
+                        val cuentaList: MutableList<Map<String, Any>> = ArrayList()
+                        subgroupDtoMap["cuenta"] = cuentaList
+
+                        for (accountDto in accountSubgroupDto.accounts) {
+                            val accountDtoMap: MutableMap<String, Any> = HashMap()
+                            cuentaList.add(accountDtoMap)
+
+                            accountDtoMap["codigoDeCuenta"] = accountDto.accountCode.toString()
+                            accountDtoMap["nombreDeCuenta"] = accountDto.accountName
+                            accountDtoMap["totalDeCuenta"] = format.format(accountDto.totalAmountBs)
+
+                            val subcuentaList: MutableList<Map<String, Any>> = ArrayList()
+                            accountDtoMap["subcuenta"] = subcuentaList
+
+                            for (subaccountDto in accountDto.subaccounts) {
+                                val subaccountDtoMap: MutableMap<String, Any> = HashMap()
+                                subcuentaList.add(subaccountDtoMap)
+
+                                subaccountDtoMap["codigoDeSubCuenta"] = subaccountDto.subaccountCode.toString()
+                                subaccountDtoMap["nombreDeSubCuenta"] = subaccountDto.subaccountName
+                                subaccountDtoMap["totalDeSubCuenta"] = format.format(subaccountDto.totalAmountBs)
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        val totalIngresos = financialStatementReportDetailDtoList
+            .filter { it.accountCategory.accountCategoryName == "INGRESOS" }
+            .sumOf { it.totalAmountBs }
+
+        val totalEgresos = financialStatementReportDetailDtoList
+            .filter { it.accountCategory.accountCategoryName == "EGRESOS" }
+            .sumOf { it.totalAmountBs }
+
+        val utilidad = totalIngresos + totalEgresos
+
+        estadoDeResultados["totalIngresos"] = format.format(totalIngresos)
+        estadoDeResultados["totalEgresos"] = format.format(totalEgresos)
+        estadoDeResultados["utilidad"] = format.format(utilidad)
+
+        return incomeStatementReport
+
+    }
+
+    fun generateIncomeStatementReport(
+        companyId: Long,
+        dateFrom: String,
+        dateTo: String,
+    ): ByteArray{
+        logger.info("Starting business logic to generate income statement report")
+        val footerHtmlTemplate = readResourceAsString("templates/income_statement_report/Footer.html")
+        val headerHtmlTemplate = readResourceAsString("templates/income_statement_report/Header.html")
+        val htmlTemplate = readResourceAsString("templates/income_statement_report/Body.html")
+        val model = generateModelForIncomeStatementReport(companyId, dateFrom, dateTo)
         return pdfTurtleService.generatePdf(footerHtmlTemplate, headerHtmlTemplate, htmlTemplate, model, options, templateEngine)
     }
 

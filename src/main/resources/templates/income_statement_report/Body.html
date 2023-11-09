@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        .unbold-heading {
+            font-weight: normal;
+            margin: 20px;
+        }
+    </style>
+</head>
+
+<body class="pdf-turtle">
+<h4 class="unbold-heading">NIT: {{ .nit }}</h4>
+<h2 align="center" class="unbold-heading">{{ .subtitulo }}</h2>
+<h5 align="center" class="unbold-heading">{{ .fecha }}</h5>
+<h5 align="center" class="unbold-heading">{{ .expresadoEn }}</h5>
+
+<table class="reduced" style="margin-top:3mm; font-size:11pt;">
+    <tr>
+        <th style="border-bottom: 2px solid black; background: transparent;"></th>
+        <th style="border-bottom: 2px solid black; background: transparent; font-size: 13pt;">Ingresos</th>
+        <th style="border-bottom: 2px solid black; background: transparent;"></th>
+    </tr>
+    <tr>
+        <th style="background: transparent;">Codigo</th>
+        <th style="background: transparent;">Cuenta</th>
+        <th style="background: transparent;">Total</th>
+    </tr>
+
+    {{ range .estadoDeResultados.ingresos.categoria }}
+    <tr class="no-page-break-inside">
+        <td align="center">{{ .codigoDeCategoria }}</td>
+        <td class="nowrap left">{{ .nombreDeCategoría }}</td>
+        <td align="center">{{ .totalDeCategoría }}</td>
+    </tr>
+    {{ range .grupo }}
+    {{ if .codigoDeGrupo }}
+    <tr class="no-page-break-inside">
+        <td align="center">{{ .codigoDeGrupo }}</td>
+        <td class="nowrap left" style="padding-left: 20px">{{ .nombreDeGrupo }}</td>
+        <td align="center">{{ .totalDeGrupo }}</td>
+    </tr>
+    {{ end }}
+    {{ range .subgrupo }}
+    <tr class="no-page-break-inside">
+        <td align="center">{{ .codigoDeSubGrupo }}</td>
+        <td class="nowrap left" style="padding-left: 40px">{{ .nombreDeSubGrupo }}</td>
+        <td align="center">{{ .totalDeSubGrupo }}</td>
+    </tr>
+    {{ range .cuenta }}
+    <tr class="no-page-break-inside">
+        <td align="center">{{ .codigoDeCuenta }}</td>
+        <td class="nowrap left" style="padding-left: 60px">{{ .nombreDeCuenta }}</td>
+        <td align="center">{{ .totalDeCuenta }}</td>
+    </tr>
+    {{ range .subcuenta }}
+    <tr class="no-page-break-inside">
+        <td align="center">{{ .codigoDeSubCuenta }}</td>
+        <td class="nowrap left" style="padding-left: 80px">{{ .nombreDeSubCuenta }}</td>
+        <td align="center">{{ .totalDeSubCuenta }}</td>
+    </tr>
+    {{ end }}
+    {{ end }}
+    {{ end }}
+    {{ end }}
+</table>
+{{ end }}
+
+<div style="margin:40px"></div>
+<table class="reduced" style="margin-top:3mm; font-size:11pt;">
+    <tr>
+        <th style="border-bottom: 2px solid black; background: transparent;"></th>
+        <th style="border-bottom: 2px solid black; background: transparent; font-size: 13pt;">Egresos</th>
+        <th style="border-bottom: 2px solid black; background: transparent;"></th>
+    </tr>
+    <tr>
+        <th style="background: transparent;">Codigo</th>
+        <th style="background: transparent;">Cuenta</th>
+        <th style="background: transparent;">Total</th>
+    </tr>
+
+    {{ range .estadoDeResultados.egresos.categoria }}
+    <tr class="no-page-break-inside">
+        <td align="center">{{ .codigoDeCategoria }}</td>
+        <td class="nowrap left">{{ .nombreDeCategoría }}</td>
+        <td align="center">{{ .totalDeCategoría }}</td>
+    </tr>
+    {{ range .grupo }}
+    {{ if .codigoDeGrupo }}
+    <tr class="no-page-break-inside">
+        <td align="center">{{ .codigoDeGrupo }}</td>
+        <td class="nowrap left" style="padding-left: 20px">{{ .nombreDeGrupo }}</td>
+        <td align="center">{{ .totalDeGrupo }}</td>
+    </tr>
+    {{ end }}
+    {{ range .subgrupo }}
+    <tr class="no-page-break-inside">
+        <td align="center">{{ .codigoDeSubGrupo }}</td>
+        <td class="nowrap left" style="padding-left: 40px">{{ .nombreDeSubGrupo }}</td>
+        <td align="center">{{ .totalDeSubGrupo }}</td>
+    </tr>
+    {{ range .cuenta }}
+    <tr class="no-page-break-inside">
+        <td align="center">{{ .codigoDeCuenta }}</td>
+        <td class="nowrap left" style="padding-left: 60px">{{ .nombreDeCuenta }}</td>
+        <td align="center">{{ .totalDeCuenta }}</td>
+    </tr>
+    {{ range .subcuenta }}
+    <tr class="no-page-break-inside">
+        <td align="center">{{ .codigoDeSubCuenta }}</td>
+        <td class="nowrap left" style="padding-left: 80px">{{ .nombreDeSubCuenta }}</td>
+        <td align="center">{{ .totalDeSubCuenta }}</td>
+    </tr>
+    {{ end }}
+    {{ end }}
+    {{ end }}
+    {{ end }}
+</table>
+
+{{ end }}
+
+<div style="margin:40px"></div>
+<table class="reduced">
+    <tr>
+        <td class="nowrap left" style="font-weight: bold; border-bottom: 2px solid black; border-top: 2px solid black;">Total Ingresos</td>
+        <td align="center" style="font-weight: bold; border-bottom: 2px solid black; border-top: 2px solid black;"></td>
+        <td align="center" style="border-bottom: 2px solid black; border-top: 2px solid black;">{{ .estadoDeResultados.totalIngresos }}</td>
+    </tr>
+
+    <tr>
+        <td class="nowrap left" style="font-weight: bold; border-bottom: 2px solid black; border-top: 2px solid black;">Total Egresos</td>
+        <td align="center" style="font-weight: bold; border-bottom: 2px solid black; border-top: 2px solid black;"></td>
+        <td align="center" style="border-bottom: 2px solid black; border-top: 2px solid black;">{{ .estadoDeResultados.totalEgresos }}</td>
+    </tr>
+
+    <tr>
+        <td class="nowrap left" style="font-weight: bold; border-bottom: 2px solid black; border-top: 2px solid black;">Utilidad</td>
+        <td align="center" style="font-weight: bold; border-bottom: 2px solid black; border-top: 2px solid black;"></td>
+        <td align="center" style="border-bottom: 2px solid black; border-top: 2px solid black;">{{ .estadoDeResultados.utilidad }}</td>
+    </tr>
+</table>
+
+</body>
+</html>

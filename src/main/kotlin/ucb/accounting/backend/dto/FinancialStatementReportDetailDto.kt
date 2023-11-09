@@ -46,3 +46,4 @@ data class Subaccount(
     val subaccountName: String,
     val totalAmountBs: BigDecimal,
 )
+
