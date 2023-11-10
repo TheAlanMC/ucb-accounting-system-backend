@@ -14,6 +14,8 @@ import ucb.accounting.backend.bl.ReportBl
 import ucb.accounting.backend.dto.AttachmentDownloadDto
 import ucb.accounting.backend.dto.ResponseDto
 import ucb.accounting.backend.util.ResponseCodeUtil
+import java.sql.Date
+import java.text.SimpleDateFormat
 
 @RestController
 @RequestMapping("/api/v1/reports")
@@ -24,6 +26,7 @@ class ReportExcelApi @Autowired constructor(
 
     companion object {
         private val logger = LoggerFactory.getLogger(AccountBl::class.java.name)
+        private val formatDate: java.text.DateFormat = SimpleDateFormat("dd-MM-yyyy")
     }
 
     @GetMapping("/journal-books/companies/{companyId}/excel")
@@ -38,6 +41,7 @@ class ReportExcelApi @Autowired constructor(
         val report:ByteArray = reportBl.generateJournalBookByDatesExcel(companyId, dateFrom, dateTo)
         val uploadedReport = fileBl.uploadFile(report, companyId, true)
         val downloadReport = fileBl.downloadFile(uploadedReport.attachmentId, companyId)
+        reportBl.saveReport(companyId, 1, 1, uploadedReport.attachmentId, dateFrom, dateTo, "Reporte de Libro Diario - EXCEL: ${formatDate.format(Date.valueOf(dateFrom))} - ${formatDate.format(Date.valueOf(dateTo))}", false)
         logger.info("Sending response")
         val code = "200-22"
         val responseInfo = ResponseCodeUtil.getResponseInfo(code)
@@ -58,6 +62,7 @@ class ReportExcelApi @Autowired constructor(
         val report:ByteArray = reportBl.generateLedgerAccountReportExcel(companyId, dateFrom, dateTo, subaccountIds)
         val uploadedReport = fileBl.uploadFile(report, companyId, true)
         val downloadReport = fileBl.downloadFile(uploadedReport.attachmentId, companyId)
+        reportBl.saveReport(companyId, 2, 1, uploadedReport.attachmentId, dateFrom, dateTo, "Reporte de Libro Mayor - EXCEL: ${formatDate.format(Date.valueOf(dateFrom))} - ${formatDate.format(Date.valueOf(dateTo))}", false)
         logger.info("Sending response")
         val code = "200-23"
         val responseInfo = ResponseCodeUtil.getResponseInfo(code)
@@ -75,6 +80,7 @@ class ReportExcelApi @Autowired constructor(
         val report: ByteArray = reportBl.generateTrialBalancesReportByDatesExcel(companyId, dateFrom, dateTo)
         val uploadedReport = fileBl.uploadFile(report, companyId, true)
         val downloadReport = fileBl.downloadFile(uploadedReport.attachmentId, companyId)
+        reportBl.saveReport(companyId, 3, 1, uploadedReport.attachmentId, dateFrom, dateTo, "Balance de Sumas y Saldos - EXCEL: ${formatDate.format(Date.valueOf(dateFrom))} - ${formatDate.format(Date.valueOf(dateTo))}", false)
         val code = "200-24"
         val responseInfo = ResponseCodeUtil.getResponseInfo(code)
         return ResponseEntity(ResponseDto(code, responseInfo.message!!, downloadReport), responseInfo.httpStatus)
@@ -91,6 +97,7 @@ class ReportExcelApi @Autowired constructor(
         val report: ByteArray = reportBl.generateWorksheetsReportExcel(companyId, dateFrom, dateTo)
         val uploadedReport = fileBl.uploadFile(report, companyId, true)
         val downloadReport = fileBl.downloadFile(uploadedReport.attachmentId, companyId)
+        reportBl.saveReport(companyId, 4, 1, uploadedReport.attachmentId, dateFrom, dateTo, "Hojas de Trabajo - EXCEL: ${formatDate.format(Date.valueOf(dateFrom))} - ${formatDate.format(Date.valueOf(dateTo))}", false)
         val code = "200-25"
         val responseInfo = ResponseCodeUtil.getResponseInfo(code)
         return ResponseEntity(ResponseDto(code, responseInfo.message!!, downloadReport), responseInfo.httpStatus)

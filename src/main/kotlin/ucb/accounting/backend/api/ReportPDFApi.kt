@@ -17,6 +17,7 @@ import ucb.accounting.backend.dto.GeneratedReportDto
 import ucb.accounting.backend.dto.ResponseDto
 import ucb.accounting.backend.util.ResponseCodeUtil
 import java.sql.Date
+import java.text.SimpleDateFormat
 
 @RestController
 @RequestMapping("/api/v1/reports")
@@ -27,6 +28,7 @@ class ReportPDFApi @Autowired constructor(
 
     companion object {
         private val logger = LoggerFactory.getLogger(AccountBl::class.java.name)
+        private val formatDate: java.text.DateFormat = SimpleDateFormat("dd-MM-yyyy")
     }
 
     @GetMapping("/journal-books/companies/{companyId}/pdf")
@@ -41,7 +43,7 @@ class ReportPDFApi @Autowired constructor(
         val report:ByteArray = reportBl.generateJournalBookByDates(companyId, dateFrom, dateTo)
         val uploadedReport = fileBl.uploadFile(report, companyId)
         val downloadReport = fileBl.downloadFile(uploadedReport.attachmentId, companyId)
-        reportBl.saveReport(companyId, 1, 1, uploadedReport.attachmentId, dateFrom, dateTo, "Journal Book Report", false)
+        reportBl.saveReport(companyId, 1, 1, uploadedReport.attachmentId, dateFrom, dateTo, "Reporte de Libro Diario - PDF: ${formatDate.format(Date.valueOf(dateFrom))} - ${formatDate.format(Date.valueOf(dateTo))}", false)
         logger.info("Sending response")
         val code = "200-22"
         val responseInfo = ResponseCodeUtil.getResponseInfo(code)
@@ -62,7 +64,7 @@ class ReportPDFApi @Autowired constructor(
         val report:ByteArray = reportBl.generateLedgerAccountReport(companyId, dateFrom, dateTo, subaccountIds)
         val uploadedReport = fileBl.uploadFile(report, companyId)
         val downloadReport = fileBl.downloadFile(uploadedReport.attachmentId, companyId)
-        reportBl.saveReport(companyId, 2, 1, uploadedReport.attachmentId, dateFrom, dateTo, "Ledger Account Report", false)
+        reportBl.saveReport(companyId, 2, 1, uploadedReport.attachmentId, dateFrom, dateTo, "Reporte de Libro Mayor - PDF: ${formatDate.format(Date.valueOf(dateFrom))} - ${formatDate.format(Date.valueOf(dateTo))}", false)
         logger.info("Sending response")
         val code = "200-23"
         val responseInfo = ResponseCodeUtil.getResponseInfo(code)
@@ -80,7 +82,7 @@ class ReportPDFApi @Autowired constructor(
         val report: ByteArray = reportBl.generateTrialBalancesReportByDates(companyId, dateFrom, dateTo)
         val uploadedReport = fileBl.uploadFile(report, companyId)
         val downloadReport = fileBl.downloadFile(uploadedReport.attachmentId, companyId)
-        reportBl.saveReport(companyId, 3, 1, uploadedReport.attachmentId, dateFrom, dateTo, "Trial Balance Report", false)
+        reportBl.saveReport(companyId, 3, 1, uploadedReport.attachmentId, dateFrom, dateTo, "Balance de Sumas y Saldos - PDF: ${formatDate.format(Date.valueOf(dateFrom))} - ${formatDate.format(Date.valueOf(dateTo))}", false)
         val code = "200-24"
         val responseInfo = ResponseCodeUtil.getResponseInfo(code)
         return ResponseEntity(ResponseDto(code, responseInfo.message!!, downloadReport), responseInfo.httpStatus)
@@ -97,7 +99,7 @@ class ReportPDFApi @Autowired constructor(
         val report: ByteArray = reportBl.generateWorksheetsReport(companyId, dateFrom, dateTo)
         val uploadedReport = fileBl.uploadFile(report, companyId)
         val downloadReport = fileBl.downloadFile(uploadedReport.attachmentId, companyId)
-        reportBl.saveReport(companyId, 4, 1, uploadedReport.attachmentId, dateFrom, dateTo, "Worksheets Report", false)
+        reportBl.saveReport(companyId, 4, 1, uploadedReport.attachmentId, dateFrom, dateTo, "Hojas de Trabajo - PDF: ${formatDate.format(Date.valueOf(dateFrom))} - ${formatDate.format(Date.valueOf(dateTo))}", false)
         val code = "200-25"
         val responseInfo = ResponseCodeUtil.getResponseInfo(code)
         return ResponseEntity(ResponseDto(code, responseInfo.message!!, downloadReport), responseInfo.httpStatus)
@@ -114,7 +116,7 @@ class ReportPDFApi @Autowired constructor(
         val report: ByteArray = reportBl.generateBalanceSheetReport(companyId, dateFrom, dateTo)
         val uploadedReport = fileBl.uploadFile(report, companyId)
         val downloadReport = fileBl.downloadFile(uploadedReport.attachmentId, companyId)
-        reportBl.saveReport(companyId, 6, 1, uploadedReport.attachmentId, dateFrom, dateTo, "Balance Sheet Report", true)
+        reportBl.saveReport(companyId, 6, 1, uploadedReport.attachmentId, dateFrom, dateTo, "Balance General - PDF: ${formatDate.format(Date.valueOf(dateFrom))} - ${formatDate.format(Date.valueOf(dateTo))}", true)
         val code = "200-27"
         val responseInfo = ResponseCodeUtil.getResponseInfo(code)
         return ResponseEntity(ResponseDto(code, responseInfo.message!!, downloadReport), responseInfo.httpStatus)
@@ -131,7 +133,7 @@ class ReportPDFApi @Autowired constructor(
         val report: ByteArray = reportBl.generateIncomeStatementReport(companyId, dateFrom, dateTo)
         val uploadedReport = fileBl.uploadFile(report, companyId)
         val downloadReport = fileBl.downloadFile(uploadedReport.attachmentId, companyId)
-        reportBl.saveReport(companyId, 5, 1, uploadedReport.attachmentId, dateFrom, dateTo, "Income Statement Report", true)
+        reportBl.saveReport(companyId, 5, 1, uploadedReport.attachmentId, dateFrom, dateTo, "Estado de Resultados - PDF: ${formatDate.format(Date.valueOf(dateFrom))} - ${formatDate.format(Date.valueOf(dateTo))}", true)
         val code = "200-26"
         val responseInfo = ResponseCodeUtil.getResponseInfo(code)
         return ResponseEntity(ResponseDto(code, responseInfo.message!!, downloadReport), responseInfo.httpStatus)
