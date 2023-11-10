@@ -14,6 +14,8 @@
 <h2 align="center" class="unbold-heading">{{ .subtitulo }}</h2>
 <h5 align="center" class="unbold-heading">{{ .fecha }}</h5>
 <h5 align="center" class="unbold-heading">{{ .expresadoEn }}</h5>
+{{ $ingresos := .estadoDeResultados.totalIngresos }}
+{{ $egresos := .estadoDeResultados.totalEgresos }}
 
 <table class="reduced" style="margin-top:3mm; font-size:11pt;">
     <tr>
@@ -63,6 +65,11 @@
     {{ end }}
     {{ end }}
     {{ end }}
+    <tr>
+        <td class="nowrap left" style="font-weight: bold; border-bottom: 2px solid black; border-top: 2px solid black;">Total Ingresos</td>
+        <td align="center" style="font-weight: bold; border-bottom: 2px solid black; border-top: 2px solid black;"></td>
+        <td align="center" style="border-bottom: 2px solid black; border-top: 2px solid black;">{{ $ingresos }} </td>
+    </tr>
 </table>
 {{ end }}
 
@@ -115,12 +122,22 @@
     {{ end }}
     {{ end }}
     {{ end }}
+    <tr>
+        <td class="nowrap left" style="font-weight: bold; border-bottom: 2px solid black; border-top: 2px solid black;">Total Egresos</td>
+        <td align="center" style="font-weight: bold; border-bottom: 2px solid black; border-top: 2px solid black;"></td>
+        <td align="center" style="border-bottom: 2px solid black; border-top: 2px solid black;">{{ $egresos }}</td>
+    </tr>
 </table>
 
 {{ end }}
 
 <div style="margin:40px"></div>
 <table class="reduced">
+    <tr>
+        <th style="border-bottom: 2px solid black; background: transparent;"></th>
+        <th style="border-bottom: 2px solid black; background: transparent; font-size: 13pt;">Resumen</th>
+        <th style="border-bottom: 2px solid black; background: transparent;"></th>
+    </tr>
     <tr>
         <td class="nowrap left" style="font-weight: bold; border-bottom: 2px solid black; border-top: 2px solid black;">Total Ingresos</td>
         <td align="center" style="font-weight: bold; border-bottom: 2px solid black; border-top: 2px solid black;"></td>

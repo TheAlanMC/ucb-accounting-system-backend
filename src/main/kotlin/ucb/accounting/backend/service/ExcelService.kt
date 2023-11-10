@@ -2,6 +2,7 @@ package ucb.accounting.backend.service
 
 import org.apache.poi.ss.usermodel.*
 import org.apache.poi.ss.util.CellRangeAddress
+import org.apache.poi.xssf.streaming.SXSSFWorkbook
 import org.apache.poi.xssf.usermodel.XSSFCellStyle
 import org.apache.poi.xssf.usermodel.XSSFWorkbook
 import org.springframework.stereotype.Service
@@ -35,7 +36,7 @@ class ExcelService(private val sheetName: String = "Sheet1") {
             val cell = headerRow.createCell(index)
             cell.setCellValue(header)
             cell.cellStyle = headerStyle // Apply header style
-            sheet.autoSizeColumn(index)
+//            sheet.autoSizeColumn(index)
         }
     }
 
@@ -105,12 +106,21 @@ class ExcelService(private val sheetName: String = "Sheet1") {
                     cell.cellStyle = currencyStyle // Apply currency style
                 }
             }
-            sheet.autoSizeColumn(index)
+//            sheet.autoSizeColumn(index)
         }
     }
 
+
+    fun autoSizeColumns() {
+        for (columnIndex in 0..sheet.getRow(0).lastCellNum) {
+            sheet.autoSizeColumn(columnIndex)
+        }
+    }
+
+
     fun toByteArray(): ByteArray {
         return try {
+            this.autoSizeColumns()
             val outputStream = ByteArrayOutputStream()
             workbook.write(outputStream)
             workbook.close()
@@ -123,6 +133,7 @@ class ExcelService(private val sheetName: String = "Sheet1") {
 
     fun save(filePath: String) {
         try {
+            this.autoSizeColumns()
             FileOutputStream(filePath).use { fileOut ->
                 workbook.write(fileOut)
                 workbook.close()

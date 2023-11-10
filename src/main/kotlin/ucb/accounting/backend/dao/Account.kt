@@ -49,5 +49,5 @@ class Account {
     var company: Company? = null
 
     @OneToMany(mappedBy = "account")
-    var accountSubaccounts: List<Subaccount>? = null
+    var subaccounts: List<Subaccount>? = null
 }

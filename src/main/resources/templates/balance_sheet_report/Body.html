@@ -14,7 +14,10 @@
 	<h2 align="center" class="unbold-heading">{{ .subtitulo }}</h2>
 	<h5 align="center" class="unbold-heading">{{ .fecha }}</h5>
 	<h5 align="center" class="unbold-heading">{{ .expresadoEn }}</h5>
-	 
+    {{ $activos := .balanceGeneral.totalActivo }}
+    {{ $pasivos := .balanceGeneral.totalPasivo }}
+    {{ $patrimonio := .balanceGeneral.totalPatrimonio }}
+
 	<table class="reduced" style="margin-top:3mm; font-size:11pt;">
     <tr>
         <th style="border-bottom: 2px solid black; background: transparent;"></th>
@@ -62,18 +65,15 @@
         {{ end }}
         {{ end }}
         {{ end }}
-    {{ end }}
-    {{ end }}
-	</table>
-
-    <table class="reduced">
+        {{ end }}
         <tr>
             <td class="nowrap left" style="font-weight: bold; border-bottom: 2px solid black; border-top: 2px solid black;">Total Activo</td>
             <td align="center" style="font-weight: bold; border-bottom: 2px solid black; border-top: 2px solid black;"></td>
-            <td align="center" style="border-bottom: 2px solid black; border-top: 2px solid black;">{{ .balanceGeneral.totalActivo }}</td>
+            <td align="center" style="border-bottom: 2px solid black; border-top: 2px solid black;">{{ $activos }}</td>
         </tr>
-    </table>
-	
+	</table>
+    {{ end }}
+
 	<div style="margin:40px"></div>
 
 	<table class="reduced" style="margin-top:3mm; font-size:11pt;">
@@ -123,9 +123,14 @@
         {{ end }}
         {{ end }}
         {{ end }}
-    {{ end }}
-    {{ end }}
+        {{ end }}
+        <tr>
+            <td class="nowrap left" style="font-weight: bold; border-bottom: 2px solid black; border-top: 2px solid black;">Total Pasivo</td>
+            <td align="center" style="font-weight: bold; border-bottom: 2px solid black; border-top: 2px solid black;"></td>
+            <td align="center" style="border-bottom: 2px solid black; border-top: 2px solid black;">{{ $pasivos }}</td>
+        </tr>
 	</table>
+    {{ end }}
 
 	<div style="margin:40px"></div>
 	<table class="reduced" style="margin-top:3mm; font-size:11pt;">
@@ -175,17 +180,33 @@
         {{ end }}
         {{ end }}
         {{ end }}
-    {{ end }}
-    {{ end }}
+        {{ end }}
+        <tr>
+            <td class="nowrap left" style="font-weight: bold; border-bottom: 2px solid black; border-top: 2px solid black;">Total Patrimonio</td>
+            <td align="center" style="font-weight: bold; border-bottom: 2px solid black; border-top: 2px solid black;"></td>
+            <td align="center" style="border-bottom: 2px solid black; border-top: 2px solid black;">{{ $patrimonio }}</td>
+        </tr>
 	</table>
+    {{ end }}
 
-	<div style="margin:40px"></div>
-	<table class="reduced">
-		<tr>
-			<td class="nowrap left" style="font-weight: bold; border-bottom: 2px solid black; border-top: 2px solid black;">Total pasivo + patrimonio</td>
-			<td align="center" style="font-weight: bold; border-bottom: 2px solid black; border-top: 2px solid black;"></td>
-			<td align="center" style="border-bottom: 2px solid black; border-top: 2px solid black;">{{ .balanceGeneral.totalPasivoyPatrimonio }}</td>
-		</tr>
-	</table>
+    <div style="margin:40px"></div>
+    <table class="reduced">
+        <tr>
+            <th style="border-bottom: 2px solid black; background: transparent;"></th>
+            <th style="border-bottom: 2px solid black; background: transparent; font-size: 13pt;">Resumen</th>
+            <th style="border-bottom: 2px solid black; background: transparent;"></th>
+        </tr>
+        <tr>
+            <td class="nowrap left" style="font-weight: bold; border-bottom: 2px solid black; border-top: 2px solid black;">Total Activo</td>
+            <td align="center" style="font-weight: bold; border-bottom: 2px solid black; border-top: 2px solid black;"></td>
+            <td align="center" style="border-bottom: 2px solid black; border-top: 2px solid black;">{{ .balanceGeneral.totalActivo }}</td>
+        </tr>
+
+        <tr>
+            <td class="nowrap left" style="font-weight: bold; border-bottom: 2px solid black; border-top: 2px solid black;">Total Pasivo y Patrimonio</td>
+            <td align="center" style="font-weight: bold; border-bottom: 2px solid black; border-top: 2px solid black;"></td>
+            <td align="center" style="border-bottom: 2px solid black; border-top: 2px solid black;">{{ .balanceGeneral.totalPasivoyPatrimonio }}</td>
+        </tr>
+    </table>
 </body>
 </html> 

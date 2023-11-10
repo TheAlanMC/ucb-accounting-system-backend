@@ -9,4 +9,6 @@ interface AccountGroupRepository: JpaRepository<AccountGroup, Long> {
     fun findAllByCompanyIdAndAccountCategoryIdAndStatusIsTrueOrderByAccountGroupIdAsc (companyId: Int, accountCategoryId: Int): List<AccountGroup>
     fun findByAccountGroupIdAndStatusIsTrue(id: Long): AccountGroup?
 
+    fun findFirstByCompanyIdAndAccountGroupNameAndStatusIsTrue (companyId: Int, accountGroupName: String): AccountGroup?
+
 }

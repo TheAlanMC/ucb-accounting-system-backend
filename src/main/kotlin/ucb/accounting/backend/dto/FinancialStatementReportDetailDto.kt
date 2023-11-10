@@ -5,23 +5,23 @@ import java.math.BigDecimal
 data class FinancialStatementReportDetailDto (
     val accountCategory: AccountCategory,
     val description: String,
-    val totalAmountBs: BigDecimal,
+    var totalAmountBs: BigDecimal,
 )
 
 data class AccountCategory (
     val accountCategoryId: Long,
     val accountCategoryCode: Int,
     val accountCategoryName: String,
-    val accountGroups: List<AccountGroup>,
-    val totalAmountBs: BigDecimal,
+    var accountGroups: List<AccountGroup>,
+    var totalAmountBs: BigDecimal,
 )
 
 data class AccountGroup(
     val accountGroupId: Long,
     val accountGroupCode: Int,
     val accountGroupName: String,
-    val accountSubgroups: List<AccountSubgroup>,
-    val totalAmountBs: BigDecimal,
+    var accountSubgroups: List<AccountSubgroup>,
+    var totalAmountBs: BigDecimal,
 )
 
 data class AccountSubgroup(
@@ -29,7 +29,7 @@ data class AccountSubgroup(
     val accountSubgroupCode: Int,
     val accountSubgroupName: String,
     val accounts: List<Account>,
-    val totalAmountBs: BigDecimal,
+    var totalAmountBs: BigDecimal,
 )
 
 data class Account(
@@ -37,13 +37,13 @@ data class Account(
     val accountCode: Int,
     val accountName: String,
     val subaccounts: List<Subaccount>,
-    val totalAmountBs: BigDecimal,
+    var totalAmountBs: BigDecimal,
 )
 
 data class Subaccount(
     val subaccountId: Long,
     val subaccountCode: Int,
     val subaccountName: String,
-    val totalAmountBs: BigDecimal,
+    var totalAmountBs: BigDecimal,
 )
 
