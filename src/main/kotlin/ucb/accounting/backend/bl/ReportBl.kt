@@ -1184,33 +1184,71 @@ class ReportBl @Autowired constructor(
 
         val balanceSheetReportDetailDto: List<FinancialStatementReportDetailDto> = getFinancialStatement(companyId, newDateFrom, newDateTo, accountCategoryNames, descriptions)
         val accountSubgroupEntity = accountSubgroupRepository.findFirstByCompanyIdAndAccountSubgroupNameAndStatusIsTrue (companyId.toInt(), "RESULTADOS DE GESTION")
-        val currentSubgroups = balanceSheetReportDetailDto[2].accountCategory.accountGroups.first().accountSubgroups
-
-        val utilities =  balanceSheetReportDetailDto[0].totalAmountBs - balanceSheetReportDetailDto[1].totalAmountBs - balanceSheetReportDetailDto[2].totalAmountBs
-
-        val resultAccountSubgroup: AccountSubgroup = AccountSubgroup(
-            accountSubgroupId = accountSubgroupEntity!!.accountSubgroupId,
-            accountSubgroupCode = accountSubgroupEntity.accountSubgroupCode,
-            accountSubgroupName = accountSubgroupEntity.accountSubgroupName,
-            accounts = listOf(Account(
-                accountId = accountSubgroupEntity.accounts!!.first().accountId,
-                accountCode = accountSubgroupEntity.accounts!!.first().accountCode,
-                accountName = accountSubgroupEntity.accounts!!.first().accountName,
-                subaccounts = listOf(Subaccount(
-                    subaccountId = accountSubgroupEntity.accounts!!.first().subaccounts!!.first().subaccountId,
-                    subaccountCode = accountSubgroupEntity.accounts!!.first().subaccounts!!.first().subaccountCode,
-                    subaccountName = accountSubgroupEntity.accounts!!.first().subaccounts!!.first().subaccountName,
-                    totalAmountBs = utilities
-                )),
+        val utilities = balanceSheetReportDetailDto[0].totalAmountBs - balanceSheetReportDetailDto[1].totalAmountBs - balanceSheetReportDetailDto[2].totalAmountBs
+        if (balanceSheetReportDetailDto[2].accountCategory.accountGroups.isNotEmpty()) {
+            val currentSubgroups = balanceSheetReportDetailDto[2].accountCategory.accountGroups.first().accountSubgroups
+            val resultAccountSubgroup: AccountSubgroup = AccountSubgroup(
+                accountSubgroupId = accountSubgroupEntity!!.accountSubgroupId,
+                accountSubgroupCode = accountSubgroupEntity.accountSubgroupCode,
+                accountSubgroupName = accountSubgroupEntity.accountSubgroupName,
+                accounts = listOf(
+                    Account(
+                        accountId = accountSubgroupEntity.accounts!!.first().accountId,
+                        accountCode = accountSubgroupEntity.accounts!!.first().accountCode,
+                        accountName = accountSubgroupEntity.accounts!!.first().accountName,
+                        subaccounts = listOf(
+                            Subaccount(
+                                subaccountId = accountSubgroupEntity.accounts!!.first().subaccounts!!.first().subaccountId,
+                                subaccountCode = accountSubgroupEntity.accounts!!.first().subaccounts!!.first().subaccountCode,
+                                subaccountName = accountSubgroupEntity.accounts!!.first().subaccounts!!.first().subaccountName,
+                                totalAmountBs = utilities
+                            )
+                        ),
+                        totalAmountBs = utilities
+                    )
+                ),
                 totalAmountBs = utilities
-            )),
-            totalAmountBs = utilities
-        )
-        balanceSheetReportDetailDto[2].totalAmountBs = utilities + currentSubgroups.sumOf { it.totalAmountBs }
-        balanceSheetReportDetailDto[2].accountCategory.totalAmountBs = utilities + currentSubgroups.sumOf { it.totalAmountBs }
-        balanceSheetReportDetailDto[2].accountCategory.accountGroups.first().totalAmountBs = utilities + currentSubgroups.sumOf { it.totalAmountBs }
-        balanceSheetReportDetailDto[2].accountCategory.accountGroups.first().accountSubgroups = currentSubgroups + resultAccountSubgroup
-
+            )
+            balanceSheetReportDetailDto[2].totalAmountBs = utilities + currentSubgroups.sumOf { it.totalAmountBs }
+            balanceSheetReportDetailDto[2].accountCategory.totalAmountBs = utilities + currentSubgroups.sumOf { it.totalAmountBs }
+            balanceSheetReportDetailDto[2].accountCategory.accountGroups.first().totalAmountBs = utilities + currentSubgroups.sumOf { it.totalAmountBs }
+            balanceSheetReportDetailDto[2].accountCategory.accountGroups.first().accountSubgroups = currentSubgroups + resultAccountSubgroup
+        } else {
+            val accountGroupEntity = accountGroupRepository.findFirstByCompanyIdAndAccountGroupNameAndStatusIsTrue(companyId.toInt(), "PATRIMONIO")
+            val resultAccountGroup: AccountGroup = AccountGroup(
+                accountGroupId = accountGroupEntity!!.accountGroupId,
+                accountGroupCode = accountGroupEntity.accountGroupCode,
+                accountGroupName = accountGroupEntity.accountGroupName,
+                accountSubgroups = listOf (
+                    AccountSubgroup(
+                        accountSubgroupId = accountSubgroupEntity!!.accountSubgroupId,
+                        accountSubgroupCode = accountSubgroupEntity.accountSubgroupCode,
+                        accountSubgroupName = accountSubgroupEntity.accountSubgroupName,
+                        accounts = listOf(
+                            Account(
+                                accountId = accountSubgroupEntity.accounts!!.first().accountId,
+                                accountCode = accountSubgroupEntity.accounts!!.first().accountCode,
+                                accountName = accountSubgroupEntity.accounts!!.first().accountName,
+                                subaccounts = listOf(
+                                    Subaccount(
+                                        subaccountId = accountSubgroupEntity.accounts!!.first().subaccounts!!.first().subaccountId,
+                                        subaccountCode = accountSubgroupEntity.accounts!!.first().subaccounts!!.first().subaccountCode,
+                                        subaccountName = accountSubgroupEntity.accounts!!.first().subaccounts!!.first().subaccountName,
+                                        totalAmountBs = utilities
+                                    )
+                                ),
+                                totalAmountBs = utilities
+                            )
+                        ),
+                        totalAmountBs = utilities
+                    )
+                ),
+                totalAmountBs = utilities
+            )
+            balanceSheetReportDetailDto[2].totalAmountBs = utilities
+            balanceSheetReportDetailDto[2].accountCategory.totalAmountBs = utilities
+            balanceSheetReportDetailDto[2].accountCategory.accountGroups = listOf(resultAccountGroup)
+        }
 
         val balanceSheetReport: MutableMap<String, Any> = HashMap()
 
