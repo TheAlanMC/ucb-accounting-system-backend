@@ -29,5 +29,36 @@ interface SaleTransactionRepository: PagingAndSortingRepository<SaleTransaction,
 
     fun findByJournalEntryIdAndStatusIsTrue(journalEntryId: Int): SaleTransaction?
 
+    @Query(value = """
+        SELECT  s.subaccount_name as name,
+        SUM((std.quantity * std.unit_price_bs) + std.amount_bs) AS total
+    FROM sale_transaction st
+    JOIN subaccount s ON s.subaccount_id = st.subaccount_id
+    JOIN sale_transaction_detail std ON std.sale_transaction_id = st.sale_transaction_id
+    WHERE st.company_id = :companyId
+    AND (st.sale_transaction_date BETWEEN :dateFrom AND :dateTo OR CAST(:dateFrom AS DATE) IS NULL OR CAST(:dateTo AS DATE) IS NULL)
+    GROUP BY s.subaccount_name
+    ORDER BY total DESC
+    """, nativeQuery = true)
+    fun countSalesByClients(@Param ("companyId") companyId: Int,
+                            @Param ("dateFrom") dateFrom: Date?,
+                            @Param ("dateTo") dateTo: Date?): List<Map<String, Any>>
+
+    @Query(value = """
+        SELECT  s.subaccount_name as name,
+        SUM((std.quantity * std.unit_price_bs) + std.amount_bs) AS total
+    FROM sale_transaction st
+    JOIN sale_transaction_detail std ON std.sale_transaction_id = st.sale_transaction_id
+    JOIN subaccount s ON s.subaccount_id = std.subaccount_id
+    WHERE st.company_id = :companyId
+    AND (st.sale_transaction_date BETWEEN :dateFrom AND :dateTo OR CAST(:dateFrom AS DATE) IS NULL OR CAST(:dateTo AS DATE) IS NULL)
+    GROUP BY s.subaccount_name
+    ORDER BY total DESC
+    LIMIT 10;
+    """, nativeQuery = true)
+    fun countSalesBySubaccounts(@Param ("companyId") companyId: Int,
+                                @Param ("dateFrom") dateFrom: Date?,
+                                @Param ("dateTo") dateTo: Date?): List<Map<String, Any>>
+
 }
 

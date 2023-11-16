@@ -1,5 +1,6 @@
 package ucb.accounting.backend.bl
 
+import com.fasterxml.jackson.databind.deser.std.DateDeserializers.SqlDateDeserializer
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
@@ -103,7 +104,7 @@ class OpeningBalanceBl @Autowired constructor(
 
     fun createOpeningBalance(
         companyId: Long,
-        openingBalance: List<FinancialStatementReportDetailDto>
+        openingBalance: OpeningBalanceDto
     ) {
         logger.info("Creating opening balance")
         // Validation of company
@@ -125,7 +126,7 @@ class OpeningBalanceBl @Autowired constructor(
         var totalAmountEquity = BigDecimal(0.00)
 
         // Validation that subaccounts IDs exist
-        openingBalance.map {
+        openingBalance.financialStatementReports.map {
             val subaccounts =
                 it.accountCategory.accountGroups.flatMap { accountGroups -> accountGroups.accountSubgroups.flatMap { accountSubgroups -> accountSubgroups.accounts.flatMap { accounts -> accounts.subaccounts } } }
             subaccounts.map { subaccount ->
@@ -163,11 +164,12 @@ class OpeningBalanceBl @Autowired constructor(
 
         val transactionEntity = Transaction()
         transactionEntity.journalEntryId = savedJournalEntry.journalEntryId.toInt()
+        transactionEntity.transactionDate = java.sql.Date(openingBalance.openingBalanceDate.time)
         transactionEntity.description = "Asiento de apertura"
         val savedTransaction = transactionRepository.save(transactionEntity)
 
         logger.info("Saving transaction details")
-        openingBalance.map {
+        openingBalance.financialStatementReports.map {
             val subaccounts =
                 it.accountCategory.accountGroups.flatMap { accountGroups -> accountGroups.accountSubgroups.flatMap { accountSubgroups -> accountSubgroups.accounts.flatMap { accounts -> accounts.subaccounts } } }
             if (it.accountCategory.accountCategoryName == "ACTIVO") {

@@ -9,4 +9,7 @@ interface AccountCategoryRepository: JpaRepository<AccountCategory, Long> {
 
     fun findByAccountCategoryIdAndStatusIsTrue (accountCategoryId: Long): AccountCategory?
     fun findAllByStatusIsTrueOrderByAccountCategoryIdAsc (): List<AccountCategory>
+
+    fun findByAccountCategoryNameAndStatusIsTrue (accountCategoryName: String): AccountCategory?
+
 }

@@ -8,6 +8,7 @@ import ucb.accounting.backend.bl.DocumentTypeBl
 import ucb.accounting.backend.bl.OpeningBalanceBl
 import ucb.accounting.backend.dto.DocumentTypeDto
 import ucb.accounting.backend.dto.FinancialStatementReportDetailDto
+import ucb.accounting.backend.dto.OpeningBalanceDto
 import ucb.accounting.backend.dto.ResponseDto
 import ucb.accounting.backend.util.ResponseCodeUtil
 
@@ -36,7 +37,7 @@ class OpeningBalanceApi @Autowired constructor(private val openingBalanceBl: Ope
     @PostMapping("/companies/{companyId}")
     fun createOpeningBalance(
         @PathVariable("companyId") companyId: Long,
-        @RequestBody openingBalance: List<FinancialStatementReportDetailDto>,
+        @RequestBody openingBalance: OpeningBalanceDto
         ): ResponseEntity<ResponseDto<Nothing>> {
         logger.info("Starting the API call to create opening balances")
         logger.info("POST /api/v1/opening-balances")
