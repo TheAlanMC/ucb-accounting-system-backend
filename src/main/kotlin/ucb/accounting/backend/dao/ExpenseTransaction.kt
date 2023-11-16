@@ -1,7 +1,10 @@
 package ucb.accounting.backend.dao
 
+import org.hibernate.annotations.Generated
+import org.hibernate.annotations.GenerationTime
 import ucb.accounting.backend.util.HttpUtil
 import ucb.accounting.backend.util.KeycloakSecurityContextHolder
+import java.math.BigDecimal
 import java.sql.Date
 import java.sql.Timestamp
 import javax.persistence.*
@@ -13,6 +16,12 @@ class ExpenseTransaction {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "expense_transaction_id")
     var expenseTransactionId: Long = 0
+
+    @Column(name = "transaction_type_id")
+    var transactionTypeId: Int = 0
+
+    @Column(name = "payment_type_id")
+    var paymentTypeId: Int = 0
 
     @Column(name = "journal_entry_id")
     var journalEntryId: Int = 0
@@ -28,6 +37,9 @@ class ExpenseTransaction {
 
     @Column(name = "expense_transaction_number")
     var expenseTransactionNumber: Int = 0
+
+    @Column(name = "expense_transaction_reference")
+    var expenseTransactionReference: String = ""
 
     @Column(name = "expense_transaction_date")
     var expenseTransactionDate: Date = Date(System.currentTimeMillis())
@@ -52,6 +64,14 @@ class ExpenseTransaction {
 
     @Column(name = "tx_host")
     var txHost: String = HttpUtil.getRequestHost() ?: "localhost"
+
+    @ManyToOne
+    @JoinColumn(name = "transaction_type_id", insertable = false, updatable = false)
+    var transactionType: TransactionType? = null
+
+    @ManyToOne
+    @JoinColumn(name = "payment_type_id", insertable = false, updatable = false)
+    var paymentType: PaymentType? = null
 
     @ManyToOne
     @JoinColumn(name = "supplier_id", insertable = false, updatable = false)

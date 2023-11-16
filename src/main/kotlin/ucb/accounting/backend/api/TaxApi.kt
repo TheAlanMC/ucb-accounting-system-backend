@@ -57,5 +57,45 @@ class TaxApi @Autowired constructor(private val taxBl: TaxBl) {
         return ResponseEntity(ResponseDto(code, responseInfo.message!!, subaccountTaxTypes), responseInfo.httpStatus)
     }
 
-}
+    @PutMapping("/companies/{companyId}")
+    fun updateSubaccountTaxTypeRate(
+        @PathVariable("companyId") companyId: Long,
+        @RequestBody subaccountTaxTypeDto: SubaccountTaxTypeDto
+    ): ResponseEntity<ResponseDto<TaxTypeDto>> {
+        logger.info("Starting the API call to update subaccount associated with tax type")
+        logger.info("PUT /api/v1/taxes/companies/$companyId")
+        taxBl.updateSubaccountTaxTypeRate(companyId, subaccountTaxTypeDto)
+        val code = "200-45"
+        val responseInfo = ResponseCodeUtil.getResponseInfo(code)
+        logger.info("Code: $code - ${responseInfo.message}")
+        return ResponseEntity(ResponseDto(code, responseInfo.message!!, null), responseInfo.httpStatus)
+    }
 
+    @GetMapping("sales/companies/{companyId}")
+    fun getSaleTaxTypes(
+        @PathVariable("companyId") companyId: Long,
+    ): ResponseEntity<ResponseDto<List<TaxTypeDto>>> {
+        logger.info("Starting the API call to get sales tax")
+        logger.info("GET /api/v1/taxes/sales")
+        val taxTypes: List<TaxTypeDto> = taxBl.getSaleTaxType(companyId)
+        logger.info("Sending response")
+        val code = "200-46"
+        val responseInfo = ResponseCodeUtil.getResponseInfo(code)
+        logger.info("Code: $code - ${responseInfo.message}")
+        return ResponseEntity(ResponseDto(code, responseInfo.message!!, taxTypes), responseInfo.httpStatus)
+    }
+
+    @GetMapping("expenses/companies/{companyId}")
+    fun getExpenseTaxTypes(
+        @PathVariable("companyId") companyId: Long,
+    ): ResponseEntity<ResponseDto<List<TaxTypeDto>>> {
+        logger.info("Starting the API call to get expense tax")
+        logger.info("GET /api/v1/taxes/expenses")
+        val taxTypes: List<TaxTypeDto> = taxBl.getExpenseTaxType(companyId)
+        logger.info("Sending response")
+        val code = "200-47"
+        val responseInfo = ResponseCodeUtil.getResponseInfo(code)
+        logger.info("Code: $code - ${responseInfo.message}")
+        return ResponseEntity(ResponseDto(code, responseInfo.message!!, taxTypes), responseInfo.httpStatus)
+    }
+}

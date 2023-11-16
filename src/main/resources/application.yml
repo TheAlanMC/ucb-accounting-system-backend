@@ -31,6 +31,9 @@ minio:
 
 frontend-client-id: ${FRONTEND_KEYCLOAK_CLIENT_ID:uas-frontend}
 
+pdf-turtle:
+  url: ${PDF_TURTLE_SERVER_URI:http://localhost:8000}
+
 keycloak:
   auth-server-url: ${KEYCLOAK_SERVER_URI:http://localhost:8090}
   autodetect-bearer-only: true
@@ -74,7 +77,7 @@ keycloak:
       security-collections:
         - name: Profile Picture Upload
           patterns:
-            - /api/v1/files/pictures/*
+            - /api/v1/files/pictures
           methods:
             - POST
 # Company Api
@@ -122,6 +125,8 @@ keycloak:
             - /api/v1/sale-transactions/*
             - /api/v1/expense-transactions/*
             - /api/v1/taxes/*
+            - /api/v1/payment-types
+            - /api/v1/transaction-types
           methods:
             - GET
             - POST
@@ -131,16 +136,17 @@ keycloak:
         - journal-entry-recorder
         - journal-entry-recorder-assistant
       security-collections:
-        - name: Attachment POST
+        - name: Attachment Upload and Download
           patterns:
             - /api/v1/files/attachments/*
           methods:
             - POST
+            - GET
 # Journal Entry Api
     - auth-roles:
         - journal-entry-recorder
       security-collections:
-        - name: Journal Entry POST
+        - name: Journal Entry CRUD
           patterns:
             - /api/v1/partners/*
             - /api/v1/document-types
@@ -148,4 +154,43 @@ keycloak:
           methods:
             - POST
             - GET
-
+            - PUT
+# Report Api
+    - auth-roles:
+        - report-generator
+      security-collections:
+        - name: Report
+          patterns:
+            - /api/v1/reports/*
+          methods:
+            - GET
+    - auth-roles:
+        - report-generator
+      security-collections:
+        - name: Report
+          patterns:
+            - /api/v1/report/*
+          methods:
+            - GET
+# Opening Balance Api
+    - auth-roles:
+        - journal-entry-recorder
+      security-collections:
+        - name: Opening Balance CRUD
+          patterns:
+            - /api/v1/opening-balances/*
+          methods:
+            - POST
+            - GET
+            - PUT
+# Dashboard Api
+    - auth-roles:
+        - common-user
+      security-collections:
+        - name: Dashboard
+          patterns:
+            - /api/v1/expense-dashboards/*
+            - /api/v1/sale-dashboards/*
+            - /api/v1/expense-sale-dashboards/*
+          methods:
+            - GET

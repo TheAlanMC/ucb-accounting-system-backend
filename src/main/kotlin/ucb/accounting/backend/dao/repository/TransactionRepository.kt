@@ -5,4 +5,6 @@ import org.springframework.stereotype.Repository
 import ucb.accounting.backend.dao.Transaction
 
 @Repository
-interface TransactionRepository : JpaRepository<Transaction, Long>
+interface TransactionRepository : JpaRepository<Transaction, Long> {
+    fun findByJournalEntryIdAndStatusIsTrue(journalEntryId: Long): Transaction?
+}

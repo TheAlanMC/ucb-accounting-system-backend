@@ -15,6 +15,8 @@ import java.util.*
 class MinioService @Autowired constructor(
     private val minioClient: MinioClient
 ) {
+    @Value("\${minio.url}")
+    private lateinit var minioUrl: String
 
     fun uploadFile(file: MultipartFile, bucket: String): NewFileDto {
         // file name
@@ -33,6 +35,8 @@ class MinioService @Autowired constructor(
     }
 
     fun getPreSignedUrl(bucket: String, filename: String): String {
+        if (bucket == "pictures")
+            return "$minioUrl/$bucket/$filename"
         return minioClient.getPresignedObjectUrl(
             GetPresignedObjectUrlArgs.builder()
                 .method(Method.GET)

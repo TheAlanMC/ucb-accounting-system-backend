@@ -14,14 +14,14 @@ class CorsConfig {
         val corsConfiguration = CorsConfiguration()
         corsConfiguration.allowCredentials = false
         corsConfiguration.allowedOrigins = listOf("*")
-//        corsConfiguration.allowedOrigins = listOf(
-//            "http://localhosts:4200",
-//            "http://uas-frontend:4200",
-//            "http://68.183.126.58:4200",
-//            "http://localhost",
-//            "http://uas-frontend",
-//            "http://68.183.126.58",
-//            )
+        corsConfiguration.allowedOrigins = listOf(
+            "http://localhost:4200",
+            "http://uas-frontend:4200",
+            "http://167.99.144.135:4200",
+            "http://localhost",
+            "http://uas-frontend",
+            "http://167.99.144.135",
+            )
         corsConfiguration.allowedHeaders=listOf(
             "Origin",
             "Access-Control-Allow-Origin",

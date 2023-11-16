@@ -65,7 +65,7 @@ public class SwaggerConfig {
         return ret;
     }
 
-    private List<? extends SecurityScheme> buildSecurityScheme() {
+    private List<SecurityScheme> buildSecurityScheme() {
         List<SecurityScheme> lst = new ArrayList<>();
         List<GrantType> gTypes = new ArrayList<>();
         TokenRequestEndpoint tokenRequest = new TokenRequestEndpointBuilder().url(AUTH_SERVER + "/realms/" + REALM + "/protocol/openid-connect/auth").build();

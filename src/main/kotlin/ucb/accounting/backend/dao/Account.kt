@@ -25,6 +25,9 @@ class Account {
     @Column(name = "account_name")
     var accountName: String = ""
 
+    @Column(name = "is_editable")
+    var isEditable: Boolean = true
+
     @Column(name = "status")
     var status: Boolean = true
 
@@ -46,5 +49,5 @@ class Account {
     var company: Company? = null
 
     @OneToMany(mappedBy = "account")
-    var accountSubaccounts: List<Subaccount>? = null
+    var subaccounts: List<Subaccount>? = null
 }

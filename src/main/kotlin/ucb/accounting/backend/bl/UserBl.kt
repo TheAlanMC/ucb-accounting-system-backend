@@ -10,11 +10,14 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
+import org.springframework.data.domain.*
+import org.springframework.data.jpa.domain.Specification
 import org.springframework.stereotype.Service
 import ucb.accounting.backend.dao.KcUser
 import ucb.accounting.backend.dao.KcUserCompany
 import ucb.accounting.backend.dao.S3Object
 import ucb.accounting.backend.dao.repository.*
+import ucb.accounting.backend.dao.specification.KcUserCompanySpecification
 import ucb.accounting.backend.dto.*
 import ucb.accounting.backend.exception.UasException
 import ucb.accounting.backend.mapper.KcUserCompanyMapper
@@ -52,13 +55,6 @@ class UserBl @Autowired constructor(
         // Validation that the user exists
         val kcUserEntity: KcUser = kcUserRepository.findByKcUuidAndStatusIsTrue(kcUuid) ?: throw UasException("404-01")
 
-        // Get user info from keycloak
-        val user: UserRepresentation = keycloak
-            .realm(realm)
-            .users()
-            .get(kcUuid)
-            .toRepresentation()
-
         // Get s3 object
         val s3ObjectEntity: S3Object = s3ObjectRepository.findByS3ObjectIdAndStatusIsTrue(kcUserEntity.s3ProfilePicture.toLong())?: throw UasException("404-13")
         val preSignedUrl: String = minioService.getPreSignedUrl(s3ObjectEntity.bucket, s3ObjectEntity.filename)
@@ -66,15 +62,22 @@ class UserBl @Autowired constructor(
         // Return user info
         return UserDto(
             companyIds = findUserCompanies(kcUuid),
-            firstName = user.firstName,
-            lastName = user.lastName,
-            email = user.email,
+            firstName = kcUserEntity.firstName,
+            lastName = kcUserEntity.lastName,
+            email = kcUserEntity.email,
             s3ProfilePictureId = kcUserEntity.s3ProfilePicture.toLong(),
             profilePicture = preSignedUrl,
         )
     }
 
-    fun findAllUsersByCompanyId(companyId: Long): List<UserPartialDto> {
+    fun findAllUsersByCompanyId(
+        companyId: Long,
+        sortBy: String,
+        sortType: String,
+        page: Int,
+        size: Int,
+        keyword: String?
+    ): Page<UserPartialDto> {
         logger.info("Getting all users by company id")
         // Validation that the company exists
         companyRepository.findByCompanyIdAndStatusIsTrue(companyId)?: throw UasException("404-05")
@@ -84,23 +87,29 @@ class UserBl @Autowired constructor(
         kcUserCompanyRepository.findAllByKcUser_KcUuidAndCompany_CompanyIdAndStatusIsTrue(kcUuid, companyId) ?: throw UasException("403-01")
         logger.info("User $kcUuid is getting all users from company $companyId")
 
-        // Get all users from company
-        val userCompanyEntities: List<KcUserCompany> = kcUserCompanyRepository.findAllByCompany_CompanyIdAndStatusIsTrue(companyId)
+        val pageable: Pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.fromString(sortType), sortBy))
+        var specification: Specification<KcUserCompany> = Specification.where(null)
+        specification = specification.and(specification.and(KcUserCompanySpecification.companyId(companyId.toInt())))
+        specification = specification.and(specification.and(KcUserCompanySpecification.statusIsTrue()))
 
-        val users: List<UserPartialDto> = userCompanyEntities.map { val user: UserRepresentation = keycloak
-            .realm(realm)
-            .users()
-            .get(it.kcUser!!.kcUuid)
-            .toRepresentation()
+        if (!keyword.isNullOrEmpty() && keyword.isNotBlank()) {
+            specification = specification.and(specification.and(KcUserCompanySpecification.kcUserKeyword(keyword)))
+        }
+        
+        // Get all users from company
+        val userCompanyEntities: Page<KcUserCompany> = kcUserCompanyRepository.findAll(specification, pageable)
+
+        val users: List<UserPartialDto> = userCompanyEntities.content.map {
             UserPartialDto(
                 kcGroupName = it.kcGroup!!.groupName,
-                firstName = user.firstName,
-                lastName = user.lastName,
-                email = user.email,
-                creationDate = Date(user.createdTimestamp),
+                firstName = it.kcUser!!.firstName,
+                lastName = it.kcUser!!.lastName,
+                email = it.kcUser!!.email,
+                creationDate = Date(it.kcUser!!.txDate.time)
             )
         }
-        return users
+
+        return PageImpl(users, pageable, userCompanyEntities.totalElements)
     }
 
     fun updateUser(userDto: UserDto): UserDto {
@@ -145,6 +154,11 @@ class UserBl @Autowired constructor(
             .update(user)
         logger.info("User info updated")
 
+        // Update user info in database
+        kcUserEntity.firstName = user.firstName
+        kcUserEntity.lastName = user.lastName
+        kcUserRepository.save(kcUserEntity)
+
         return UserDto(
             companyIds = findUserCompanies(kcUuid),
             firstName = user.firstName,
@@ -172,15 +186,20 @@ class UserBl @Autowired constructor(
         val username = KeycloakSecurityContextHolder.getUsername() ?: throw UasException("403-03")
 
         // Check if current password is correct
-        val keycloakUser: Keycloak = KeycloakBuilder.builder()
-            .grantType(OAuth2Constants.PASSWORD)
-            .serverUrl(authUrl)
-            .realm(realm)
-            .clientId(frontendClientId)
-            .username(username)
-            .password(passwordUpdateDto.currentPassword)
-            .build()
-        keycloakUser.tokenManager().accessToken
+        try {
+            val keycloakUser: Keycloak = KeycloakBuilder.builder()
+                .grantType(OAuth2Constants.PASSWORD)
+                .serverUrl(authUrl)
+                .realm(realm)
+                .clientId(frontendClientId)
+                .username(username)
+                .password(passwordUpdateDto.currentPassword)
+                .build()
+            keycloakUser.tokenManager().accessToken
+        } catch (e: Exception) {
+            throw UasException("400-05")
+        }
+
         logger.info("Current password is correct")
 
         // Update password in keycloak
@@ -223,9 +242,13 @@ class UserBl @Autowired constructor(
             throw UasException("400-01")
         }
 
+
         // Storage of the user id in the database
         val kcUserEntity = KcUser()
         kcUserEntity.kcUuid = response.location.path.split("/").last()
+        kcUserEntity.firstName = newUserDto.firstName
+        kcUserEntity.lastName = newUserDto.lastName
+        kcUserEntity.email = newUserDto.email
         kcUserEntity.s3ProfilePicture = 1 // Default profile picture
         kcUserRepository.save(kcUserEntity)
         logger.info("Accountant created")
@@ -267,6 +290,9 @@ class UserBl @Autowired constructor(
         // Storage of the user id in the database
         val kcUserEntity = KcUser()
         kcUserEntity.kcUuid = response.location.path.split("/").last()
+        kcUserEntity.firstName = newUserDto.firstName
+        kcUserEntity.lastName = newUserDto.lastName
+        kcUserEntity.email = newUserDto.email
         kcUserEntity.s3ProfilePicture = 1 // Default profile picture
         kcUserRepository.save(kcUserEntity)
         logger.info("Accounting assistant created")
@@ -315,6 +341,9 @@ class UserBl @Autowired constructor(
         // Storage of the user id in the database
         val kcUserEntity = KcUser()
         kcUserEntity.kcUuid = response.location.path.split("/").last()
+        kcUserEntity.firstName = newUserDto.firstName
+        kcUserEntity.lastName = newUserDto.lastName
+        kcUserEntity.email = newUserDto.email
         kcUserEntity.s3ProfilePicture = 1
         kcUserRepository.save(kcUserEntity)
         logger.info("Client created")
@@ -323,7 +352,7 @@ class UserBl @Autowired constructor(
         val kcUserCompany = KcUserCompany()
         kcUserCompany.kcUser = kcUserEntity
         kcUserCompany.company = companyEntity
-        kcUserCompany.kcGroupId = kcGroupRepository.findByGroupNameAndStatusIsTrue("Asistente contable")!!.kcGroupId
+        kcUserCompany.kcGroupId = kcGroupRepository.findByGroupNameAndStatusIsTrue("Cliente")!!.kcGroupId
         kcUserCompanyRepository.save(kcUserCompany)
     }
 

@@ -25,6 +25,9 @@ class Subaccount {
     @Column(name = "subaccount_name")
     var subaccountName: String = ""
 
+    @Column(name = "is_editable")
+    var isEditable: Boolean = true
+
     @Column(name = "status")
     var status: Boolean = true
 

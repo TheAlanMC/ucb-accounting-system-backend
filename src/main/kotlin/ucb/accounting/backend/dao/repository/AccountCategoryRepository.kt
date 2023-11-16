@@ -8,5 +8,8 @@ import ucb.accounting.backend.dao.AccountCategory
 interface AccountCategoryRepository: JpaRepository<AccountCategory, Long> {
 
     fun findByAccountCategoryIdAndStatusIsTrue (accountCategoryId: Long): AccountCategory?
-    fun findAllByStatusIsTrue (): List<AccountCategory>
+    fun findAllByStatusIsTrueOrderByAccountCategoryIdAsc (): List<AccountCategory>
+
+    fun findByAccountCategoryNameAndStatusIsTrue (accountCategoryName: String): AccountCategory?
+
 }
