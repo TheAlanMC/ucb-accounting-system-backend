@@ -15,5 +15,7 @@ interface KcUserCompanyRepository: PagingAndSortingRepository<KcUserCompany, Lon
     fun findAllByCompany_CompanyIdAndStatusIsTrue (companyId: Long, pageable: Pageable): Page<KcUserCompany>
     fun findAll (specification: Specification<KcUserCompany>, pageable: Pageable): Page<KcUserCompany>
 
+    fun findByKcUser_KcUuidAndCompany_CompanyIdAndStatusIsTrue (kcUuid: String, companyId: Long): KcUserCompany?
+
 
 }

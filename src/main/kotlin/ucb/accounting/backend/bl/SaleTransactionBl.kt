@@ -94,6 +94,9 @@ class SaleTransactionBl @Autowired constructor(
             ?: throw UasException("403-33")
         logger.info("User $kcUuid is registering a new sale transaction")
 
+        // Getting keycloak group
+        val keycloakGroup = kcUserCompanyRepository.findByKcUser_KcUuidAndCompany_CompanyIdAndStatusIsTrue(kcUuid, companyId)?.kcGroup?.groupName
+
         // Creating journal entry
         logger.info("Saving journal entry")
         val journalEntryEntity = JournalEntry()
@@ -102,6 +105,7 @@ class SaleTransactionBl @Autowired constructor(
             documentTypeRepository.findByDocumentTypeNameAndStatusIsTrue("Ingreso")!!.documentTypeId.toInt()
         journalEntryEntity.journalEntryNumber = invoiceDto.invoiceNumber
         journalEntryEntity.gloss = invoiceDto.gloss
+        journalEntryEntity.journalEntryAccepted = keycloakGroup == "Contador"
         val savedJournalEntry = journalEntryRepository.save(journalEntryEntity)
 
         logger.info("Saving sale transaction")
@@ -205,6 +209,7 @@ class SaleTransactionBl @Autowired constructor(
         saleTransactionEntity.saleTransactionDate = invoiceDto.invoiceDate
         saleTransactionEntity.description = invoiceDto.description
         saleTransactionEntity.gloss = invoiceDto.gloss
+        saleTransactionEntity.saleTransactionAccepted = keycloakGroup == "Contador"
         val savedSaleTransaction = saleTransactionRepository.save(saleTransactionEntity)
 
         logger.info("Saving sale transaction details")
@@ -319,6 +324,9 @@ class SaleTransactionBl @Autowired constructor(
             ?: throw UasException("403-33")
         logger.info("User $kcUuid is registering a new sale transaction")
 
+        // Getting keycloak group
+        val keycloakGroup = kcUserCompanyRepository.findByKcUser_KcUuidAndCompany_CompanyIdAndStatusIsTrue(kcUuid, companyId)?.kcGroup?.groupName
+
         // Creating journal entry
         logger.info("Saving journal entry")
         val journalEntryEntity = JournalEntry()
@@ -327,6 +335,7 @@ class SaleTransactionBl @Autowired constructor(
             documentTypeRepository.findByDocumentTypeNameAndStatusIsTrue("Ingreso")!!.documentTypeId.toInt()
         journalEntryEntity.journalEntryNumber = paymentDto.paymentNumber
         journalEntryEntity.gloss = paymentDto.gloss
+        journalEntryEntity.journalEntryAccepted = keycloakGroup == "Contador"
         val savedJournalEntry = journalEntryRepository.save(journalEntryEntity)
 
         logger.info("Saving sale transaction")
@@ -378,6 +387,7 @@ class SaleTransactionBl @Autowired constructor(
         saleTransactionEntity.saleTransactionDate = paymentDto.paymentDate
         saleTransactionEntity.description = paymentDto.description
         saleTransactionEntity.gloss = paymentDto.gloss
+        saleTransactionEntity.saleTransactionAccepted = keycloakGroup == "Contador"
         val savedSaleTransaction = saleTransactionRepository.save(saleTransactionEntity)
 
         logger.info("Saving sale transaction detail")
