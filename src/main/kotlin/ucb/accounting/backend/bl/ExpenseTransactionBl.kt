@@ -94,6 +94,8 @@ class ExpenseTransactionBl @Autowired constructor(
             ?: throw UasException("403-34")
         logger.info("User $kcUuid is registering a new expense transaction")
 
+        // Getting keycloak group
+        val keycloakGroup = kcUserCompanyRepository.findByKcUser_KcUuidAndCompany_CompanyIdAndStatusIsTrue(kcUuid, companyId)?.kcGroup?.groupName
         // Creating journal entry
         logger.info("Saving journal entry")
         val journalEntryEntity = JournalEntry()
@@ -102,6 +104,7 @@ class ExpenseTransactionBl @Autowired constructor(
             documentTypeRepository.findByDocumentTypeNameAndStatusIsTrue("Egreso")!!.documentTypeId.toInt()
         journalEntryEntity.journalEntryNumber = invoiceDto.invoiceNumber
         journalEntryEntity.gloss = invoiceDto.gloss
+        journalEntryEntity.journalEntryAccepted = keycloakGroup == "Contador"
         val savedJournalEntry = journalEntryRepository.save(journalEntryEntity)
 
         logger.info("Saving expense transaction")
@@ -186,6 +189,7 @@ class ExpenseTransactionBl @Autowired constructor(
         expenseTransactionEntity.expenseTransactionDate = invoiceDto.invoiceDate
         expenseTransactionEntity.description = invoiceDto.description
         expenseTransactionEntity.gloss = invoiceDto.gloss
+        expenseTransactionEntity.expenseTransactionAccepted = keycloakGroup == "Contador"
         val savedExpenseTransaction = expenseTransactionRepository.save(expenseTransactionEntity)
 
         logger.info("Saving expense transaction details")
@@ -299,6 +303,9 @@ class ExpenseTransactionBl @Autowired constructor(
             ?: throw UasException("403-33")
         logger.info("User $kcUuid is registering a new expense transaction")
 
+        // Getting keycloak group
+        val keycloakGroup = kcUserCompanyRepository.findByKcUser_KcUuidAndCompany_CompanyIdAndStatusIsTrue(kcUuid, companyId)?.kcGroup?.groupName
+
         // Creating journal entry
         logger.info("Saving journal entry")
         val journalEntryEntity = JournalEntry()
@@ -307,6 +314,7 @@ class ExpenseTransactionBl @Autowired constructor(
             documentTypeRepository.findByDocumentTypeNameAndStatusIsTrue("Egreso")!!.documentTypeId.toInt()
         journalEntryEntity.journalEntryNumber = paymentDto.paymentNumber
         journalEntryEntity.gloss = paymentDto.gloss
+        journalEntryEntity.journalEntryAccepted = keycloakGroup == "Contador"
         val savedJournalEntry = journalEntryRepository.save(journalEntryEntity)
 
         logger.info("Saving expense transaction")
@@ -359,6 +367,7 @@ class ExpenseTransactionBl @Autowired constructor(
         expenseTransactionEntity.expenseTransactionDate = paymentDto.paymentDate
         expenseTransactionEntity.description = paymentDto.description
         expenseTransactionEntity.gloss = paymentDto.gloss
+        expenseTransactionEntity.expenseTransactionAccepted = keycloakGroup == "Contador"
         val savedExpenseTransaction = expenseTransactionRepository.save(expenseTransactionEntity)
 
         logger.info("Saving expense transaction detail")
